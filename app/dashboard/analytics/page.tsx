@@ -38,18 +38,35 @@ export default function AnalyticsPage() {
 
   if (!data) return null;
 
-  const { summary, topLinks } = data;
+  // Dynamic Chart data computed from actual email activity
+  const last7Days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return d;
+  });
 
-  // Chart data per date range
-  const dailyData = [
-    { date: 'Sep 01', sent: 10, opens: 8, clicks: 4, openRate: 80, clickRate: 40 },
-    { date: 'Sep 02', sent: 15, opens: 12, clicks: 7, openRate: 80, clickRate: 47 },
-    { date: 'Sep 03', sent: 22, opens: 18, clicks: 11, openRate: 81, clickRate: 50 },
-    { date: 'Sep 04', sent: 18, opens: 14, clicks: 8, openRate: 77, clickRate: 44 },
-    { date: 'Sep 05', sent: 25, opens: 20, clicks: 14, openRate: 80, clickRate: 56 },
-    { date: 'Sep 06', sent: 12, opens: 9, clicks: 5, openRate: 75, clickRate: 41 },
-    { date: 'Sep 07', sent: 30, opens: 24, clicks: 18, openRate: 80, clickRate: 60 },
-  ];
+  const dailyData = last7Days.map(d => {
+    const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
+    const dayEmails = (data.emails || []).filter((e: any) => {
+      const emDate = new Date(e.sent_at);
+      return emDate.toDateString() === d.toDateString();
+    });
+
+    const sent = dayEmails.length;
+    const opens = dayEmails.reduce((sum: number, e: any) => sum + (e.open_count || 0), 0);
+    const clicks = dayEmails.reduce((sum: number, e: any) => sum + (e.click_count || 0), 0);
+    const openRate = sent > 0 ? Math.round((opens / sent) * 100) : 0;
+    const clickRate = sent > 0 ? Math.round((clicks / sent) * 100) : 0;
+
+    return {
+      date: dateStr,
+      sent,
+      opens,
+      clicks,
+      openRate,
+      clickRate,
+    };
+  });
 
   return (
     <div className="space-y-6">

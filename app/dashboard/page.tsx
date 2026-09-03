@@ -57,16 +57,36 @@ export default function DashboardPage() {
 
   const { summary, activity, topLinks } = data;
 
-  // Chart data for daily activity
-  const chartData = [
-    { name: 'Mon', sent: 12, opens: 8, clicks: 5 },
-    { name: 'Tue', sent: 18, opens: 14, clicks: 9 },
-    { name: 'Wed', sent: 15, opens: 11, clicks: 6 },
-    { name: 'Thu', sent: 22, opens: 17, clicks: 12 },
-    { name: 'Fri', sent: 30, opens: 24, clicks: 16 },
-    { name: 'Sat', sent: 8, opens: 5, clicks: 2 },
-    { name: 'Sun', sent: 5, opens: 4, clicks: 3 },
-  ];
+  // Dynamic chart data calculated from actual email activity
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const dayCounts: Record<string, { sent: number; opens: number; clicks: number }> = {
+    Mon: { sent: 0, opens: 0, clicks: 0 },
+    Tue: { sent: 0, opens: 0, clicks: 0 },
+    Wed: { sent: 0, opens: 0, clicks: 0 },
+    Thu: { sent: 0, opens: 0, clicks: 0 },
+    Fri: { sent: 0, opens: 0, clicks: 0 },
+    Sat: { sent: 0, opens: 0, clicks: 0 },
+    Sun: { sent: 0, opens: 0, clicks: 0 },
+  };
+
+  if (data.emails && data.emails.length > 0) {
+    data.emails.forEach((em: any) => {
+      const d = new Date(em.sent_at);
+      const day = dayNames[d.getDay()];
+      if (dayCounts[day]) {
+        dayCounts[day].sent += 1;
+        dayCounts[day].opens += (em.open_count || 0);
+        dayCounts[day].clicks += (em.click_count || 0);
+      }
+    });
+  }
+
+  const chartData = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(name => ({
+    name,
+    sent: dayCounts[name].sent,
+    opens: dayCounts[name].opens,
+    clicks: dayCounts[name].clicks,
+  }));
 
   return (
     <div className="space-y-6">
