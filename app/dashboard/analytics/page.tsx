@@ -38,6 +38,8 @@ export default function AnalyticsPage() {
 
   if (!data) return null;
 
+  const { summary, topLinks } = data;
+
   // Dynamic Chart data computed from actual email activity
   const last7Days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
