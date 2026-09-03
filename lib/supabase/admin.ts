@@ -432,11 +432,16 @@ export async function getDashboardData(projectId: string = DEMO_PROJECT.id) {
   }
 
   // Supabase Mode
-  const { data: emails } = await supabaseAdmin
+  let emailQuery = supabaseAdmin
     .from('emails')
     .select('*')
-    .eq('project_id', projectId)
     .order('created_at', { ascending: false });
+
+  if (projectId && projectId !== 'all' && projectId !== DEMO_PROJECT.id) {
+    emailQuery = emailQuery.eq('project_id', projectId);
+  }
+
+  const { data: emails } = await emailQuery;
 
   const emailList: Email[] = emails || [];
   const totalEmails = emailList.length;

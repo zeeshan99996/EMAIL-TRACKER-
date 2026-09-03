@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/header';
-import { getDashboardData } from '@/lib/supabase/admin';
 import { DEMO_PROJECT } from '@/lib/demo-store';
 import {
   Calendar,
@@ -31,9 +30,14 @@ export default function AnalyticsPage() {
   const [data, setData] = useState<any>(null);
 
   useEffect(() => {
-    getDashboardData(DEMO_PROJECT.id).then(res => {
-      setData(res);
-    });
+    fetch('/api/v1/dashboard', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(res => {
+        if (res && res.summary) {
+          setData(res);
+        }
+      })
+      .catch(console.error);
   }, [dateRange]);
 
   if (!data) return null;

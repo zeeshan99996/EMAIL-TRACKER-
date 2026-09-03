@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/header';
-import { getDashboardData } from '@/lib/supabase/admin';
 import { DEMO_PROJECT } from '@/lib/demo-store';
 import { Email } from '@/lib/types';
 import {
@@ -25,9 +24,14 @@ export default function EmailsPage() {
   const itemsPerPage = 10;
 
   useEffect(() => {
-    getDashboardData(DEMO_PROJECT.id).then(res => {
-      setEmails(res.emails);
-    });
+    fetch('/api/v1/dashboard', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(res => {
+        if (res && res.emails) {
+          setEmails(res.emails);
+        }
+      })
+      .catch(console.error);
   }, []);
 
   const filteredEmails = emails.filter(email => {

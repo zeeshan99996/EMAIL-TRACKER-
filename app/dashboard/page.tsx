@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/header';
-import { getDashboardData } from '@/lib/supabase/admin';
 import { DEMO_PROJECT } from '@/lib/demo-store';
 import {
   Mail,
@@ -32,11 +31,26 @@ export default function DashboardPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  const loadData = () => {
+    fetch('/api/v1/dashboard', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(res => {
+        if (res && res.summary) {
+          setData(res);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load dashboard:', err);
+        setLoading(false);
+      });
+  };
+
   useEffect(() => {
-    getDashboardData(DEMO_PROJECT.id).then(res => {
-      setData(res);
-      setLoading(false);
-    });
+    loadData();
+    // Auto-refresh every 10 seconds for real-time live tracking
+    const interval = setInterval(loadData, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   if (loading || !data) {
