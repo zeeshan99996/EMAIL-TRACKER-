@@ -10,8 +10,8 @@
  */
 
 // 1. Configuration
-const API_KEY = "ek_live_demo123456789"; // Replace with your generated key
-const API_URL = "http://localhost:3000/api/v1/emails"; // For production, use your deployed Vercel domain (https://your-domain.com/api/v1/emails)
+const API_KEY = "ek_live_demo123456789"; // Generated API Key
+const API_URL = "https://email-tracker-teal-phi.vercel.app/api/v1/emails"; // Live Vercel Domain
 
 /**
  * Sends an email from your Gmail account with tracking pixel & tracked links.

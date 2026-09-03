@@ -15,7 +15,7 @@ export const DEMO_API_KEYS: ApiKey[] = [
     id: 'key_demo_01',
     project_id: DEMO_PROJECT.id,
     name: 'Apps Script Outbound Key',
-    key_hash: '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', // SHA256 of ek_live_demo123456789
+    key_hash: '5af62ee581a710f47f714347ef0cc6ca1c6700008feba75991506fbdea07a123', // SHA256 of ek_live_demo123456789
     key_prefix: 'ek_live_demo1...',
     last_used_at: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
     created_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
