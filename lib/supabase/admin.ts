@@ -900,3 +900,29 @@ export async function deleteEmail(emailId: string): Promise<boolean> {
   return true;
 }
 
+/**
+ * Retrieves all tracked emails.
+ */
+export async function getEmails(projectId?: string): Promise<Email[]> {
+  if (isDemoMode) {
+    return getStoreEmails(projectId);
+  }
+
+  let emailQuery = supabaseAdmin
+    .from('emails')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (projectId && projectId !== 'all' && projectId !== DEFAULT_PROJECT.id) {
+    emailQuery = emailQuery.eq('project_id', projectId);
+  }
+
+  const { data, error } = await emailQuery;
+  if (error) {
+    console.error('Error fetching emails from Supabase:', error);
+    return [];
+  }
+  return data || [];
+}
+
+

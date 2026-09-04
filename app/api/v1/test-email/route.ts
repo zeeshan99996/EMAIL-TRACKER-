@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createTrackedEmail } from '@/lib/supabase/admin';
 import { DEFAULT_PROJECT } from '@/lib/store';
 import { registerSenderIp } from '@/lib/security/sender-filter';
+import { verifyEmail } from '@/lib/verification/email-verifier';
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,6 +10,14 @@ export async function POST(req: NextRequest) {
     if (!body || !body.to || !body.subject || !body.html) {
       return NextResponse.json(
         { success: false, error: 'Recipient email, subject, and HTML are required.' },
+        { status: 400 }
+      );
+    }
+
+    const verification = await verifyEmail(body.to);
+    if (!verification.isValid || !verification.isDeliverable || verification.isDisposable) {
+      return NextResponse.json(
+        { success: false, error: `Recipient rejected: ${verification.reason}` },
         { status: 400 }
       );
     }

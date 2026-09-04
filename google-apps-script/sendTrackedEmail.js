@@ -81,6 +81,14 @@ ERHA Technologies`;
     const responseText = response.getContentText();
 
     if (responseCode !== 201 && responseCode !== 200) {
+      try {
+        const errJson = JSON.parse(responseText);
+        if (errJson.error && errJson.error.code === 'INVALID_RECIPIENT_EMAIL') {
+          Logger.log("🛡️ BLOCKED FAKE/SPAM RECIPIENT: " + errJson.error.message);
+          Logger.log("⚠️ Skipped sending email to protect your Gmail account and domain from spam blacklists.");
+          return;
+        }
+      } catch (e) {}
       Logger.log("ERROR (" + responseCode + "): " + responseText);
       return;
     }
@@ -134,14 +142,28 @@ function sendBulkTrackedEmailsFromSheet() {
       muteHttpExceptions: true
     });
 
-    if (response.getResponseCode() === 201 || response.getResponseCode() === 200) {
-      const resData = JSON.parse(response.getContentText());
+    const statusCode = response.getResponseCode();
+    const responseBody = response.getContentText();
+
+    if (statusCode === 201 || statusCode === 200) {
+      const resData = JSON.parse(responseBody);
       // 2. Send via GmailApp with plain text fallback
       GmailApp.sendEmail(email, subject, plainText, {
         htmlBody: resData.trackedHtml,
         name: "ERHA Technologies"
       });
       Logger.log("Sent tracked email to " + email);
+    } else {
+      try {
+        const errJson = JSON.parse(responseBody);
+        if (errJson.error && errJson.error.code === 'INVALID_RECIPIENT_EMAIL') {
+          Logger.log("🛡️ Skipped fake/disposable email: " + email + " (" + errJson.error.message + ")");
+        } else {
+          Logger.log("Failed to register email " + email + ": " + responseBody);
+        }
+      } catch (e) {
+        Logger.log("Failed to register email " + email + ": " + responseBody);
+      }
     }
     
     // Pause briefly to respect Gmail rate limits

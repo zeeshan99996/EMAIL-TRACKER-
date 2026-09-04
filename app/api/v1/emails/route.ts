@@ -3,6 +3,7 @@ import { validateApiKey, createTrackedEmail } from '@/lib/supabase/admin';
 import { checkRateLimit } from '@/lib/security/rate-limit';
 import { createEmailSchema } from '@/lib/validation/email-schema';
 import { registerSenderIp } from '@/lib/security/sender-filter';
+import { verifyEmail } from '@/lib/verification/email-verifier';
 
 export async function POST(req: NextRequest) {
   try {
@@ -88,7 +89,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 5. Determine Base App URL & Register Sender IP
+    // 5. Email Verification & Spam/Fake Recipient Protection
+    const verification = await verifyEmail(parseResult.data.to);
+    if (!verification.isValid || !verification.isDeliverable || verification.isDisposable) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'INVALID_RECIPIENT_EMAIL',
+            message: `Recipient email rejected: ${verification.reason}`,
+            details: verification,
+          },
+        },
+        { status: 400 }
+      );
+    }
+
+    // 6. Determine Base App URL & Register Sender IP
     const clientIp =
       req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
       req.headers.get('x-real-ip') ||

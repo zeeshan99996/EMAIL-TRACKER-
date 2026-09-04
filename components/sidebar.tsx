@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   Mail,
+  ShieldCheck,
   BarChart3,
   FolderKanban,
   Key,
@@ -20,6 +21,7 @@ import { ProjectSelector } from './project-selector';
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Emails', href: '/dashboard/emails', icon: Mail },
+  { name: 'Email Verifier', href: '/dashboard/verifier', icon: ShieldCheck },
   { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
   { name: 'Projects', href: '/dashboard/projects', icon: FolderKanban },
   { name: 'API Keys', href: '/dashboard/api-keys', icon: Key },
