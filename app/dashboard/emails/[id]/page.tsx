@@ -2,8 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { DEMO_EMAILS, DEMO_EMAIL_EVENTS, DEMO_EMAIL_LINKS } from '@/lib/demo-store';
-import { recordOpenEvent, recordClickEvent } from '@/lib/supabase/admin';
 import { Email, EmailEvent, EmailLink } from '@/lib/types';
 import {
   ArrowLeft,
@@ -14,7 +12,6 @@ import {
   Code2,
   ListOrdered,
   Activity,
-  Zap,
   Play,
   CheckCircle2,
   RefreshCw,
@@ -25,18 +22,26 @@ export default function EmailDetailsPage({ params }: { params: { id: string } })
   const [events, setEvents] = useState<EmailEvent[]>([]);
   const [links, setLinks] = useState<EmailLink[]>([]);
   const [activeTab, setActiveTab] = useState<'timeline' | 'links' | 'html'>('timeline');
+  const [loading, setLoading] = useState(true);
   const [simulating, setSimulating] = useState(false);
   const [simMessage, setSimMessage] = useState('');
 
   const loadData = () => {
-    const foundEmail = DEMO_EMAILS.find(e => e.id === params.id) || DEMO_EMAILS[0];
-    setEmail({ ...foundEmail });
-
-    const relatedEvents = DEMO_EMAIL_EVENTS.filter(e => e.email_id === foundEmail.id);
-    setEvents([...relatedEvents]);
-
-    const relatedLinks = DEMO_EMAIL_LINKS.filter(l => l.email_id === foundEmail.id);
-    setLinks([...relatedLinks]);
+    setLoading(true);
+    fetch(`/api/v1/emails/${params.id}`, { cache: 'no-store' })
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.email) {
+          setEmail(data.email);
+          setEvents(data.events || []);
+          setLinks(data.links || []);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load email details:', err);
+        setLoading(false);
+      });
   };
 
   useEffect(() => {
@@ -48,40 +53,90 @@ export default function EmailDetailsPage({ params }: { params: { id: string } })
     setSimulating(true);
     setSimMessage('');
 
-    await recordOpenEvent(
-      email.tracking_id,
-      '192.168.1.100',
-      'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)',
-      'https://mail.google.com/'
-    );
-
-    setSimulating(false);
-    setSimMessage('Simulated recipient open! 1x1 pixel loaded.');
-    loadData();
-
-    setTimeout(() => setSimMessage(''), 3000);
+    try {
+      // Trigger live tracking pixel endpoint on server
+      await fetch(`/t/open/${email.tracking_id}`, { cache: 'no-store' });
+      setSimulating(false);
+      setSimMessage('Simulated recipient open! 1x1 tracking pixel loaded and logged.');
+      loadData();
+      setTimeout(() => setSimMessage(''), 4000);
+    } catch (err: any) {
+      setSimulating(false);
+      alert('Error simulating open: ' + err.message);
+    }
   };
 
-  const handleSimulateClick = async (linkId: string) => {
+  const handleSimulateClick = async (linkId: string, originalUrl: string) => {
     if (!email) return;
     setSimulating(true);
     setSimMessage('');
 
-    const targetUrl = await recordClickEvent(
-      email.tracking_id,
-      linkId,
-      '192.168.1.100',
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-    );
+    try {
+      // Open click tracking endpoint in new window or fetch redirect
+      const clickUrl = `/t/click/${email.tracking_id}/${linkId}`;
+      window.open(clickUrl, '_blank');
 
-    setSimulating(false);
-    setSimMessage(`Simulated click! Redirected to ${targetUrl}`);
-    loadData();
-
-    setTimeout(() => setSimMessage(''), 3000);
+      setSimulating(false);
+      setSimMessage(`Simulated click! Redirecting to ${originalUrl}`);
+      // Refresh after short delay to reflect updated counters
+      setTimeout(() => {
+        loadData();
+        setSimMessage('');
+      }, 1500);
+    } catch (err: any) {
+      setSimulating(false);
+      alert('Error simulating click: ' + err.message);
+    }
   };
 
-  if (!email) return null;
+  if (loading && !email) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-3">
+          <Link
+            href="/dashboard/emails"
+            className="p-2 bg-white border border-slate-200 rounded-lg text-slate-600 hover:text-slate-900 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+          <h1 className="text-base sm:text-lg font-bold text-slate-900">Loading email details...</h1>
+        </div>
+        <div className="animate-pulse space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="h-28 bg-slate-200 rounded-xl"></div>
+            ))}
+          </div>
+          <div className="h-72 bg-slate-200 rounded-xl"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!email) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-3">
+          <Link
+            href="/dashboard/emails"
+            className="p-2 bg-white border border-slate-200 rounded-lg text-slate-600 hover:text-slate-900 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+          <h1 className="text-base sm:text-lg font-bold text-slate-900">Email Not Found</h1>
+        </div>
+        <div className="p-8 bg-white border border-slate-200 rounded-xl text-center">
+          <p className="text-sm text-slate-600">The requested tracked email could not be found.</p>
+          <Link
+            href="/dashboard/emails"
+            className="inline-block mt-4 px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg"
+          >
+            Back to Emails
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -104,6 +159,13 @@ export default function EmailDetailsPage({ params }: { params: { id: string } })
 
         {/* Live Simulation Controls */}
         <div className="flex items-center space-x-2 shrink-0">
+          <button
+            onClick={loadData}
+            title="Refresh Data"
+            className="p-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+          </button>
           <button
             onClick={handleSimulateOpen}
             disabled={simulating}
@@ -222,45 +284,49 @@ export default function EmailDetailsPage({ params }: { params: { id: string } })
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
                 Chronological Event History
               </h3>
-              <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
-                {events.map((evt) => {
-                  let badge = <Send className="w-4 h-4 text-blue-600" />;
-                  let title = 'Email Sent';
-                  let desc = `Ingested & delivered via REST API to ${email.recipient_email}`;
+              {events.length === 0 ? (
+                <p className="text-xs text-slate-500 italic py-4">No events logged yet for this email.</p>
+              ) : (
+                <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+                  {events.map((evt) => {
+                    let badge = <Send className="w-4 h-4 text-blue-600" />;
+                    let title = 'Email Sent';
+                    let desc = `Ingested & delivered via REST API to ${email.recipient_email}`;
 
-                  if (evt.event_type === 'OPEN') {
-                    badge = <Eye className="w-4 h-4 text-indigo-600" />;
-                    title = 'Email Opened';
-                    desc = `1x1 Tracking Pixel loaded. IP: ${evt.ip_address || 'Anonymized'}`;
-                  } else if (evt.event_type === 'CLICK') {
-                    badge = <MousePointerClick className="w-4 h-4 text-emerald-600" />;
-                    title = `Link Clicked: "${evt.metadata?.label || 'Tracked Link'}"`;
-                    desc = `Redirected recipient to original target URL. IP: ${evt.ip_address || 'Anonymized'}`;
-                  }
+                    if (evt.event_type === 'OPEN') {
+                      badge = <Eye className="w-4 h-4 text-indigo-600" />;
+                      title = 'Email Opened';
+                      desc = `1x1 Tracking Pixel loaded. IP: ${evt.ip_address || 'Anonymized'}`;
+                    } else if (evt.event_type === 'CLICK') {
+                      badge = <MousePointerClick className="w-4 h-4 text-emerald-600" />;
+                      title = `Link Clicked: "${evt.metadata?.label || 'Tracked Link'}"`;
+                      desc = `Redirected recipient to original target URL. IP: ${evt.ip_address || 'Anonymized'}`;
+                    }
 
-                  return (
-                    <div key={evt.id} className="relative flex items-start space-x-3">
-                      <div className="absolute -left-6 top-0 w-5 h-5 rounded-full bg-white border-2 border-slate-300 flex items-center justify-center shrink-0">
-                        {badge}
-                      </div>
-                      <div className="bg-slate-50 p-3.5 rounded-lg border border-slate-200/80 flex-1">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                          <h4 className="text-xs font-bold text-slate-900">{title}</h4>
-                          <span className="text-[11px] font-medium text-slate-400">
-                            {new Date(evt.occurred_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {new Date(evt.occurred_at).toLocaleDateString()}
-                          </span>
+                    return (
+                      <div key={evt.id} className="relative flex items-start space-x-3">
+                        <div className="absolute -left-6 top-0 w-5 h-5 rounded-full bg-white border-2 border-slate-300 flex items-center justify-center shrink-0">
+                          {badge}
                         </div>
-                        <p className="text-xs text-slate-600 mt-1">{desc}</p>
-                        {evt.user_agent && (
-                          <p className="text-[10px] text-slate-400 mt-1 font-mono truncate">
-                            UA: {evt.user_agent}
-                          </p>
-                        )}
+                        <div className="bg-slate-50 p-3.5 rounded-lg border border-slate-200/80 flex-1">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                            <h4 className="text-xs font-bold text-slate-900">{title}</h4>
+                            <span className="text-[11px] font-medium text-slate-400">
+                              {new Date(evt.occurred_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {new Date(evt.occurred_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-600 mt-1">{desc}</p>
+                          {evt.user_agent && (
+                            <p className="text-[10px] text-slate-400 mt-1 font-mono truncate">
+                              UA: {evt.user_agent}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
@@ -280,7 +346,7 @@ export default function EmailDetailsPage({ params }: { params: { id: string } })
                       </span>
                       <p className="text-xs font-semibold text-slate-900 truncate">{link.original_url}</p>
                       <p className="text-[11px] text-slate-400 font-mono truncate">
-                        http://localhost:3000/t/click/{email.tracking_id}/{link.id}
+                        /t/click/{email.tracking_id}/{link.id}
                       </p>
                     </div>
                     <div className="flex items-center space-x-3 shrink-0">
@@ -289,7 +355,7 @@ export default function EmailDetailsPage({ params }: { params: { id: string } })
                         <p className="text-[10px] text-slate-500 font-medium">Clicks</p>
                       </div>
                       <button
-                        onClick={() => handleSimulateClick(link.id)}
+                        onClick={() => handleSimulateClick(link.id, link.original_url)}
                         className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-semibold flex items-center space-x-1"
                       >
                         <Play className="w-3 h-3 fill-current" />

@@ -1,21 +1,39 @@
 -- Initial Schema Migration for Email Tracking & Analytics Platform
--- Created at: 2026-09-03
+-- Clean, idempotent migration supporting both UUID and String IDs
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 1. ACCOUNTS
-CREATE TABLE IF NOT EXISTS accounts (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+-- 1. DROP EXISTING TRIGGERS & FUNCTIONS TO PREVENT TYPE CONFLICTS
+DROP TRIGGER IF EXISTS update_accounts_updated_at ON accounts;
+DROP TRIGGER IF EXISTS update_profiles_updated_at ON profiles;
+DROP TRIGGER IF EXISTS update_projects_updated_at ON projects;
+DROP TRIGGER IF EXISTS update_emails_updated_at ON emails;
+
+DROP FUNCTION IF EXISTS get_user_account_id() CASCADE;
+DROP FUNCTION IF EXISTS update_updated_at_column() CASCADE;
+
+-- 2. DROP EXISTING TABLES IF RE-INITIALIZING SCHEMA
+DROP TABLE IF EXISTS email_events CASCADE;
+DROP TABLE IF EXISTS email_links CASCADE;
+DROP TABLE IF EXISTS emails CASCADE;
+DROP TABLE IF EXISTS api_keys CASCADE;
+DROP TABLE IF EXISTS projects CASCADE;
+DROP TABLE IF EXISTS profiles CASCADE;
+DROP TABLE IF EXISTS accounts CASCADE;
+
+-- 3. ACCOUNTS
+CREATE TABLE accounts (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     name TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT now() NOT NULL
 );
 
--- 2. PROFILES
-CREATE TABLE IF NOT EXISTS profiles (
+-- 4. PROFILES
+CREATE TABLE profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    account_id UUID REFERENCES accounts(id) ON DELETE CASCADE NOT NULL,
+    account_id TEXT REFERENCES accounts(id) ON DELETE CASCADE NOT NULL,
     full_name TEXT,
     email TEXT NOT NULL,
     avatar_url TEXT,
@@ -23,20 +41,20 @@ CREATE TABLE IF NOT EXISTS profiles (
     updated_at TIMESTAMPTZ DEFAULT now() NOT NULL
 );
 
--- 3. PROJECTS
-CREATE TABLE IF NOT EXISTS projects (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    account_id UUID REFERENCES accounts(id) ON DELETE CASCADE NOT NULL,
+-- 5. PROJECTS
+CREATE TABLE projects (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+    account_id TEXT REFERENCES accounts(id) ON DELETE CASCADE NOT NULL,
     name TEXT NOT NULL,
     description TEXT,
     created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT now() NOT NULL
 );
 
--- 4. API KEYS
-CREATE TABLE IF NOT EXISTS api_keys (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    project_id UUID REFERENCES projects(id) ON DELETE CASCADE NOT NULL,
+-- 6. API KEYS
+CREATE TABLE api_keys (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+    project_id TEXT REFERENCES projects(id) ON DELETE CASCADE NOT NULL,
     name TEXT NOT NULL,
     key_hash TEXT NOT NULL UNIQUE,
     key_prefix TEXT NOT NULL,
@@ -45,10 +63,10 @@ CREATE TABLE IF NOT EXISTS api_keys (
     revoked_at TIMESTAMPTZ
 );
 
--- 5. EMAILS
-CREATE TABLE IF NOT EXISTS emails (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    project_id UUID REFERENCES projects(id) ON DELETE CASCADE NOT NULL,
+-- 7. EMAILS
+CREATE TABLE emails (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+    project_id TEXT REFERENCES projects(id) ON DELETE CASCADE NOT NULL,
     tracking_id TEXT NOT NULL UNIQUE,
     message_id TEXT,
     recipient_email TEXT NOT NULL,
@@ -66,10 +84,10 @@ CREATE TABLE IF NOT EXISTS emails (
     updated_at TIMESTAMPTZ DEFAULT now() NOT NULL
 );
 
--- 6. EMAIL LINKS
-CREATE TABLE IF NOT EXISTS email_links (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email_id UUID REFERENCES emails(id) ON DELETE CASCADE NOT NULL,
+-- 8. EMAIL LINKS (id is TEXT to support lnk_<hex> tracking identifiers)
+CREATE TABLE email_links (
+    id TEXT PRIMARY KEY,
+    email_id TEXT REFERENCES emails(id) ON DELETE CASCADE NOT NULL,
     original_url TEXT NOT NULL,
     link_label TEXT,
     link_index INTEGER NOT NULL,
@@ -79,11 +97,11 @@ CREATE TABLE IF NOT EXISTS email_links (
     created_at TIMESTAMPTZ DEFAULT now() NOT NULL
 );
 
--- 7. EMAIL EVENTS
-CREATE TABLE IF NOT EXISTS email_events (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email_id UUID REFERENCES emails(id) ON DELETE CASCADE NOT NULL,
-    link_id UUID REFERENCES email_links(id) ON DELETE CASCADE,
+-- 9. EMAIL EVENTS
+CREATE TABLE email_events (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+    email_id TEXT REFERENCES emails(id) ON DELETE CASCADE NOT NULL,
+    link_id TEXT REFERENCES email_links(id) ON DELETE CASCADE,
     event_type TEXT NOT NULL CHECK (event_type IN ('SENT', 'OPEN', 'CLICK')),
     occurred_at TIMESTAMPTZ DEFAULT now() NOT NULL,
     ip_address TEXT,
@@ -93,13 +111,13 @@ CREATE TABLE IF NOT EXISTS email_events (
 );
 
 -- INDEXES
-CREATE INDEX IF NOT EXISTS idx_emails_tracking_id ON emails(tracking_id);
-CREATE INDEX IF NOT EXISTS idx_emails_project_created ON emails(project_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_email_links_email_id ON email_links(email_id);
-CREATE INDEX IF NOT EXISTS idx_email_events_email_id ON email_events(email_id, occurred_at DESC);
-CREATE INDEX IF NOT EXISTS idx_email_events_link_id ON email_events(link_id);
-CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON api_keys(key_hash);
-CREATE INDEX IF NOT EXISTS idx_projects_account ON projects(account_id);
+CREATE INDEX idx_emails_tracking_id ON emails(tracking_id);
+CREATE INDEX idx_emails_project_created ON emails(project_id, created_at DESC);
+CREATE INDEX idx_email_links_email_id ON email_links(email_id);
+CREATE INDEX idx_email_events_email_id ON email_events(email_id, occurred_at DESC);
+CREATE INDEX idx_email_events_link_id ON email_events(link_id);
+CREATE INDEX idx_api_keys_hash ON api_keys(key_hash);
+CREATE INDEX idx_projects_account ON projects(account_id);
 
 -- ROW LEVEL SECURITY (RLS)
 ALTER TABLE accounts ENABLE ROW LEVEL SECURITY;
@@ -112,7 +130,7 @@ ALTER TABLE email_events ENABLE ROW LEVEL SECURITY;
 
 -- HELPER FUNCTION FOR CURRENT ACCOUNT
 CREATE OR REPLACE FUNCTION get_user_account_id()
-RETURNS UUID AS $$
+RETURNS TEXT AS $$
 BEGIN
   RETURN (SELECT account_id FROM profiles WHERE id = auth.uid());
 END;
@@ -194,3 +212,16 @@ CREATE TRIGGER update_accounts_updated_at BEFORE UPDATE ON accounts FOR EACH ROW
 CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 CREATE TRIGGER update_projects_updated_at BEFORE UPDATE ON projects FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 CREATE TRIGGER update_emails_updated_at BEFORE UPDATE ON emails FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
+
+-- SEED DEFAULT ACCOUNT, PROJECT & DEMO API KEY FOR INSTANT OUT-OF-THE-BOX USE
+INSERT INTO accounts (id, name)
+VALUES ('acc_demo_01', 'ERHA Technologies')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO projects (id, account_id, name, description)
+VALUES ('prj_demo_01', 'acc_demo_01', 'ERHA Technologies Outreach', 'Primary outbound sales and marketing emails')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO api_keys (id, project_id, name, key_hash, key_prefix)
+VALUES ('key_demo_01', 'prj_demo_01', 'Apps Script Outbound Key', '5af62ee581a710f47f714347ef0cc6ca1c6700008feba75991506fbdea07a123', 'ek_live_demo1...')
+ON CONFLICT (key_hash) DO NOTHING;

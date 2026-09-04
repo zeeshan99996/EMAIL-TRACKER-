@@ -1,38 +1,63 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/header';
-import { DEMO_API_KEYS } from '@/lib/demo-store';
-import { generateApiKey } from '@/lib/security/api-key';
 import { ApiKey } from '@/lib/types';
-import { Key, Plus, Copy, Check, Trash2, AlertTriangle, ShieldAlert, EyeOff } from 'lucide-react';
+import { Key, Plus, Copy, Check, Trash2, AlertTriangle, ShieldAlert } from 'lucide-react';
 
 export default function ApiKeysPage() {
-  const [keys, setKeys] = useState<ApiKey[]>(DEMO_API_KEYS);
+  const [keys, setKeys] = useState<ApiKey[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newKeyName, setNewKeyName] = useState('');
   const [generatedRawKey, setGeneratedRawKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [revokeTargetId, setRevokeTargetId] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleGenerateKey = (e: React.FormEvent) => {
+  const loadKeys = () => {
+    fetch('/api/v1/api-keys', { cache: 'no-store' })
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.keys) {
+          setKeys(data.keys);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load API keys:', err);
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    loadKeys();
+  }, []);
+
+  const handleGenerateKey = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newKeyName.trim()) return;
+    if (!newKeyName.trim() || submitting) return;
 
-    const { rawKey, keyHash, keyPrefix } = generateApiKey();
-    const newApiKeyRecord: ApiKey = {
-      id: `key_${Date.now()}`,
-      project_id: 'prj_demo_01',
-      name: newKeyName.trim(),
-      key_hash: keyHash,
-      key_prefix: keyPrefix,
-      last_used_at: null,
-      created_at: new Date().toISOString(),
-      revoked_at: null,
-    };
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/v1/api-keys', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newKeyName.trim() }),
+      });
 
-    setKeys([newApiKeyRecord, ...keys]);
-    setGeneratedRawKey(rawKey);
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Failed to create API key');
+      }
+
+      setGeneratedRawKey(data.rawKey);
+      loadKeys();
+    } catch (err: any) {
+      alert('Error creating API key: ' + err.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleCopyKey = () => {
@@ -43,13 +68,23 @@ export default function ApiKeysPage() {
     }
   };
 
-  const handleConfirmRevoke = () => {
-    if (revokeTargetId) {
-      setKeys(
-        keys.map(k =>
-          k.id === revokeTargetId ? { ...k, revoked_at: new Date().toISOString() } : k
-        )
-      );
+  const handleConfirmRevoke = async () => {
+    if (!revokeTargetId) return;
+
+    try {
+      const res = await fetch(`/api/v1/api-keys?id=${revokeTargetId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setKeys(
+          keys.map(k =>
+            k.id === revokeTargetId ? { ...k, revoked_at: new Date().toISOString() } : k
+          )
+        );
+      }
+    } catch (err) {
+      console.error('Failed to revoke API key:', err);
+    } finally {
       setRevokeTargetId(null);
     }
   };
@@ -101,48 +136,62 @@ export default function ApiKeysPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
-              {keys.map((key) => {
-                const isRevoked = !!key.revoked_at;
-                return (
-                  <tr key={key.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-slate-900 flex items-center space-x-2">
-                      <Key className="w-4 h-4 text-blue-600 shrink-0" />
-                      <span>{key.name}</span>
-                    </td>
-                    <td className="py-3.5 px-4 font-mono text-slate-600">{key.key_prefix}</td>
-                    <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">
-                      {new Date(key.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">
-                      {key.last_used_at
-                        ? new Date(key.last_used_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' (' + new Date(key.last_used_at).toLocaleDateString() + ')'
-                        : 'Never'}
-                    </td>
-                    <td className="py-3.5 px-4 text-center">
-                      {isRevoked ? (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800">
-                          Revoked
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                          Active
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      {!isRevoked && (
-                        <button
-                          onClick={() => setRevokeTargetId(key.id)}
-                          className="inline-flex items-center space-x-1 text-xs font-semibold text-rose-600 hover:text-rose-800 bg-rose-50 px-2.5 py-1 rounded-md transition-colors"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          <span>Revoke</span>
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-slate-500">
+                    Loading API keys...
+                  </td>
+                </tr>
+              ) : keys.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-slate-500">
+                    No API keys found. Generate a key to begin.
+                  </td>
+                </tr>
+              ) : (
+                keys.map((key) => {
+                  const isRevoked = !!key.revoked_at;
+                  return (
+                    <tr key={key.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="py-3.5 px-4 font-bold text-slate-900 flex items-center space-x-2">
+                        <Key className="w-4 h-4 text-blue-600 shrink-0" />
+                        <span>{key.name}</span>
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-slate-600">{key.key_prefix}</td>
+                      <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">
+                        {new Date(key.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">
+                        {key.last_used_at
+                          ? new Date(key.last_used_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' (' + new Date(key.last_used_at).toLocaleDateString() + ')'
+                          : 'Never'}
+                      </td>
+                      <td className="py-3.5 px-4 text-center">
+                        {isRevoked ? (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800">
+                            Revoked
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                            Active
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        {!isRevoked && (
+                          <button
+                            onClick={() => setRevokeTargetId(key.id)}
+                            className="inline-flex items-center space-x-1 text-xs font-semibold text-rose-600 hover:text-rose-800 bg-rose-50 px-2.5 py-1 rounded-md transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Revoke</span>
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
@@ -180,9 +229,10 @@ export default function ApiKeysPage() {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm"
+                    disabled={submitting}
+                    className="px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm disabled:opacity-50"
                   >
-                    Generate Secret Key
+                    {submitting ? 'Generating...' : 'Generate Secret Key'}
                   </button>
                 </div>
               </form>

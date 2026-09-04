@@ -1,77 +1,80 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/header';
-import { DEMO_PROJECT } from '@/lib/demo-store';
-import { FolderKanban, Plus, Check, ShieldCheck, Mail, Key } from 'lucide-react';
+import { Project } from '@/lib/types';
+import { FolderKanban, Plus, Check, Mail, Key } from 'lucide-react';
 
-interface ProjectItem {
-  id: string;
-  name: string;
-  description: string;
-  active: boolean;
-  emailCount: number;
-  keyCount: number;
-  created: string;
+interface ProjectDisplay extends Project {
+  active?: boolean;
+  emailCount?: number;
+  keyCount?: number;
 }
 
 export default function ProjectsPage() {
-  const [projects, setProjects] = useState<ProjectItem[]>([
-    {
-      id: DEMO_PROJECT.id,
-      name: DEMO_PROJECT.name,
-      description: DEMO_PROJECT.description || 'Primary outbound sales and marketing emails',
-      active: true,
-      emailCount: 3,
-      keyCount: 1,
-      created: 'Aug 04, 2026',
-    },
-    {
-      id: 'prj_02',
-      name: 'ERHA Marketing Campaigns',
-      description: 'Monthly newsletter and promo announcements',
-      active: false,
-      emailCount: 0,
-      keyCount: 1,
-      created: 'Aug 15, 2026',
-    },
-    {
-      id: 'prj_03',
-      name: 'Client Onboarding Sequences',
-      description: 'Transactional and welcome drip emails',
-      active: false,
-      emailCount: 0,
-      keyCount: 0,
-      created: 'Sep 01, 2026',
-    },
-  ]);
-
+  const [projects, setProjects] = useState<ProjectDisplay[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeProjectId, setActiveProjectId] = useState<string>('prj_demo_01');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectDesc, setNewProjectDesc] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleCreateProject = (e: React.FormEvent) => {
+  const loadProjects = () => {
+    fetch('/api/v1/projects', { cache: 'no-store' })
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.projects) {
+          setProjects(data.projects);
+          if (data.projects.length > 0 && !data.projects.some((p: Project) => p.id === activeProjectId)) {
+            setActiveProjectId(data.projects[0].id);
+          }
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load projects:', err);
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    loadProjects();
+  }, []);
+
+  const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newProjectName.trim()) return;
+    if (!newProjectName.trim() || submitting) return;
 
-    const newPrj: ProjectItem = {
-      id: `prj_${Date.now()}`,
-      name: newProjectName.trim(),
-      description: newProjectDesc.trim() || 'Custom email tracking project',
-      active: false,
-      emailCount: 0,
-      keyCount: 0,
-      created: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
-    };
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/v1/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newProjectName.trim(),
+          description: newProjectDesc.trim() || undefined,
+        }),
+      });
 
-    setProjects([...projects, newPrj]);
-    setNewProjectName('');
-    setNewProjectDesc('');
-    setIsModalOpen(false);
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Failed to create project');
+      }
+
+      setNewProjectName('');
+      setNewProjectDesc('');
+      setIsModalOpen(false);
+      loadProjects();
+    } catch (err: any) {
+      alert('Error creating project: ' + err.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleSelectActive = (id: string) => {
-    setProjects(projects.map(p => ({ ...p, active: p.id === id })));
+    setActiveProjectId(id);
   };
 
   return (
@@ -96,52 +99,63 @@ export default function ProjectsPage() {
 
       {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {projects.map((project) => (
-          <div
-            key={project.id}
-            className={`p-5 bg-white rounded-xl border transition-all ${
-              project.active
-                ? 'border-blue-500 ring-2 ring-blue-500/20 shadow-md'
-                : 'border-slate-200 hover:border-slate-300 shadow-sm'
-            }`}
-          >
-            <div className="flex items-start justify-between">
-              <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-                <FolderKanban className="w-5 h-5" />
-              </div>
-              {project.active ? (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">
-                  <Check className="w-3 h-3 mr-1" /> Active Project
-                </span>
-              ) : (
-                <button
-                  onClick={() => handleSelectActive(project.id)}
-                  className="text-xs font-semibold text-slate-500 hover:text-blue-600 border border-slate-200 hover:border-blue-300 px-2.5 py-1 rounded-md transition-colors"
-                >
-                  Switch To
-                </button>
-              )}
-            </div>
-
-            <h3 className="text-sm font-bold text-slate-900 mt-3">{project.name}</h3>
-            <p className="text-xs text-slate-500 mt-1 line-clamp-2 min-h-[32px]">
-              {project.description}
-            </p>
-
-            <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs">
-              <div className="flex items-center space-x-1.5 text-slate-600">
-                <Mail className="w-3.5 h-3.5 text-slate-400" />
-                <span>{project.emailCount} Emails</span>
-              </div>
-              <div className="flex items-center space-x-1.5 text-slate-600">
-                <Key className="w-3.5 h-3.5 text-slate-400" />
-                <span>{project.keyCount} API Keys</span>
-              </div>
-            </div>
-
-            <div className="mt-3 text-[10px] text-slate-400">Created: {project.created}</div>
+        {loading ? (
+          <div className="col-span-3 py-12 text-center text-slate-500">
+            Loading projects...
           </div>
-        ))}
+        ) : projects.length === 0 ? (
+          <div className="col-span-3 py-12 text-center text-slate-500">
+            No projects found. Create one to get started.
+          </div>
+        ) : (
+          projects.map((project) => {
+            const isActive = project.id === activeProjectId;
+            return (
+              <div
+                key={project.id}
+                className={`p-5 bg-white rounded-xl border transition-all ${
+                  isActive
+                    ? 'border-blue-500 ring-2 ring-blue-500/20 shadow-md'
+                    : 'border-slate-200 hover:border-slate-300 shadow-sm'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                    <FolderKanban className="w-5 h-5" />
+                  </div>
+                  {isActive ? (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">
+                      <Check className="w-3 h-3 mr-1" /> Active Project
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => handleSelectActive(project.id)}
+                      className="text-xs font-semibold text-slate-500 hover:text-blue-600 border border-slate-200 hover:border-blue-300 px-2.5 py-1 rounded-md transition-colors"
+                    >
+                      Switch To
+                    </button>
+                  )}
+                </div>
+
+                <h3 className="text-sm font-bold text-slate-900 mt-3">{project.name}</h3>
+                <p className="text-xs text-slate-500 mt-1 line-clamp-2 min-h-[32px]">
+                  {project.description || 'No description provided.'}
+                </p>
+
+                <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                  <div className="flex items-center space-x-1.5">
+                    <Mail className="w-3.5 h-3.5 text-slate-400" />
+                    <span>ID: <code className="font-mono text-[10px] text-slate-700">{project.id}</code></span>
+                  </div>
+                </div>
+
+                <div className="mt-3 text-[10px] text-slate-400">
+                  Created: {new Date(project.created_at).toLocaleDateString()}
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
       {/* Modal */}
@@ -182,9 +196,10 @@ export default function ProjectsPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm"
+                  disabled={submitting}
+                  className="px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm disabled:opacity-50"
                 >
-                  Create Project
+                  {submitting ? 'Creating...' : 'Create Project'}
                 </button>
               </div>
             </form>

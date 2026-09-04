@@ -3,8 +3,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { BookOpen, ShieldCheck, Menu, Plus, Send, Check } from 'lucide-react';
-import { createTrackedEmail } from '@/lib/supabase/admin';
-import { DEMO_PROJECT, DEMO_EMAILS } from '@/lib/demo-store';
 
 export function Header({
   title,
@@ -28,25 +26,30 @@ export function Header({
     setSuccessMsg('');
 
     try {
-      const appUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
-      const result = await createTrackedEmail(
-        DEMO_PROJECT.id,
-        {
+      const res = await fetch('/api/v1/test-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           to: recipient,
           subject: subject,
           html: htmlContent,
-        },
-        appUrl
-      );
+        }),
+      });
+
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || 'Failed to create test email');
+      }
 
       setSending(false);
       setSuccessMsg(`Test email created! Tracking ID: ${result.trackingId}`);
       setTimeout(() => {
         setIsTestModalOpen(false);
         setSuccessMsg('');
-        // Trigger page refresh if needed
         window.location.reload();
-      }, 1500);
+      }, 1200);
     } catch (err: any) {
       setSending(false);
       alert('Error creating email: ' + err.message);
