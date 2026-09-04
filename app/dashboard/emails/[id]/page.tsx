@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Email, EmailEvent, EmailLink } from '@/lib/types';
 import {
   ArrowLeft,
@@ -15,16 +16,39 @@ import {
   Play,
   CheckCircle2,
   RefreshCw,
+  Trash2,
 } from 'lucide-react';
 
 export default function EmailDetailsPage({ params }: { params: { id: string } }) {
+  const router = useRouter();
   const [email, setEmail] = useState<Email | null>(null);
   const [events, setEvents] = useState<EmailEvent[]>([]);
   const [links, setLinks] = useState<EmailLink[]>([]);
   const [activeTab, setActiveTab] = useState<'timeline' | 'links' | 'html'>('timeline');
   const [loading, setLoading] = useState(true);
   const [simulating, setSimulating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [simMessage, setSimMessage] = useState('');
+
+  const handleDelete = async () => {
+    if (!email) return;
+    if (!window.confirm(`Are you sure you want to delete this tracked email? All tracking history will be permanently removed.`)) {
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/v1/emails/${email.id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to delete email');
+      }
+      router.push('/dashboard/emails');
+    } catch (err: any) {
+      alert('Error deleting email: ' + err.message);
+      setDeleting(false);
+    }
+  };
 
   const loadData = () => {
     setLoading(true);
@@ -173,6 +197,15 @@ export default function EmailDetailsPage({ params }: { params: { id: string } })
           >
             <Play className="w-3.5 h-3.5 text-indigo-600 fill-current" />
             <span>Simulate Open</span>
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 rounded-lg transition-colors disabled:opacity-50"
+            title="Delete this tracked email"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+            <span>{deleting ? 'Deleting...' : 'Delete'}</span>
           </button>
         </div>
       </div>

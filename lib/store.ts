@@ -127,6 +127,22 @@ export function updateStoreEmail(id: string, updates: Partial<Email>): Email | n
   return updated;
 }
 
+export function deleteStoreEmail(id: string): boolean {
+  let deleted = false;
+  saveDb(db => {
+    const idx = db.emails.findIndex(e => e.id === id || e.tracking_id === id);
+    if (idx !== -1) {
+      const emailId = db.emails[idx].id;
+      db.emails.splice(idx, 1);
+      db.emailLinks = db.emailLinks.filter(l => l.email_id !== emailId);
+      db.emailEvents = db.emailEvents.filter(ev => ev.email_id !== emailId);
+      deleted = true;
+    }
+  });
+  return deleted;
+}
+
+
 // Links
 export function addStoreEmailLinks(links: EmailLink[]): void {
   saveDb(db => {

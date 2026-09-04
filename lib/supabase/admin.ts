@@ -16,6 +16,7 @@ import {
   revokeStoreApiKey,
   getStoreProjects,
   addStoreProject,
+  deleteStoreEmail,
   DEFAULT_PROJECT,
 } from '../store';
 import {
@@ -876,3 +877,26 @@ export async function createProject(name: string, description?: string): Promise
 
   return data as Project;
 }
+
+/**
+ * Deletes a tracked email and its associated links and events.
+ */
+export async function deleteEmail(emailId: string): Promise<boolean> {
+  if (isDemoMode) {
+    return deleteStoreEmail(emailId);
+  }
+
+  // Supabase Mode: Delete email (associated links & events cascade delete automatically)
+  const { error } = await supabaseAdmin
+    .from('emails')
+    .delete()
+    .eq('id', emailId);
+
+  if (error) {
+    console.error('Error deleting email from Supabase:', error);
+    return false;
+  }
+
+  return true;
+}
+

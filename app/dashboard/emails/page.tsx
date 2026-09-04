@@ -14,6 +14,7 @@ import {
   ChevronRight,
   ExternalLink,
   Mail,
+  Trash2,
 } from 'lucide-react';
 
 export default function EmailsPage() {
@@ -21,7 +22,28 @@ export default function EmailsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [currentPage, setCurrentPage] = useState(1);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const itemsPerPage = 10;
+
+  const handleDeleteEmail = async (id: string, recipientEmail: string) => {
+    if (!window.confirm(`Are you sure you want to delete the tracked email for "${recipientEmail}"? This will permanently remove its tracking history.`)) {
+      return;
+    }
+
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/v1/emails/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to delete email');
+      }
+      setEmails(prev => prev.filter(e => e.id !== id));
+    } catch (err: any) {
+      alert('Error deleting email: ' + err.message);
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   useEffect(() => {
     fetch('/api/v1/dashboard', { cache: 'no-store' })
@@ -170,14 +192,25 @@ export default function EmailsPage() {
                           ? new Date(email.first_opened_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                           : 'Not Opened'}
                       </td>
-                      <td className="py-3.5 px-4 text-right">
-                        <Link
-                          href={`/dashboard/emails/${email.id}`}
-                          className="inline-flex items-center space-x-1 text-xs font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 px-2.5 py-1 rounded-md transition-colors"
-                        >
-                          <span>Details</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </Link>
+                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end space-x-1.5">
+                          <Link
+                            href={`/dashboard/emails/${email.id}`}
+                            className="inline-flex items-center space-x-1 text-xs font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-md transition-colors"
+                          >
+                            <span>Details</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </Link>
+                          <button
+                            onClick={() => handleDeleteEmail(email.id, email.recipient_email)}
+                            disabled={deletingId === email.id}
+                            className="inline-flex items-center space-x-1 text-xs font-semibold text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-2.5 py-1 rounded-md transition-colors disabled:opacity-50"
+                            title="Delete this email"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            <span>Delete</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
