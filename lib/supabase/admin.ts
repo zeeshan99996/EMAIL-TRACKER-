@@ -375,8 +375,16 @@ export async function recordClickEvent(
     const link = links.find(l => l.id === linkId);
     if (!link) return null;
 
+    // A click implies the recipient opened the email (even if spam filters blocked 1x1 pixel image loading)
+    const needsOpen = !email.open_count || email.open_count === 0 || !email.first_opened_at;
+    const newOpenCount = needsOpen ? ((email.open_count || 0) + 1) : email.open_count;
+    const firstOpened = email.first_opened_at || now;
+
     // Update email counters
     updateStoreEmail(email.id, {
+      open_count: newOpenCount,
+      first_opened_at: firstOpened,
+      last_opened_at: now,
       click_count: email.click_count + 1,
       status: 'CLICKED',
     });
@@ -387,6 +395,20 @@ export async function recordClickEvent(
       first_clicked_at: link.first_clicked_at || now,
       last_clicked_at: now,
     });
+
+    if (needsOpen) {
+      addStoreEmailEvent({
+        id: `evt_${Date.now()}_open_implied`,
+        email_id: email.id,
+        link_id: null,
+        event_type: 'OPEN',
+        occurred_at: now,
+        ip_address: ipAddress || null,
+        user_agent: userAgent || null,
+        referer: referer || null,
+        metadata: { note: 'Open detected via link click' },
+      });
+    }
 
     // Record Event
     addStoreEmailEvent({
@@ -407,7 +429,7 @@ export async function recordClickEvent(
   // Supabase Mode
   const { data: email } = await supabaseAdmin
     .from('emails')
-    .select('id, click_count')
+    .select('id, open_count, first_opened_at, click_count')
     .eq('tracking_id', trackingId)
     .single();
 
@@ -422,14 +444,34 @@ export async function recordClickEvent(
 
   if (!link) return null;
 
+  // A click implies the recipient opened the email (even if spam filters blocked 1x1 pixel image loading)
+  const needsOpen = !email.open_count || email.open_count === 0 || !email.first_opened_at;
+  const newOpenCount = needsOpen ? ((email.open_count || 0) + 1) : email.open_count;
+  const firstOpened = email.first_opened_at || now;
+
   // Update email
   await supabaseAdmin
     .from('emails')
     .update({
+      open_count: newOpenCount,
+      first_opened_at: firstOpened,
+      last_opened_at: now,
       click_count: (email.click_count || 0) + 1,
       status: 'CLICKED',
     })
     .eq('id', email.id);
+
+  if (needsOpen) {
+    await supabaseAdmin.from('email_events').insert({
+      email_id: email.id,
+      event_type: 'OPEN',
+      occurred_at: now,
+      ip_address: ipAddress || null,
+      user_agent: userAgent || null,
+      referer: referer || null,
+      metadata: { note: 'Open detected via link click' },
+    });
+  }
 
   // Update link
   await supabaseAdmin

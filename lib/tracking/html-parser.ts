@@ -118,9 +118,9 @@ export function processEmailHtml(
     }
   });
 
-  // Inject tracking pixel
+  // Inject tracking pixel (spam-compliant invisible image without display:none concealment)
   const pixelUrl = `${baseUrl}/t/open/${trackingId}`;
-  const pixelHtml = `<img src="${pixelUrl}" width="1" height="1" alt="" style="display:none !important; width:1px !important; height:1px !important; border:0 !important; margin:0 !important; padding:0 !important;" />`;
+  const pixelHtml = `<img src="${pixelUrl}" alt="" width="1" height="1" border="0" style="width:1px!important;height:1px!important;border:0!important;margin:0!important;padding:0!important;" />`;
 
   if ($('body').length > 0) {
     $('body').append(pixelHtml);
