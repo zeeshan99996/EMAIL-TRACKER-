@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { recordClickEvent } from '@/lib/supabase/admin';
+import { isSenderRequest } from '@/lib/security/sender-filter';
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { trackingId: string; linkId: string } }
 ) {
   const { trackingId, linkId } = params;
-
-  const ip =
-    req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
-    req.headers.get('x-real-ip') ||
-    '127.0.0.1';
-  const userAgent = req.headers.get('user-agent');
-  const referer = req.headers.get('referer');
 
   if (!trackingId || !linkId) {
     return NextResponse.json(
@@ -21,7 +15,23 @@ export async function GET(
     );
   }
 
-  const destinationUrl = await recordClickEvent(trackingId, linkId, ip, userAgent, referer);
+  const { isSender, ip, reason } = isSenderRequest(req);
+  const userAgent = req.headers.get('user-agent');
+  const referer = req.headers.get('referer');
+
+  if (isSender) {
+    console.log(`[Click Tracker] Self-click by sender ignored from ${ip} (reason: ${reason})`);
+  }
+
+  // If sender, skipRecord=true so no click or open is recorded, but destination URL is resolved
+  const destinationUrl = await recordClickEvent(
+    trackingId,
+    linkId,
+    ip,
+    userAgent,
+    referer,
+    isSender
+  );
 
   if (!destinationUrl) {
     return new NextResponse(
@@ -48,3 +58,4 @@ export async function GET(
     },
   });
 }
+

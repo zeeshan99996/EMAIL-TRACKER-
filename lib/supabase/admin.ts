@@ -287,13 +287,28 @@ export async function recordOpenEvent(
   trackingId: string,
   ipAddress?: string | null,
   userAgent?: string | null,
-  referer?: string | null
+  referer?: string | null,
+  skipRecord: boolean = false
 ): Promise<boolean> {
+  if (skipRecord) {
+    console.log(`[Sender Filter] Skipped recording open (skipRecord=true for trackingId: ${trackingId})`);
+    return false;
+  }
+
   const now = new Date().toISOString();
 
   if (isDemoMode) {
     const email = getStoreEmailById(trackingId);
     if (!email) return false;
+
+    // Filter out immediate self-open from Gmail Sent folder prefetch / sender view (grace window: 60s)
+    if (userAgent?.includes('GoogleImageProxy') && email.sent_at) {
+      const elapsedMs = Date.now() - new Date(email.sent_at).getTime();
+      if (elapsedMs < 60 * 1000) {
+        console.log(`[Sender Filter] Ignored GoogleImageProxy prefetch within ${Math.round(elapsedMs / 1000)}s of sending`);
+        return false;
+      }
+    }
 
     const newOpenCount = email.open_count + 1;
     const firstOpened = email.first_opened_at || now;
@@ -324,11 +339,20 @@ export async function recordOpenEvent(
   // Supabase Mode
   const { data: email } = await supabaseAdmin
     .from('emails')
-    .select('id, first_opened_at, open_count, status')
+    .select('id, sent_at, first_opened_at, open_count, status')
     .eq('tracking_id', trackingId)
     .single();
 
   if (!email) return false;
+
+  // Filter out immediate self-open from Gmail Sent folder prefetch / sender view (grace window: 60s)
+  if (userAgent?.includes('GoogleImageProxy') && email.sent_at) {
+    const elapsedMs = Date.now() - new Date(email.sent_at).getTime();
+    if (elapsedMs < 60 * 1000) {
+      console.log(`[Sender Filter] Ignored GoogleImageProxy prefetch within ${Math.round(elapsedMs / 1000)}s of sending`);
+      return false;
+    }
+  }
 
   const newStatus = email.status === 'SENT' ? 'OPENED' : email.status;
   const firstOpened = email.first_opened_at || now;
@@ -363,7 +387,8 @@ export async function recordClickEvent(
   linkId: string,
   ipAddress?: string | null,
   userAgent?: string | null,
-  referer?: string | null
+  referer?: string | null,
+  skipRecord: boolean = false
 ): Promise<string | null> {
   const now = new Date().toISOString();
 
@@ -374,6 +399,11 @@ export async function recordClickEvent(
     const links = getStoreEmailLinks(email.id);
     const link = links.find(l => l.id === linkId);
     if (!link) return null;
+
+    if (skipRecord) {
+      console.log(`[Sender Filter] Skipped recording click for sender (Demo mode, email ${email.id})`);
+      return link.original_url;
+    }
 
     // A click implies the recipient opened the email (even if spam filters blocked 1x1 pixel image loading)
     const needsOpen = !email.open_count || email.open_count === 0 || !email.first_opened_at;
@@ -443,6 +473,11 @@ export async function recordClickEvent(
     .single();
 
   if (!link) return null;
+
+  if (skipRecord) {
+    console.log(`[Sender Filter] Skipped recording click for sender (Supabase mode, email ${email.id})`);
+    return link.original_url;
+  }
 
   // A click implies the recipient opened the email (even if spam filters blocked 1x1 pixel image loading)
   const needsOpen = !email.open_count || email.open_count === 0 || !email.first_opened_at;

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { recordOpenEvent } from '@/lib/supabase/admin';
+import { isSenderRequest } from '@/lib/security/sender-filter';
 
 // 1x1 Transparent GIF base64
 const TRANSPARENT_GIF_BUFFER = Buffer.from(
@@ -12,20 +13,17 @@ export async function GET(
   { params }: { params: { trackingId: string } }
 ) {
   const trackingId = params.trackingId;
-
-  // Extract client metadata
-  const ip =
-    req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
-    req.headers.get('x-real-ip') ||
-    '127.0.0.1';
+  const { isSender, ip, reason } = isSenderRequest(req);
   const userAgent = req.headers.get('user-agent');
   const referer = req.headers.get('referer');
 
-  if (trackingId) {
-    // Record event asynchronously
+  if (trackingId && !isSender) {
+    // Record event asynchronously for recipient
     recordOpenEvent(trackingId, ip, userAgent, referer).catch(err => {
       console.error('Error logging open event:', err);
     });
+  } else if (isSender) {
+    console.log(`[Open Tracker] Self-open by sender ignored from ${ip} (reason: ${reason})`);
   }
 
   // Always return transparent 1x1 GIF with strict no-cache headers

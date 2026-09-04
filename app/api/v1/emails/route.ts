@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { validateApiKey, createTrackedEmail } from '@/lib/supabase/admin';
 import { checkRateLimit } from '@/lib/security/rate-limit';
 import { createEmailSchema } from '@/lib/validation/email-schema';
+import { registerSenderIp } from '@/lib/security/sender-filter';
 
 export async function POST(req: NextRequest) {
   try {
@@ -87,7 +88,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 5. Determine Base App URL
+    // 5. Determine Base App URL & Register Sender IP
+    const clientIp =
+      req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+      req.headers.get('x-real-ip') ||
+      '127.0.0.1';
+    registerSenderIp(clientIp);
+
     const host = req.headers.get('host') || 'localhost:3000';
     const protocol = req.headers.get('x-forwarded-proto') || (host.startsWith('localhost') ? 'http' : 'https');
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || `${protocol}://${host}`;
