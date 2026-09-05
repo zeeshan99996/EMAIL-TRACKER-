@@ -11,11 +11,11 @@ export default function DashboardLayout({
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    // Set persistent sender cookie so clicks and opens from this browser (e.g. in Gmail Sent folder) are excluded
+    // Clear any legacy _et_sender cookie so testing from this browser is not blocked
     try {
-      document.cookie = '_et_sender=1; path=/; max-age=315360000; SameSite=Lax';
+      document.cookie = '_et_sender=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
     } catch (e) {
-      console.warn('Could not set sender cookie:', e);
+      // ignore
     }
   }, []);
 

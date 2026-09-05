@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { recordOpenEvent } from '@/lib/supabase/admin';
-import { isSenderRequest } from '@/lib/security/sender-filter';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 
 // 1x1 Transparent GIF base64
 const TRANSPARENT_GIF_BUFFER = Buffer.from(
@@ -13,28 +16,37 @@ export async function GET(
   { params }: { params: { trackingId: string } }
 ) {
   const trackingId = params.trackingId;
-  const { isSender, ip, reason } = isSenderRequest(req);
+  const ip =
+    req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+    req.headers.get('x-real-ip') ||
+    '127.0.0.1';
   const userAgent = req.headers.get('user-agent');
   const referer = req.headers.get('referer');
 
-  if (trackingId && !isSender) {
-    // Record event asynchronously for recipient
-    recordOpenEvent(trackingId, ip, userAgent, referer).catch(err => {
+  if (trackingId) {
+    // Record open event immediately
+    recordOpenEvent(trackingId, ip, userAgent, referer, false).catch(err => {
       console.error('Error logging open event:', err);
     });
-  } else if (isSender) {
-    console.log(`[Open Tracker] Self-open by sender ignored from ${ip} (reason: ${reason})`);
   }
 
-  // Always return transparent 1x1 GIF with strict no-cache headers
+  const now = new Date().toUTCString();
+  const nonce = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
+  // Always return transparent 1x1 GIF with strict no-cache headers for all CDNs and proxies
   return new NextResponse(TRANSPARENT_GIF_BUFFER, {
     status: 200,
     headers: {
       'Content-Type': 'image/gif',
       'Content-Length': String(TRANSPARENT_GIF_BUFFER.length),
-      'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0, private',
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0',
       'Pragma': 'no-cache',
-      'Expires': '0',
+      'Expires': 'Mon, 26 Jul 1997 05:00:00 GMT',
+      'Last-Modified': now,
+      'ETag': `"${nonce}"`,
+      'Surrogate-Control': 'no-store',
+      'CDN-Cache-Control': 'no-store',
+      'Vercel-CDN-Cache-Control': 'no-store',
       'Access-Control-Allow-Origin': '*',
     },
   });

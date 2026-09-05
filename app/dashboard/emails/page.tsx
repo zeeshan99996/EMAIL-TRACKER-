@@ -15,6 +15,7 @@ import {
   ExternalLink,
   Mail,
   Trash2,
+  RotateCw,
 } from 'lucide-react';
 
 export default function EmailsPage() {
@@ -23,7 +24,23 @@ export default function EmailsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [currentPage, setCurrentPage] = useState(1);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const itemsPerPage = 10;
+
+  const loadData = async (manual = false) => {
+    if (manual) setIsRefreshing(true);
+    try {
+      const res = await fetch('/api/v1/dashboard', { cache: 'no-store' });
+      const data = await res.json();
+      if (data && data.emails) {
+        setEmails(data.emails);
+      }
+    } catch (err) {
+      console.error('Failed to refresh emails:', err);
+    } finally {
+      if (manual) setTimeout(() => setIsRefreshing(false), 400);
+    }
+  };
 
   const handleDeleteEmail = async (id: string, recipientEmail: string) => {
     if (!window.confirm(`Are you sure you want to delete the tracked email for "${recipientEmail}"? This will permanently remove its tracking history.`)) {
@@ -46,14 +63,9 @@ export default function EmailsPage() {
   };
 
   useEffect(() => {
-    fetch('/api/v1/dashboard', { cache: 'no-store' })
-      .then(r => r.json())
-      .then(res => {
-        if (res && res.emails) {
-          setEmails(res.emails);
-        }
-      })
-      .catch(console.error);
+    loadData();
+    const interval = setInterval(() => loadData(false), 2500);
+    return () => clearInterval(interval);
   }, []);
 
   const filteredEmails = emails.filter(email => {
@@ -92,7 +104,7 @@ export default function EmailsPage() {
           />
         </div>
 
-        {/* Filters */}
+        {/* Filters & Refresh */}
         <div className="flex items-center space-x-3 w-full md:w-auto">
           <div className="flex items-center space-x-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-600">
             <Filter className="w-3.5 h-3.5 text-slate-400" />
@@ -109,6 +121,21 @@ export default function EmailsPage() {
               <option value="FAILED">Failed</option>
             </select>
           </div>
+
+          <button
+            onClick={() => loadData(true)}
+            disabled={isRefreshing}
+            className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition-colors"
+            title="Refresh now"
+          >
+            <RotateCw className={`w-3.5 h-3.5 text-slate-500 ${isRefreshing ? 'animate-spin text-blue-600' : ''}`} />
+            <span>Refresh</span>
+          </button>
+
+          <span className="hidden sm:inline-flex items-center px-2 py-1 rounded-md text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse" />
+            Live Sync (2.5s)
+          </span>
         </div>
       </div>
 

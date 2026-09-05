@@ -296,7 +296,6 @@ export async function recordOpenEvent(
   skipRecord: boolean = false
 ): Promise<boolean> {
   if (skipRecord) {
-    console.log(`[Sender Filter] Skipped recording open (skipRecord=true for trackingId: ${trackingId})`);
     return false;
   }
 
@@ -306,11 +305,11 @@ export async function recordOpenEvent(
     const email = getStoreEmailById(trackingId);
     if (!email) return false;
 
-    // Filter out immediate self-open from Gmail Sent folder prefetch / sender view (grace window: 60s)
+    // Filter out immediate sub-second prefetch echoes within 2s of sending
     if (userAgent?.includes('GoogleImageProxy') && email.sent_at) {
       const elapsedMs = Date.now() - new Date(email.sent_at).getTime();
-      if (elapsedMs < 60 * 1000) {
-        console.log(`[Sender Filter] Ignored GoogleImageProxy prefetch within ${Math.round(elapsedMs / 1000)}s of sending`);
+      if (elapsedMs < 2000) {
+        console.log(`[Sender Filter] Ignored immediate prefetch echo within ${elapsedMs}ms of sending`);
         return false;
       }
     }
@@ -350,11 +349,11 @@ export async function recordOpenEvent(
 
   if (!email) return false;
 
-  // Filter out immediate self-open from Gmail Sent folder prefetch / sender view (grace window: 60s)
+  // Filter out immediate sub-second prefetch echoes within 2s of sending
   if (userAgent?.includes('GoogleImageProxy') && email.sent_at) {
     const elapsedMs = Date.now() - new Date(email.sent_at).getTime();
-    if (elapsedMs < 60 * 1000) {
-      console.log(`[Sender Filter] Ignored GoogleImageProxy prefetch within ${Math.round(elapsedMs / 1000)}s of sending`);
+    if (elapsedMs < 2000) {
+      console.log(`[Sender Filter] Ignored immediate prefetch echo within ${elapsedMs}ms of sending`);
       return false;
     }
   }
@@ -406,7 +405,6 @@ export async function recordClickEvent(
     if (!link) return null;
 
     if (skipRecord) {
-      console.log(`[Sender Filter] Skipped recording click for sender (Demo mode, email ${email.id})`);
       return link.original_url;
     }
 
@@ -480,7 +478,6 @@ export async function recordClickEvent(
   if (!link) return null;
 
   if (skipRecord) {
-    console.log(`[Sender Filter] Skipped recording click for sender (Supabase mode, email ${email.id})`);
     return link.original_url;
   }
 

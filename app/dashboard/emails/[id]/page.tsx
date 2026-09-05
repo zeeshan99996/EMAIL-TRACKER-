@@ -50,8 +50,8 @@ export default function EmailDetailsPage({ params }: { params: { id: string } })
     }
   };
 
-  const loadData = () => {
-    setLoading(true);
+  const loadData = (showSpinner = false) => {
+    if (showSpinner) setLoading(true);
     fetch(`/api/v1/emails/${params.id}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
@@ -69,7 +69,9 @@ export default function EmailDetailsPage({ params }: { params: { id: string } })
   };
 
   useEffect(() => {
-    loadData();
+    loadData(true);
+    const interval = setInterval(() => loadData(false), 2500);
+    return () => clearInterval(interval);
   }, [params.id]);
 
   const handleSimulateOpen = async () => {
@@ -184,7 +186,7 @@ export default function EmailDetailsPage({ params }: { params: { id: string } })
         {/* Live Simulation Controls */}
         <div className="flex items-center space-x-2 shrink-0">
           <button
-            onClick={loadData}
+            onClick={() => loadData(true)}
             title="Refresh Data"
             className="p-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg"
           >

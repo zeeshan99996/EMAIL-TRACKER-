@@ -105,18 +105,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 6. Determine Base App URL & Register Sender IP
-    const clientIp =
-      req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
-      req.headers.get('x-real-ip') ||
-      '127.0.0.1';
-    registerSenderIp(clientIp);
-
-    const host = req.headers.get('host') || 'localhost:3000';
+    // 6. Determine Base App URL
+    const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || 'localhost:3000';
     const protocol = req.headers.get('x-forwarded-proto') || (host.startsWith('localhost') ? 'http' : 'https');
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || `${protocol}://${host}`;
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL && !process.env.NEXT_PUBLIC_APP_URL.includes('localhost'))
+      ? process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')
+      : `${protocol}://${host}`;
 
-    // 6. Create Tracked Email
+    // 7. Create Tracked Email
     const result = await createTrackedEmail(apiKeyRecord.project_id, parseResult.data, appUrl);
 
     return NextResponse.json(result, { status: 201 });

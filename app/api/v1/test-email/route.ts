@@ -22,15 +22,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const clientIp =
-      req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
-      req.headers.get('x-real-ip') ||
-      '127.0.0.1';
-    registerSenderIp(clientIp);
-
-    const host = req.headers.get('host') || 'localhost:3000';
+    const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || 'localhost:3000';
     const protocol = req.headers.get('x-forwarded-proto') || (host.startsWith('localhost') ? 'http' : 'https');
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || `${protocol}://${host}`;
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL && !process.env.NEXT_PUBLIC_APP_URL.includes('localhost'))
+      ? process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')
+      : `${protocol}://${host}`;
 
     const projectId = body.projectId || DEFAULT_PROJECT.id;
     const result = await createTrackedEmail(
@@ -44,13 +40,7 @@ export async function POST(req: NextRequest) {
       appUrl
     );
 
-    const res = NextResponse.json(result, { status: 201 });
-    res.cookies.set('_et_sender', '1', {
-      path: '/',
-      maxAge: 60 * 60 * 24 * 365,
-      sameSite: 'lax',
-    });
-    return res;
+    return NextResponse.json(result, { status: 201 });
   } catch (err: any) {
     console.error('Error in /api/v1/test-email:', err);
     return NextResponse.json(

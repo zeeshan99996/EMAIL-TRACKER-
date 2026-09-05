@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { recordClickEvent } from '@/lib/supabase/admin';
-import { isSenderRequest } from '@/lib/security/sender-filter';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 
 export async function GET(
   req: NextRequest,
@@ -15,22 +18,21 @@ export async function GET(
     );
   }
 
-  const { isSender, ip, reason } = isSenderRequest(req);
+  const ip =
+    req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+    req.headers.get('x-real-ip') ||
+    '127.0.0.1';
   const userAgent = req.headers.get('user-agent');
   const referer = req.headers.get('referer');
 
-  if (isSender) {
-    console.log(`[Click Tracker] Self-click by sender ignored from ${ip} (reason: ${reason})`);
-  }
-
-  // If sender, skipRecord=true so no click or open is recorded, but destination URL is resolved
+  // Always record click event and update engagement status
   const destinationUrl = await recordClickEvent(
     trackingId,
     linkId,
     ip,
     userAgent,
     referer,
-    isSender
+    false
   );
 
   if (!destinationUrl) {
@@ -50,11 +52,16 @@ export async function GET(
     );
   }
 
-  // Safe redirect (302 Found) to the exact registered destination URL
+  // Safe redirect (302 Found) to the exact registered destination URL with anti-cache headers
   return NextResponse.redirect(destinationUrl, {
     status: 302,
     headers: {
-      'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+      'Surrogate-Control': 'no-store',
+      'CDN-Cache-Control': 'no-store',
+      'Vercel-CDN-Cache-Control': 'no-store',
     },
   });
 }
