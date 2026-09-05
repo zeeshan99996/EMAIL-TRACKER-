@@ -6,6 +6,17 @@ import { sendSmtpEmail } from './smtp';
 
 export type UnifiedEmailMessage = ThreadMessageSummary;
 
+function isSmtpProvider(provider?: string): boolean {
+  if (!provider) return false;
+  return (
+    provider === 'gmail_app_password' ||
+    provider === 'custom_smtp' ||
+    provider === 'hostinger_smtp' ||
+    provider === 'gmail_smtp' ||
+    provider.includes('smtp')
+  );
+}
+
 /**
  * Sends an email using either SMTP App Password or Gmail API OAuth
  */
@@ -33,13 +44,13 @@ export async function unifiedSendEmail({
     throw new Error(`Account not found: ${fromAccountId}`);
   }
 
-  if (account.provider === 'gmail_app_password' || account.provider === 'custom_smtp') {
+  if (isSmtpProvider(account.provider)) {
     const appPassword = decryptToken(account.access_token);
     let config;
-    if (account.provider === 'custom_smtp' && account.metadata) {
+    if (account.metadata?.smtpHost) {
       config = {
         host: account.metadata.smtpHost,
-        port: Number(account.metadata.smtpPort),
+        port: Number(account.metadata.smtpPort) || 465,
         secure: account.metadata.smtpSecurity !== 'starttls',
       };
     }
@@ -91,13 +102,13 @@ export async function unifiedFetchThreadMessages({
     throw new Error(`Account not found: ${accountId}`);
   }
 
-  if (account.provider === 'gmail_app_password' || account.provider === 'custom_smtp') {
+  if (isSmtpProvider(account.provider)) {
     const appPassword = decryptToken(account.access_token);
     let config;
-    if (account.provider === 'custom_smtp' && account.metadata) {
+    if (account.metadata?.imapHost) {
       config = {
         host: account.metadata.imapHost,
-        port: Number(account.metadata.imapPort),
+        port: Number(account.metadata.imapPort) || 993,
         secure: account.metadata.imapSecurity !== 'starttls',
       };
     }

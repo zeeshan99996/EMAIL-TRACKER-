@@ -20,27 +20,35 @@ export async function fetchImapThreadMessages({
   peerEmail?: string;
   config?: ImapConfig;
 }): Promise<{ id: string; threadId: string; subject: string; from: string; to: string; date: string; body: string }[]> {
-  const cleanPassword = appPassword.replace(/\s+/g, '');
+  const trimmed = (appPassword || '').trim();
+  const isGmailAppPass = (!config?.host || config.host.includes('gmail.com')) && trimmed.replace(/\s+/g, '').length === 16;
+  const cleanPassword = isGmailAppPass ? trimmed.replace(/\s+/g, '') : trimmed;
 
   const client = new ImapFlow({
     host: config?.host || 'imap.gmail.com',
     port: config?.port || 993,
     secure: config?.secure !== undefined ? config.secure : true,
     auth: {
-      user: email,
+      user: email.trim(),
       pass: cleanPassword,
+    },
+    tls: {
+      rejectUnauthorized: false,
+      minVersion: 'TLSv1.2',
     },
     logger: false,
     emitLogs: false,
   });
 
+  client.on('error', () => {});
+
   const messages: { id: string; threadId: string; subject: string; from: string; to: string; date: string; body: string }[] = [];
 
   try {
-    // 5-second connection timeout
+    // 8-second connection timeout
     const connectPromise = client.connect();
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('IMAP connection timed out')), 5000)
+      setTimeout(() => reject(new Error('IMAP connection timed out')), 8000)
     );
     await Promise.race([connectPromise, timeoutPromise]);
 
@@ -89,26 +97,60 @@ export async function fetchImapThreadMessages({
  * Validates that the provided email and password can connect to IMAP
  */
 export async function verifyImapCredentials(email: string, appPassword: string, config?: ImapConfig): Promise<boolean> {
-  const cleanPassword = appPassword.replace(/\s+/g, '');
+  const trimmed = (appPassword || '').trim();
+  const isGmailAppPass = (!config?.host || config.host.includes('gmail.com')) && trimmed.replace(/\s+/g, '').length === 16;
+  const cleanPassword = isGmailAppPass ? trimmed.replace(/\s+/g, '') : trimmed;
 
   const client = new ImapFlow({
     host: config?.host || 'imap.gmail.com',
     port: config?.port || 993,
     secure: config?.secure !== undefined ? config.secure : true,
     auth: {
-      user: email,
+      user: email.trim(),
       pass: cleanPassword,
+    },
+    tls: {
+      rejectUnauthorized: false,
+      minVersion: 'TLSv1.2',
     },
     logger: false,
     emitLogs: false,
   });
 
+  client.on('error', () => {
+    // Suppress unhandled socket errors
+  });
+
   try {
-    await client.connect();
+    const connectPromise = client.connect();
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('IMAP connection timed out after 10 seconds')), 10000)
+    );
+    await Promise.race([connectPromise, timeoutPromise]);
     await client.logout();
     return true;
   } catch (err: any) {
+    const isAuth =
+      err.authenticationFailed ||
+      err.responseStatus === 'NO' ||
+      /auth|credential|password|login/i.test(err.message || '');
+
+    if (isAuth) {
+      const isHostinger = config?.host?.includes('hostinger');
+      const authMessage = isHostinger
+        ? `Hostinger IMAP Authentication Failed: Invalid email or password for ${email}. Please ensure you enter your Hostinger Email Account password (the one used at https://mail.hostinger.com), NOT your hPanel account password.`
+        : `IMAP Authentication failed: Invalid email or password for ${email}.`;
+      const enhancedErr = new Error(authMessage);
+      (enhancedErr as any).code = 'EAUTH';
+      throw enhancedErr;
+    }
     throw err;
+  } finally {
+    try {
+      await client.close();
+    } catch {
+      // ignore
+    }
   }
 }
 
@@ -126,15 +168,21 @@ export async function deleteImapWarmupMessages({
   fleetEmails: string[];
   config?: ImapConfig;
 }): Promise<number> {
-  const cleanPassword = appPassword.replace(/\s+/g, '');
+  const trimmed = (appPassword || '').trim();
+  const isGmailAppPass = (!config?.host || config.host.includes('gmail.com')) && trimmed.replace(/\s+/g, '').length === 16;
+  const cleanPassword = isGmailAppPass ? trimmed.replace(/\s+/g, '') : trimmed;
 
   const client = new ImapFlow({
     host: config?.host || 'imap.gmail.com',
     port: config?.port || 993,
     secure: config?.secure !== undefined ? config.secure : true,
     auth: {
-      user: email,
+      user: email.trim(),
       pass: cleanPassword,
+    },
+    tls: {
+      rejectUnauthorized: false,
+      minVersion: 'TLSv1.2',
     },
     logger: false,
     emitLogs: false,

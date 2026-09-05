@@ -49,7 +49,7 @@ export async function runAutoCleanupForUser(userId: string): Promise<CleanupResu
         // IMAP / Custom SMTP cleanup
         const appPassword = decryptToken(account.access_token);
         let config;
-        if (account.provider === 'custom_smtp' && account.metadata) {
+        if (account.metadata) {
           config = {
             host: account.metadata.imapHost || 'imap.hostinger.com',
             port: Number(account.metadata.imapPort) || 993,

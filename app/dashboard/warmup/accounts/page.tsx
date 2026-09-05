@@ -192,7 +192,11 @@ function AccountsContent() {
       const data = await res.json();
 
       if (!res.ok || data.error) {
-        setCustomError(data.error || 'Failed to connect custom account');
+        const errMsg = data.error || 'Failed to connect custom account';
+        setCustomError(errMsg);
+        if (data.isAuthError || errMsg.includes('Authentication') || errMsg.includes('Port') || errMsg.includes('connect')) {
+          setShowAdvancedSettings(true);
+        }
         setSubmittingCustom(false);
         return;
       }
@@ -770,10 +774,19 @@ function AccountsContent() {
                 <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 shadow-xs">
                   H
                 </div>
-                <div className="space-y-0.5">
+                <div className="space-y-1">
                   <div className="text-xs font-bold text-indigo-900">Hostinger Business Email Preset Active</div>
-                  <div className="text-[11px] text-indigo-700">
-                    Auto-configured with <strong>smtp.hostinger.com:465</strong> (SSL) & <strong>imap.hostinger.com:993</strong> (SSL). Just enter your email and password!
+                  <div className="text-[11px] text-indigo-800 leading-relaxed">
+                    Enter your Hostinger email address and your <strong>Mailbox password</strong> (the one used to log in at{' '}
+                    <a
+                      href="https://mail.hostinger.com"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline font-semibold text-indigo-700 hover:text-indigo-900 inline-flex items-center gap-0.5"
+                    >
+                      mail.hostinger.com <ExternalLink className="w-2.5 h-2.5 inline" />
+                    </a>
+                    , <em>NOT</em> your main Hostinger hPanel account password). Auto-fallback between Port 465 (SSL) and Port 587 (STARTTLS) is enabled.
                   </div>
                 </div>
               </div>
@@ -794,9 +807,33 @@ function AccountsContent() {
             )}
 
             {customError && (
-              <div className="p-3 rounded-lg border border-rose-200 bg-rose-50 text-xs text-rose-700 flex items-start gap-2 mb-4">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{customError}</span>
+              <div className="p-3.5 rounded-xl border border-rose-200 bg-rose-50 text-xs text-rose-800 space-y-2 mb-4 shadow-xs">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
+                  <span className="font-semibold">{customError}</span>
+                </div>
+                {customProvider === 'Hostinger' && (
+                  <div className="pl-6 text-[11px] text-rose-700 bg-white/70 p-2.5 rounded-lg border border-rose-100 space-y-1">
+                    <p className="font-bold text-rose-900">💡 Quick Troubleshooting Checklist:</p>
+                    <ul className="list-disc list-inside space-y-0.5 text-slate-700">
+                      <li>
+                        <strong>Password:</strong> Verify by logging into{' '}
+                        <a
+                          href="https://mail.hostinger.com"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="underline font-semibold text-indigo-600 hover:text-indigo-800 inline-flex items-center gap-0.5"
+                        >
+                          mail.hostinger.com <ExternalLink className="w-2.5 h-2.5 inline" />
+                        </a>
+                        . You must use the password created specifically for this mailbox in Hostinger Emails.
+                      </li>
+                      <li>
+                        <strong>Port:</strong> If Port 465 SSL is blocked on your network or host, try switching to <strong>Port 587 (STARTTLS)</strong> in Advanced Settings below.
+                      </li>
+                    </ul>
+                  </div>
+                )}
               </div>
             )}
 
@@ -882,7 +919,39 @@ function AccountsContent() {
                     </div>
 
                     <div>
-                      <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">SMTP Settings (Sending)</div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">SMTP Settings (Sending)</div>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCustomSmtpPort('465');
+                              setCustomSmtpSecurity('ssl');
+                            }}
+                            className={`text-[10px] px-2 py-0.5 rounded font-medium border transition-colors cursor-pointer ${
+                              customSmtpPort === '465'
+                                ? 'bg-indigo-600 text-white border-indigo-600 font-bold'
+                                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                            }`}
+                          >
+                            Port 465 (SSL)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCustomSmtpPort('587');
+                              setCustomSmtpSecurity('starttls');
+                            }}
+                            className={`text-[10px] px-2 py-0.5 rounded font-medium border transition-colors cursor-pointer ${
+                              customSmtpPort === '587'
+                                ? 'bg-indigo-600 text-white border-indigo-600 font-bold'
+                                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                            }`}
+                          >
+                            Port 587 (STARTTLS)
+                          </button>
+                        </div>
+                      </div>
                       <div className="grid grid-cols-12 gap-2.5">
                         <div className="col-span-6">
                           <label className="block text-[10px] font-semibold text-slate-500 mb-1">Host</label>

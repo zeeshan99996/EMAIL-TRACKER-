@@ -68,15 +68,23 @@ export async function POST(request: NextRequest) {
       secure: effectiveImapSecurity !== 'starttls',
     };
 
-    // 1. Verify SMTP
+    let confirmedSmtpPort = effectiveSmtpPort;
+    let confirmedSmtpSecurity = effectiveSmtpSecurity;
+
+    // 1. Verify SMTP (with automatic fallback between port 465 SSL and port 587 STARTTLS)
     try {
-      await verifySmtpCredentials(cleanEmail, cleanPassword, smtpConfig);
+      const verifyRes = await verifySmtpCredentials(cleanEmail, cleanPassword, smtpConfig);
+      if (verifyRes && verifyRes.workingPort) {
+        confirmedSmtpPort = verifyRes.workingPort;
+        confirmedSmtpSecurity = verifyRes.workingSecure ? 'ssl' : 'starttls';
+      }
     } catch (smtpErr: any) {
       console.error('[Add Custom Email] SMTP Verification error:', smtpErr.message);
       return NextResponse.json(
         {
-          error: 'SMTP connection failed. Please check your SMTP host, port, and password.',
-          details: smtpErr.message,
+          error: smtpErr.message || 'SMTP connection failed. Please check your SMTP host, port, and password.',
+          details: smtpErr.originalError || smtpErr.code || smtpErr.message,
+          isAuthError: smtpErr.code === 'EAUTH',
         },
         { status: 400 }
       );
@@ -89,8 +97,9 @@ export async function POST(request: NextRequest) {
       console.error('[Add Custom Email] IMAP Verification error:', imapErr.message);
       return NextResponse.json(
         {
-          error: 'IMAP connection failed. Please check your IMAP host, port, and password.',
+          error: imapErr.message || 'IMAP connection failed. Please check your IMAP host, port, and password.',
           details: imapErr.message,
+          isAuthError: imapErr.code === 'EAUTH',
         },
         { status: 400 }
       );
@@ -104,8 +113,8 @@ export async function POST(request: NextRequest) {
       imapPort: effectiveImapPort,
       imapSecurity: effectiveImapSecurity,
       smtpHost: effectiveSmtpHost,
-      smtpPort: effectiveSmtpPort,
-      smtpSecurity: effectiveSmtpSecurity,
+      smtpPort: confirmedSmtpPort,
+      smtpSecurity: confirmedSmtpSecurity,
       providerName: provider || (isHostinger ? 'Hostinger' : isGmailSmtp ? 'Gmail (SMTP)' : 'Custom SMTP'),
     };
 

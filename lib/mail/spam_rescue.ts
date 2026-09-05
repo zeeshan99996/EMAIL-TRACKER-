@@ -144,7 +144,7 @@ async function rescueImapAccount(account: any, fleetEmails: string[]): Promise<R
     let port = 993;
     let secure = true;
 
-    if (account.provider === 'custom_smtp' && account.metadata) {
+    if (account.metadata) {
       host = account.metadata.imapHost || 'imap.hostinger.com';
       port = Number(account.metadata.imapPort) || 993;
       secure = account.metadata.imapSecurity !== 'starttls';
