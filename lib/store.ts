@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { Email, EmailEvent, EmailLink, ApiKey, Project } from './types';
 
 export interface LocalDbSchema {
@@ -32,8 +33,9 @@ export const DEFAULT_API_KEYS: ApiKey[] = [
   },
 ];
 
-// File storage path
-const DATA_DIR = path.join(process.cwd(), 'data');
+// File storage path (serverless-safe)
+const isServerless = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const DATA_DIR = isServerless ? path.join(os.tmpdir(), 'email-tracker-data') : path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'local-db.json');
 
 // In-memory cache to guarantee ultra-fast reads & writes

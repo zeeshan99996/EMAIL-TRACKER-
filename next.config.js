@@ -4,6 +4,11 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    outputFileTracingIncludes: {
+      '/api/**/*': ['./data/**/*'],
+    },
+  },
   async headers() {
     return [
       {

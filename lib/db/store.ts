@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import crypto from 'crypto';
 import {
   EmailAccount,
@@ -29,69 +30,163 @@ export interface DatabaseSchema {
   targeted_warmup_stats: TargetedWarmupStat[];
 }
 
-const DATA_DIR = path.join(process.cwd(), 'data');
-const DB_FILE = path.join(DATA_DIR, 'warmup_store.json');
+let cachedDb: DatabaseSchema | null = null;
+let resolvedDataDir: string | null = null;
+let resolvedDbFile: string | null = null;
 
-export function ensureDbFile(): DatabaseSchema {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+function getDataPaths(): { dataDir: string; dbFile: string } {
+  if (resolvedDataDir && resolvedDbFile) {
+    return { dataDir: resolvedDataDir, dbFile: resolvedDbFile };
   }
 
-  if (!fs.existsSync(DB_FILE)) {
-    const initial: DatabaseSchema = {
-      email_accounts: [],
-      email_warmup_configs: [],
-      email_warmup_accounts: [],
-      email_warmup_jobs: [],
-      email_warmup_events: [],
-      email_warmup_stats: [],
-      targeted_warmup_campaigns: [],
-      targeted_warmup_peers: [],
-      targeted_warmup_jobs: [],
-      targeted_warmup_events: [],
-      targeted_warmup_stats: [],
-    };
-    fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), 'utf8');
-    return initial;
+  const isServerless = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+
+  if (isServerless) {
+    // In serverless, process.cwd() is read-only /var/task. Use /tmp which is writable!
+    const tmpDataDir = path.join(os.tmpdir(), 'email-tracker-data');
+    const tmpDbFile = path.join(tmpDataDir, 'warmup_store.json');
+    const seedDbFile = path.join(process.cwd(), 'data', 'warmup_store.json');
+
+    try {
+      if (!fs.existsSync(tmpDataDir)) {
+        fs.mkdirSync(tmpDataDir, { recursive: true });
+      }
+      if (!fs.existsSync(tmpDbFile) && fs.existsSync(seedDbFile)) {
+        fs.copyFileSync(seedDbFile, tmpDbFile);
+      }
+    } catch (err) {
+      console.warn('[LocalDB] Serverless /tmp prep warning:', err);
+    }
+
+    resolvedDataDir = tmpDataDir;
+    resolvedDbFile = tmpDbFile;
+    return { dataDir: resolvedDataDir, dbFile: resolvedDbFile };
   }
+
+  // Local environment (Windows/Linux)
+  const localDataDir = path.join(process.cwd(), 'data');
+  const localDbFile = path.join(localDataDir, 'warmup_store.json');
 
   try {
-    const raw = fs.readFileSync(DB_FILE, 'utf8');
-    const parsed = JSON.parse(raw) as DatabaseSchema;
-    // Safely ensure new properties exist
-    parsed.targeted_warmup_campaigns = parsed.targeted_warmup_campaigns || [];
-    parsed.targeted_warmup_peers = parsed.targeted_warmup_peers || [];
-    parsed.targeted_warmup_jobs = parsed.targeted_warmup_jobs || [];
-    parsed.targeted_warmup_events = parsed.targeted_warmup_events || [];
-    parsed.targeted_warmup_stats = parsed.targeted_warmup_stats || [];
-    return parsed;
-  } catch (err) {
-    const initial: DatabaseSchema = {
-      email_accounts: [],
-      email_warmup_configs: [],
-      email_warmup_accounts: [],
-      email_warmup_jobs: [],
-      email_warmup_events: [],
-      email_warmup_stats: [],
-      targeted_warmup_campaigns: [],
-      targeted_warmup_peers: [],
-      targeted_warmup_jobs: [],
-      targeted_warmup_events: [],
-      targeted_warmup_stats: [],
-    };
-    fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), 'utf8');
-    return initial;
+    if (!fs.existsSync(localDataDir)) {
+      fs.mkdirSync(localDataDir, { recursive: true });
+    }
+  } catch {
+    // If local mkdir fails for any reason, fallback to tmpdir
+    const fallbackDir = path.join(os.tmpdir(), 'email-tracker-data');
+    try {
+      if (!fs.existsSync(fallbackDir)) fs.mkdirSync(fallbackDir, { recursive: true });
+    } catch {}
+    resolvedDataDir = fallbackDir;
+    resolvedDbFile = path.join(fallbackDir, 'warmup_store.json');
+    return { dataDir: resolvedDataDir, dbFile: resolvedDbFile };
   }
+
+  resolvedDataDir = localDataDir;
+  resolvedDbFile = localDbFile;
+  return { dataDir: resolvedDataDir, dbFile: resolvedDbFile };
+}
+
+export function ensureDbFile(): DatabaseSchema {
+  if (cachedDb) {
+    return cachedDb;
+  }
+
+  const { dataDir, dbFile } = getDataPaths();
+  const seedDbFile = path.join(process.cwd(), 'data', 'warmup_store.json');
+
+  try {
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+  } catch (err) {
+    console.warn('[LocalDB] Could not create dataDir:', err);
+  }
+
+  // 1. Try reading from target file in dataDir
+  if (fs.existsSync(dbFile)) {
+    try {
+      const raw = fs.readFileSync(dbFile, 'utf8');
+      const parsed = JSON.parse(raw) as DatabaseSchema;
+      parsed.email_accounts = parsed.email_accounts || [];
+      parsed.email_warmup_configs = parsed.email_warmup_configs || [];
+      parsed.email_warmup_accounts = parsed.email_warmup_accounts || [];
+      parsed.email_warmup_jobs = parsed.email_warmup_jobs || [];
+      parsed.email_warmup_events = parsed.email_warmup_events || [];
+      parsed.email_warmup_stats = parsed.email_warmup_stats || [];
+      parsed.targeted_warmup_campaigns = parsed.targeted_warmup_campaigns || [];
+      parsed.targeted_warmup_peers = parsed.targeted_warmup_peers || [];
+      parsed.targeted_warmup_jobs = parsed.targeted_warmup_jobs || [];
+      parsed.targeted_warmup_events = parsed.targeted_warmup_events || [];
+      parsed.targeted_warmup_stats = parsed.targeted_warmup_stats || [];
+      cachedDb = parsed;
+      return cachedDb;
+    } catch (err) {
+      console.warn('[LocalDB] Error reading dbFile:', err);
+    }
+  }
+
+  // 2. Try reading from seed file in repo
+  if (fs.existsSync(seedDbFile)) {
+    try {
+      const rawSeed = fs.readFileSync(seedDbFile, 'utf8');
+      const parsedSeed = JSON.parse(rawSeed) as DatabaseSchema;
+      parsedSeed.email_accounts = parsedSeed.email_accounts || [];
+      parsedSeed.email_warmup_configs = parsedSeed.email_warmup_configs || [];
+      parsedSeed.email_warmup_accounts = parsedSeed.email_warmup_accounts || [];
+      parsedSeed.email_warmup_jobs = parsedSeed.email_warmup_jobs || [];
+      parsedSeed.email_warmup_events = parsedSeed.email_warmup_events || [];
+      parsedSeed.email_warmup_stats = parsedSeed.email_warmup_stats || [];
+      parsedSeed.targeted_warmup_campaigns = parsedSeed.targeted_warmup_campaigns || [];
+      parsedSeed.targeted_warmup_peers = parsedSeed.targeted_warmup_peers || [];
+      parsedSeed.targeted_warmup_jobs = parsedSeed.targeted_warmup_jobs || [];
+      parsedSeed.targeted_warmup_events = parsedSeed.targeted_warmup_events || [];
+      parsedSeed.targeted_warmup_stats = parsedSeed.targeted_warmup_stats || [];
+      cachedDb = parsedSeed;
+
+      try {
+        fs.writeFileSync(dbFile, JSON.stringify(parsedSeed, null, 2), 'utf8');
+      } catch {}
+
+      return cachedDb;
+    } catch (err) {
+      console.warn('[LocalDB] Error reading seedDbFile:', err);
+    }
+  }
+
+  // 3. Fallback to clean initial schema
+  const initial: DatabaseSchema = {
+    email_accounts: [],
+    email_warmup_configs: [],
+    email_warmup_accounts: [],
+    email_warmup_jobs: [],
+    email_warmup_events: [],
+    email_warmup_stats: [],
+    targeted_warmup_campaigns: [],
+    targeted_warmup_peers: [],
+    targeted_warmup_jobs: [],
+    targeted_warmup_events: [],
+    targeted_warmup_stats: [],
+  };
+
+  try {
+    fs.writeFileSync(dbFile, JSON.stringify(initial, null, 2), 'utf8');
+  } catch {}
+
+  cachedDb = initial;
+  return cachedDb;
 }
 
 export function saveDb(data: DatabaseSchema) {
+  cachedDb = data; // Update in-memory cache immediately
   try {
-    if (!fs.existsSync(DATA_DIR)) {
-      fs.mkdirSync(DATA_DIR, { recursive: true });
+    const { dataDir, dbFile } = getDataPaths();
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
     }
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
+    fs.writeFileSync(dbFile, JSON.stringify(data, null, 2), 'utf8');
   } catch (err) {
-    console.error('[LocalDB] Error saving db:', err);
+    console.warn('[LocalDB] Error saving db to disk (using memory cache):', err);
   }
 }
 
