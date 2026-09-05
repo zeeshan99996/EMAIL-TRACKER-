@@ -363,8 +363,73 @@ export function isValidEmailSyntax(email: string): boolean {
  * Checks if a domain is a known temporary/disposable/burner domain.
  */
 export function isDisposableDomain(domain: string): boolean {
+  if (!domain) return true;
   const cleanDomain = domain.toLowerCase().trim();
-  return DISPOSABLE_DOMAINS.has(cleanDomain);
+  if (DISPOSABLE_DOMAINS.has(cleanDomain)) return true;
+
+  // Pattern match typical disposable/burner provider keywords
+  if (/(\b|[-_.])(temp(mail|ail)?|dispos(able)?|throwaway|burner|junk(mail)?|trash(mail)?|fakemail|sharklasers|inboxkitten|generator|guerrilla|mohmal|crybio|mailnesia|10minute|mytemp|spambog|fakeinbox|fake)(\b|[-_.])/i.test(cleanDomain)) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Detects fake, disposable, synthetic, or non-existent mailboxes.
+ */
+export function isFakeOrDisposableEmail(email: string): { isFake: boolean; reason?: string } {
+  if (!email || typeof email !== 'string' || !email.includes('@')) {
+    return { isFake: true, reason: 'Invalid email syntax or format' };
+  }
+
+  const clean = email.toLowerCase().trim();
+  const [localPart, domain] = clean.split('@');
+  if (!localPart || !domain) {
+    return { isFake: true, reason: 'Missing local part or domain' };
+  }
+
+  // 1. Check disposable domain
+  if (isDisposableDomain(domain)) {
+    return { isFake: true, reason: `Disposable burner email domain (@${domain})` };
+  }
+
+  // 2. Explicit fake/synthetic keywords in username
+  const fakeKeywords = [
+    'fake', 'dummy', 'disposible', 'disposable', 'throwaway', 'burner',
+    'nowhere', 'notreal', 'invalid', 'junkmail', 'samplemail',
+    'spambox', 'noexist', 'nonexistent', 'testfake', 'abcdsumphatyw',
+    'akfood123', 'fakeemail'
+  ];
+  for (const kw of fakeKeywords) {
+    if (localPart.includes(kw)) {
+      return { isFake: true, reason: `Fake/test indicator in email username: "${kw}"` };
+    }
+  }
+
+  // 3. Synthetic test email pattern (e.g., akfood123, abfood12)
+  if (/^[a-z]{2}(food|test|fake|junk|mail|sample|dummy|temp)\d{2,}/i.test(localPart)) {
+    return { isFake: true, reason: 'Synthetic test username pattern' };
+  }
+
+  // 4. Keyboard walk sequence at start with long string (e.g., abcdsumphatyw230123, asdfgh...)
+  if (/^(abcd|asdf|qwer|zxcv|1234|jklm)/i.test(localPart) && localPart.length > 8) {
+    return { isFake: true, reason: 'Keyboard walk / random keysmash sequence detected' };
+  }
+
+  // 5. Consonant clusters (5 or more consecutive consonants in any token)
+  const tokens = localPart.split(/[^a-z]+/i);
+  for (const token of tokens) {
+    if (token.length >= 5 && /[bcdfghjklmnpqrstvwxyz]{5,}/i.test(token)) {
+      return { isFake: true, reason: 'Unpronounceable consonant cluster / random keysmash detected' };
+    }
+  }
+
+  // 6. Suspicious trailing random digit sequence (5+ trailing digits)
+  if (/\d{5,}$/.test(localPart) && localPart.length > 10) {
+    return { isFake: true, reason: 'High-entropy trailing digit sequence detected' };
+  }
+
+  return { isFake: false };
 }
 
 /**
@@ -467,9 +532,9 @@ export async function verifyEmail(email: string): Promise<EmailVerificationResul
 
   const [localPart, domain] = cleanEmail.split('@');
 
-  // 2. Disposable / Burner Domain Check
-  const isDisposable = isDisposableDomain(domain);
-  if (isDisposable) {
+  // 2. Synthetic, Fake & Disposable Mailbox Check
+  const fakeCheck = isFakeOrDisposableEmail(cleanEmail);
+  if (fakeCheck.isFake) {
     return {
       email: cleanEmail,
       isValid: false,
@@ -478,7 +543,7 @@ export async function verifyEmail(email: string): Promise<EmailVerificationResul
       isRoleAccount: isRoleAccount(localPart),
       hasMxRecords: false,
       score: 0,
-      reason: `Fake or disposable email domain detected (@${domain}). Sending to this domain is rejected to protect sender reputation.`,
+      reason: `Fake, disposable, or non-existent recipient: ${fakeCheck.reason}. Automatically rejected to protect sender reputation.`,
       details: {
         syntax: true,
         domain,

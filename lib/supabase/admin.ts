@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { hashApiKey, generateApiKey } from '../security/api-key';
 import { processEmailHtml } from '../tracking/html-parser';
+import { isFakeOrDisposableEmail } from '../verification/email-verifier';
 import {
   getStoreEmails,
   getStoreEmailById,
@@ -165,6 +166,21 @@ export async function createTrackedEmail(
   const { trackingId, trackedHtml, links } = processEmailHtml(req.html, appUrl);
   const now = new Date().toISOString();
   const emailId = `em_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+
+  // Email Verifier Interceptor:
+  // If recipient is fake, disposable, or non-existent, return success to sender (so Apps Script completes without error),
+  // but NEVER persist it to the database so it never appears on the dashboard!
+  const fakeCheck = isFakeOrDisposableEmail(req.to);
+  if (fakeCheck.isFake) {
+    console.log(`[createTrackedEmail] Intercepted fake/disposable recipient "${req.to}" (${fakeCheck.reason}). Skipping persistence.`);
+    return {
+      success: true,
+      emailId,
+      trackingId,
+      status: 'SENT',
+      trackedHtml: req.html,
+    };
+  }
 
   const newEmail: Email = {
     id: emailId,
@@ -540,7 +556,16 @@ export async function recordClickEvent(
  */
 export async function getDashboardData(projectId: string = DEFAULT_PROJECT.id) {
   if (isDemoMode) {
-    const emails = getStoreEmails(projectId);
+    const allStoreEmails = getStoreEmails(projectId);
+    const validEmails: Email[] = [];
+    for (const em of allStoreEmails) {
+      if (isFakeOrDisposableEmail(em.recipient_email).isFake) {
+        deleteStoreEmail(em.id);
+      } else {
+        validEmails.push(em);
+      }
+    }
+    const emails = validEmails;
     const totalEmails = emails.length;
     const trackedOpens = emails.reduce((sum, e) => sum + (e.open_count || 0), 0);
     const uniqueOpens = emails.filter(e => (e.open_count || 0) > 0).length;
@@ -564,21 +589,26 @@ export async function getDashboardData(projectId: string = DEFAULT_PROJECT.id) {
 
     // Recent activity
     const allEvents = getStoreEmailEvents();
-    const activity: ActivityEvent[] = allEvents.map(evt => {
-      const email = emails.find(e => e.id === evt.email_id);
-      const links = email ? getStoreEmailLinks(email.id) : [];
-      const link = links.find(l => l.id === evt.link_id);
-      return {
-        id: evt.id,
-        event_type: evt.event_type,
-        occurred_at: evt.occurred_at,
-        recipient_email: email?.recipient_email || 'Unknown',
-        email_subject: email?.subject || 'No Subject',
-        email_id: evt.email_id,
-        link_label: link?.link_label,
-        original_url: link?.original_url,
-      };
-    });
+    const activity: ActivityEvent[] = allEvents
+      .filter(evt => {
+        const email = emails.find(e => e.id === evt.email_id);
+        return email && !isFakeOrDisposableEmail(email.recipient_email).isFake;
+      })
+      .map(evt => {
+        const email = emails.find(e => e.id === evt.email_id);
+        const links = email ? getStoreEmailLinks(email.id) : [];
+        const link = links.find(l => l.id === evt.link_id);
+        return {
+          id: evt.id,
+          event_type: evt.event_type,
+          occurred_at: evt.occurred_at,
+          recipient_email: email?.recipient_email || 'Unknown',
+          email_subject: email?.subject || 'No Subject',
+          email_id: evt.email_id,
+          link_label: link?.link_label,
+          original_url: link?.original_url,
+        };
+      });
 
     // Top Links
     const allLinks: EmailLink[] = [];
@@ -619,9 +649,35 @@ export async function getDashboardData(projectId: string = DEFAULT_PROJECT.id) {
     emailQuery = emailQuery.eq('project_id', projectId);
   }
 
-  const { data: emails } = await emailQuery;
+  const { data: rawEmails } = await emailQuery;
 
-  const emailList: Email[] = emails || [];
+  // Real-time Email Verifier Auto-Cleaner:
+  // Automatically identify fake, disposable, or non-existent emails, permanently purge them from Supabase, and hide them from the dashboard
+  const fakeEmailIds: string[] = [];
+  const validEmails: Email[] = [];
+
+  for (const em of (rawEmails || [])) {
+    const fakeCheck = isFakeOrDisposableEmail(em.recipient_email);
+    if (fakeCheck.isFake) {
+      fakeEmailIds.push(em.id);
+    } else {
+      validEmails.push(em);
+    }
+  }
+
+  // Instantly purge fake emails from Supabase
+  if (fakeEmailIds.length > 0) {
+    console.log(`[Email Verifier Auto-Cleaner] Purging ${fakeEmailIds.length} fake/disposable emails from database:`, fakeEmailIds);
+    try {
+      await supabaseAdmin.from('email_events').delete().in('email_id', fakeEmailIds);
+      await supabaseAdmin.from('email_links').delete().in('email_id', fakeEmailIds);
+      await supabaseAdmin.from('emails').delete().in('id', fakeEmailIds);
+    } catch (purgeErr) {
+      console.error('[Email Verifier Auto-Cleaner] Purge error:', purgeErr);
+    }
+  }
+
+  const emailList: Email[] = validEmails;
   const totalEmails = emailList.length;
   const trackedOpens = emailList.reduce((sum, e) => sum + (e.open_count || 0), 0);
   const uniqueOpens = emailList.filter(e => (e.open_count || 0) > 0).length;
@@ -648,38 +704,44 @@ export async function getDashboardData(projectId: string = DEFAULT_PROJECT.id) {
     .from('email_events')
     .select('*, emails(recipient_email, subject), email_links(link_label, original_url)')
     .order('occurred_at', { ascending: false })
-    .limit(10);
+    .limit(20);
 
-  const activity: ActivityEvent[] = (events || []).map((evt: any) => ({
-    id: evt.id,
-    event_type: evt.event_type,
-    occurred_at: evt.occurred_at,
-    recipient_email: evt.emails?.recipient_email || 'Unknown',
-    email_subject: evt.emails?.subject || 'No Subject',
-    email_id: evt.email_id,
-    link_label: evt.email_links?.link_label,
-    original_url: evt.email_links?.original_url,
-  }));
+  const activity: ActivityEvent[] = (events || [])
+    .filter((evt: any) => !fakeEmailIds.includes(evt.email_id) && !isFakeOrDisposableEmail(evt.emails?.recipient_email || '').isFake)
+    .slice(0, 10)
+    .map((evt: any) => ({
+      id: evt.id,
+      event_type: evt.event_type,
+      occurred_at: evt.occurred_at,
+      recipient_email: evt.emails?.recipient_email || 'Unknown',
+      email_subject: evt.emails?.subject || 'No Subject',
+      email_id: evt.email_id,
+      link_label: evt.email_links?.link_label,
+      original_url: evt.email_links?.original_url,
+    }));
 
   // Top Links
   const { data: links } = await supabaseAdmin
     .from('email_links')
     .select('*, emails(subject, recipient_email)')
     .order('click_count', { ascending: false })
-    .limit(5);
+    .limit(10);
 
-  const topLinks: TopLink[] = (links || []).map((l: any) => ({
-    id: l.id,
-    original_url: l.original_url,
-    link_label: l.link_label,
-    totalClicks: l.click_count,
-    emailSubject: l.emails?.subject || 'Unknown Subject',
-    emailRecipient: l.emails?.recipient_email || 'Unknown Recipient',
-  }));
+  const topLinks: TopLink[] = (links || [])
+    .filter((l: any) => !fakeEmailIds.includes(l.email_id) && !isFakeOrDisposableEmail(l.emails?.recipient_email || '').isFake)
+    .slice(0, 5)
+    .map((l: any) => ({
+      id: l.id,
+      original_url: l.original_url,
+      link_label: l.link_label,
+      totalClicks: l.click_count,
+      emailSubject: l.emails?.subject || 'Unknown Subject',
+      emailRecipient: l.emails?.recipient_email || 'Unknown Recipient',
+    }));
 
   return {
     summary,
-    emails: emailList,
+    emails: validEmails,
     activity,
     topLinks,
   };
@@ -711,6 +773,19 @@ export async function getEmailDetails(id: string) {
     .single();
 
   if (!email) return null;
+
+  // If email is fake or disposable, purge and return null
+  if (isFakeOrDisposableEmail(email.recipient_email).isFake) {
+    console.log(`[getEmailDetails] Purging fake email from Supabase: ${email.id} (${email.recipient_email})`);
+    try {
+      await supabaseAdmin.from('email_events').delete().eq('email_id', email.id);
+      await supabaseAdmin.from('email_links').delete().eq('email_id', email.id);
+      await supabaseAdmin.from('emails').delete().eq('id', email.id);
+    } catch (purgeErr) {
+      console.error('[getEmailDetails] Purge error:', purgeErr);
+    }
+    return null;
+  }
 
   const { data: links } = await supabaseAdmin
     .from('email_links')
@@ -906,7 +981,7 @@ export async function deleteEmail(emailId: string): Promise<boolean> {
  */
 export async function getEmails(projectId?: string): Promise<Email[]> {
   if (isDemoMode) {
-    return getStoreEmails(projectId);
+    return getStoreEmails(projectId).filter(e => !isFakeOrDisposableEmail(e.recipient_email).isFake);
   }
 
   let emailQuery = supabaseAdmin
@@ -923,7 +998,29 @@ export async function getEmails(projectId?: string): Promise<Email[]> {
     console.error('Error fetching emails from Supabase:', error);
     return [];
   }
-  return data || [];
+
+  const validEmails: Email[] = [];
+  const fakeIds: string[] = [];
+  for (const em of (data || [])) {
+    if (isFakeOrDisposableEmail(em.recipient_email).isFake) {
+      fakeIds.push(em.id);
+    } else {
+      validEmails.push(em);
+    }
+  }
+
+  if (fakeIds.length > 0) {
+    console.log(`[getEmails] Purging ${fakeIds.length} fake emails from Supabase`);
+    try {
+      await supabaseAdmin.from('email_events').delete().in('email_id', fakeIds);
+      await supabaseAdmin.from('email_links').delete().in('email_id', fakeIds);
+      await supabaseAdmin.from('emails').delete().in('id', fakeIds);
+    } catch (purgeErr) {
+      console.error('[getEmails] Purge error:', purgeErr);
+    }
+  }
+
+  return validEmails;
 }
 
 

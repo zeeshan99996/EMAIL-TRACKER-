@@ -3,7 +3,7 @@ import { validateApiKey, createTrackedEmail } from '@/lib/supabase/admin';
 import { checkRateLimit } from '@/lib/security/rate-limit';
 import { createEmailSchema } from '@/lib/validation/email-schema';
 import { registerSenderIp } from '@/lib/security/sender-filter';
-import { verifyEmail } from '@/lib/verification/email-verifier';
+import { verifyEmail, isFakeOrDisposableEmail } from '@/lib/verification/email-verifier';
 
 export async function POST(req: NextRequest) {
   try {
@@ -91,17 +91,23 @@ export async function POST(req: NextRequest) {
 
     // 5. Email Verification & Spam/Fake Recipient Protection
     const verification = await verifyEmail(parseResult.data.to);
-    if (!verification.isValid || !verification.isDeliverable || verification.isDisposable) {
+    const fakeCheck = isFakeOrDisposableEmail(parseResult.data.to);
+    const isFake = !verification.isValid || !verification.isDeliverable || verification.isDisposable || fakeCheck.isFake;
+
+    if (isFake) {
+      console.warn(`[API] Intercepted fake/disposable recipient "${parseResult.data.to}" (${verification.reason || fakeCheck.reason}). Skipping persistence to protect dashboard.`);
+
+      // Return 201 Created with original HTML so Google Apps Script proceeds without crashing, but email is NEVER saved to dashboard
       return NextResponse.json(
         {
-          success: false,
-          error: {
-            code: 'INVALID_RECIPIENT_EMAIL',
-            message: `Recipient email rejected: ${verification.reason}`,
-            details: verification,
-          },
+          success: true,
+          emailId: `em_fake_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+          trackingId: `trk_fake_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+          status: 'SENT',
+          trackedHtml: parseResult.data.html,
+          warning: `Recipient verified as fake/disposable (${verification.reason || fakeCheck.reason}). Dropped from dashboard tracking.`,
         },
-        { status: 400 }
+        { status: 201 }
       );
     }
 

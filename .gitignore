@@ -35,4 +35,5 @@ Thumbs.db
 
 # User raw dropped folder (now integrated)
 Email warmup/
+*.tsbuildinfo
 

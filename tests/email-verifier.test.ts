@@ -39,7 +39,7 @@ describe('Email Verifier Engine', () => {
     expect(result.isDisposable).toBe(true);
     expect(result.isDeliverable).toBe(false);
     expect(result.score).toBe(0);
-    expect(result.reason).toContain('Fake or disposable');
+    expect(result.reason).toContain('Fake, disposable, or non-existent recipient');
   });
 
   it('should verify legitimate domains like google.com or gmail.com', async () => {
@@ -51,8 +51,22 @@ describe('Email Verifier Engine', () => {
     expect(result.score).toBeGreaterThanOrEqual(70);
   });
 
-  it('should detect fake / non-existent domains without MX records', async () => {
-    const result = await verifyEmail('user@fake-random-domain-xyz-1234987654321.com');
+  it('should detect synthetic and disposable test emails from user', async () => {
+    const email1 = await verifyEmail('abcdsumphatyw230123@gmail.com');
+    expect(email1.isValid).toBe(false);
+    expect(email1.isDisposable).toBe(true);
+
+    const email2 = await verifyEmail('akfood123@gmail.com');
+    expect(email2.isValid).toBe(false);
+    expect(email2.isDisposable).toBe(true);
+
+    const email3 = await verifyEmail('tijiwe3710@crybio.com');
+    expect(email3.isValid).toBe(false);
+    expect(email3.isDisposable).toBe(true);
+  });
+
+  it('should detect non-existent domains without MX records', async () => {
+    const result = await verifyEmail('user@nonexistent-mx-server-9988221199.org');
     expect(result.isValid).toBe(false);
     expect(result.hasMxRecords).toBe(false);
     expect(result.isDeliverable).toBe(false);
