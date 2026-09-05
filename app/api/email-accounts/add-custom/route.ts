@@ -1,5 +1,5 @@
 import { encryptToken } from '@/lib/crypto/encryption';
-import { localDb } from '@/lib/db/store';
+import { localDb, loadDbFromSupabase, saveDbAsync } from '@/lib/db/store';
 import { verifySmtpCredentials, SmtpConfig } from '@/lib/mail/smtp';
 import { verifyImapCredentials, ImapConfig } from '@/lib/mail/imap';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -19,6 +19,9 @@ export async function POST(request: NextRequest) {
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // 0. Ensure latest data from Supabase Cloud Store
+    await loadDbFromSupabase();
 
     const { email, password, imapHost, imapPort, imapSecurity, smtpHost, smtpPort, smtpSecurity, provider } = await request.json();
 
@@ -68,15 +71,19 @@ export async function POST(request: NextRequest) {
       secure: effectiveImapSecurity !== 'starttls',
     };
 
+    let confirmedSmtpHost = effectiveSmtpHost;
     let confirmedSmtpPort = effectiveSmtpPort;
     let confirmedSmtpSecurity = effectiveSmtpSecurity;
 
-    // 1. Verify SMTP (with automatic fallback between port 465 SSL and port 587 STARTTLS)
+    // 1. Verify SMTP (with automatic fallback between port 465 SSL and port 587 STARTTLS, plus Titan detection)
     try {
       const verifyRes = await verifySmtpCredentials(cleanEmail, cleanPassword, smtpConfig);
-      if (verifyRes && verifyRes.workingPort) {
-        confirmedSmtpPort = verifyRes.workingPort;
-        confirmedSmtpSecurity = verifyRes.workingSecure ? 'ssl' : 'starttls';
+      if (verifyRes) {
+        if (verifyRes.workingHost) confirmedSmtpHost = verifyRes.workingHost;
+        if (verifyRes.workingPort) confirmedSmtpPort = verifyRes.workingPort;
+        if (verifyRes.workingSecure !== undefined) {
+          confirmedSmtpSecurity = verifyRes.workingSecure ? 'ssl' : 'starttls';
+        }
       }
     } catch (smtpErr: any) {
       console.error('[Add Custom Email] SMTP Verification error:', smtpErr.message);
@@ -90,9 +97,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let confirmedImapHost = effectiveImapHost;
+    if (confirmedSmtpHost.includes('titan.email')) {
+      imapConfig.host = 'imap.titan.email';
+      confirmedImapHost = 'imap.titan.email';
+    }
+
     // 2. Verify IMAP
     try {
-      await verifyImapCredentials(cleanEmail, cleanPassword, imapConfig);
+      const imapRes = await verifyImapCredentials(cleanEmail, cleanPassword, imapConfig);
+      if (imapRes && imapRes.workingHost) {
+        confirmedImapHost = imapRes.workingHost;
+      }
     } catch (imapErr: any) {
       console.error('[Add Custom Email] IMAP Verification error:', imapErr.message);
       return NextResponse.json(
@@ -109,10 +125,10 @@ export async function POST(request: NextRequest) {
     const encryptedPassword = encryptToken(cleanPassword);
     const userId = session.user.id;
     const metadata = {
-      imapHost: effectiveImapHost,
+      imapHost: confirmedImapHost,
       imapPort: effectiveImapPort,
       imapSecurity: effectiveImapSecurity,
-      smtpHost: effectiveSmtpHost,
+      smtpHost: confirmedSmtpHost,
       smtpPort: confirmedSmtpPort,
       smtpSecurity: confirmedSmtpSecurity,
       providerName: provider || (isHostinger ? 'Hostinger' : isGmailSmtp ? 'Gmail (SMTP)' : 'Custom SMTP'),
@@ -148,7 +164,10 @@ export async function POST(request: NextRequest) {
       metadata: { action: 'account_connected_custom_smtp', email: cleanEmail },
     });
 
-    // 5. Save to Supabase (persistent cloud db)
+    // 5. Synchronously persist to Supabase Cloud Database
+    await saveDbAsync(localDb.ensureDbFile());
+
+    // 6. Try individual Supabase tables if present
     try {
       const adminSupabase = createAdminClient();
       const { data: supaAcc, error: accErr } = await adminSupabase.from('email_accounts').insert({

@@ -1,4 +1,4 @@
-import { localDb } from '@/lib/db/store';
+import { localDb, loadDbFromSupabase, saveDbAsync } from '@/lib/db/store';
 import { scheduleWarmupJobsForUser } from '@/lib/warmup/scheduler';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
@@ -16,6 +16,9 @@ export async function POST(request: NextRequest) {
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // 0. Ensure latest data from Supabase Cloud Store
+    await loadDbFromSupabase();
 
     const body = await request.json().catch(() => ({}));
     const accountId = body.accountId;
@@ -85,6 +88,9 @@ export async function POST(request: NextRequest) {
       status: 'info',
       metadata: { action: 'warmup_resumed', targetAccountId: accountId || 'all', newJobs: scheduleResult.createdCount },
     });
+
+    // Synchronously commit to Supabase Cloud Database
+    await saveDbAsync(localDb.ensureDbFile());
 
     return NextResponse.json({ success: true, message: 'Warmup resumed' });
   } catch (err: any) {

@@ -15,6 +15,7 @@ import {
   TargetedWarmupEvent,
   TargetedWarmupStat,
 } from '@/lib/warmup/types';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export interface DatabaseSchema {
   email_accounts: EmailAccount[];
@@ -177,6 +178,67 @@ export function ensureDbFile(): DatabaseSchema {
   return cachedDb;
 }
 
+export async function syncDbToSupabase(data: DatabaseSchema): Promise<void> {
+  try {
+    const supabase = createAdminClient();
+    const payload = JSON.stringify(data);
+    const { error } = await supabase.from('projects').upsert({
+      id: 'sys_warmup_store',
+      account_id: 'acc_demo_01',
+      name: '__SYSTEM_WARMUP_STORE__',
+      description: payload,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) {
+      console.warn('[LocalDB] Supabase cloud upsert warning:', error.message);
+    }
+  } catch (err: any) {
+    console.warn('[LocalDB] Supabase cloud sync warning:', err.message);
+  }
+}
+
+export async function loadDbFromSupabase(): Promise<DatabaseSchema> {
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from('projects')
+      .select('description')
+      .eq('id', 'sys_warmup_store')
+      .single();
+
+    if (!error && data?.description) {
+      const parsed = JSON.parse(data.description) as DatabaseSchema;
+      if (parsed) {
+        parsed.email_accounts = parsed.email_accounts || [];
+        parsed.email_warmup_configs = parsed.email_warmup_configs || [];
+        parsed.email_warmup_accounts = parsed.email_warmup_accounts || [];
+        parsed.email_warmup_jobs = parsed.email_warmup_jobs || [];
+        parsed.email_warmup_events = parsed.email_warmup_events || [];
+        parsed.email_warmup_stats = parsed.email_warmup_stats || [];
+        parsed.targeted_warmup_campaigns = parsed.targeted_warmup_campaigns || [];
+        parsed.targeted_warmup_peers = parsed.targeted_warmup_peers || [];
+        parsed.targeted_warmup_jobs = parsed.targeted_warmup_jobs || [];
+        parsed.targeted_warmup_events = parsed.targeted_warmup_events || [];
+        parsed.targeted_warmup_stats = parsed.targeted_warmup_stats || [];
+
+        cachedDb = parsed;
+
+        try {
+          const { dataDir, dbFile } = getDataPaths();
+          if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+          fs.writeFileSync(dbFile, JSON.stringify(parsed, null, 2), 'utf8');
+        } catch {}
+
+        return cachedDb;
+      }
+    }
+  } catch (err) {
+    console.warn('[LocalDB] Could not load from Supabase:', err);
+  }
+
+  return ensureDbFile();
+}
+
 export function saveDb(data: DatabaseSchema) {
   cachedDb = data; // Update in-memory cache immediately
   try {
@@ -188,9 +250,35 @@ export function saveDb(data: DatabaseSchema) {
   } catch (err) {
     console.warn('[LocalDB] Error saving db to disk (using memory cache):', err);
   }
+
+  // Persist to Supabase cloud database asynchronously
+  syncDbToSupabase(data).catch(() => {});
+}
+
+export async function saveDbAsync(data: DatabaseSchema): Promise<void> {
+  cachedDb = data;
+  try {
+    const { dataDir, dbFile } = getDataPaths();
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    fs.writeFileSync(dbFile, JSON.stringify(data, null, 2), 'utf8');
+  } catch {}
+
+  await syncDbToSupabase(data);
 }
 
 export const localDb = {
+  async loadFromCloud(): Promise<DatabaseSchema> {
+    return await loadDbFromSupabase();
+  },
+  async syncToCloud(): Promise<void> {
+    const db = ensureDbFile();
+    await syncDbToSupabase(db);
+  },
+  ensureDbFile(): DatabaseSchema {
+    return ensureDbFile();
+  },
   // Accounts
   getAccounts(userId?: string): EmailAccount[] {
     const db = ensureDbFile();

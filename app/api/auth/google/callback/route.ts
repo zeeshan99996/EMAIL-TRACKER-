@@ -1,5 +1,5 @@
 import { encryptToken } from '@/lib/crypto/encryption';
-import { localDb } from '@/lib/db/store';
+import { localDb, loadDbFromSupabase, saveDbAsync } from '@/lib/db/store';
 import { exchangeCodeForTokens, verifyOAuthState } from '@/lib/google/oauth';
 import { logSecurityEvent } from '@/lib/security/audit';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -178,7 +178,9 @@ export async function GET(request: NextRequest) {
       console.warn('[OAuth Callback] Supabase notice, using local store:', supaErr.message);
     }
 
-    // Always keep Local DB synchronized
+    // Always keep Supabase Cloud Database synchronized
+    await loadDbFromSupabase();
+
     const localAcc = localDb.upsertAccount({
       user_id: userId,
       email,
@@ -206,6 +208,9 @@ export async function GET(request: NextRequest) {
       status: 'info',
       metadata: { action: 'account_connected', email },
     });
+
+    // Synchronously commit to Supabase Cloud Database
+    await saveDbAsync(localDb.ensureDbFile());
 
     return NextResponse.redirect(
       `${appUrl}/dashboard/warmup/accounts?connected=true&email=${encodeURIComponent(email)}`

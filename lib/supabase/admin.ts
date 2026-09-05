@@ -891,12 +891,13 @@ export async function revokeApiKey(keyId: string): Promise<boolean> {
  */
 export async function getProjects(): Promise<Project[]> {
   if (isDemoMode) {
-    return getStoreProjects();
+    return getStoreProjects().filter(p => !p.id.startsWith('sys_'));
   }
 
   const { data, error } = await supabaseAdmin
     .from('projects')
     .select('*')
+    .not('id', 'like', 'sys_%')
     .order('created_at', { ascending: true });
 
   if (error) {

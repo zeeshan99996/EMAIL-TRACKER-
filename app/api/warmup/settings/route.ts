@@ -1,4 +1,4 @@
-import { localDb } from '@/lib/db/store';
+import { localDb, loadDbFromSupabase, saveDbAsync } from '@/lib/db/store';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
@@ -17,6 +17,7 @@ export async function GET() {
     }
 
     const userId = session.user.id;
+    await loadDbFromSupabase();
     let config = localDb.getConfig(userId);
 
     const adminSupabase = createAdminClient();
@@ -90,7 +91,10 @@ export async function POST(request: NextRequest) {
 
     const userId = session.user.id;
 
-    // 1. Update local store
+    // 0. Ensure latest data from Supabase Cloud Store
+    await loadDbFromSupabase();
+
+    // 1. Update store
     const localUpdated = localDb.upsertConfig(userId, {
       daily_limit: dailyLimitNum,
       min_delay_minutes: minDelayNum,
@@ -100,7 +104,10 @@ export async function POST(request: NextRequest) {
       enabled: Boolean(enabled),
     });
 
-    // 2. Try Supabase
+    // 2. Synchronously persist to Supabase Cloud Database
+    await saveDbAsync(localDb.ensureDbFile());
+
+    // 3. Try Supabase individual table
     const adminSupabase = createAdminClient();
     try {
       await adminSupabase

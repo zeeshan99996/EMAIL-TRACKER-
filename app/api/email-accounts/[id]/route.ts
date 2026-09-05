@@ -1,4 +1,4 @@
-import { localDb } from '@/lib/db/store';
+import { localDb, loadDbFromSupabase, saveDbAsync } from '@/lib/db/store';
 import { logSecurityEvent } from '@/lib/security/audit';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
@@ -23,6 +23,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // 0. Ensure latest data from Supabase Cloud Store
+    await loadDbFromSupabase();
+
     const accountId = params.id;
     const account = localDb.getAccountById(accountId);
 
@@ -37,8 +40,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden: You do not own this account.' }, { status: 403 });
     }
 
-    // 1. Delete from local store
+    // 1. Delete from store
     localDb.deleteAccount(accountId);
+
+    // 2. Synchronously persist deletion to Supabase Cloud Database
+    await saveDbAsync(localDb.ensureDbFile());
 
     // 2. Delete from Supabase if present
     try {

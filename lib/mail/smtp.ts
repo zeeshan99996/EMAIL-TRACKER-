@@ -39,6 +39,7 @@ export function createSmtpTransporter(email: string, appPassword: string, config
 
 export interface SmtpVerifySuccess {
   success: true;
+  workingHost: string;
   workingPort: number;
   workingSecure: boolean;
 }
@@ -85,6 +86,7 @@ function verifySingle(transporter: any): Promise<boolean> {
 /**
  * Validates that the provided email and password can connect to SMTP.
  * Automatically tries fallback port (465 <-> 587) if network/firewall prevents connection on first port.
+ * For Hostinger accounts, also automatically tests Titan Email (smtp.titan.email) if smtp.hostinger.com rejects credentials.
  */
 export async function verifySmtpCredentials(
   email: string,
@@ -104,15 +106,36 @@ export async function verifySmtpCredentials(
 
   try {
     await verifySingle(transporter1);
-    return { success: true, workingPort: initialPort, workingSecure: initialSecure };
+    return { success: true, workingHost: host, workingPort: initialPort, workingSecure: initialSecure };
   } catch (err1: any) {
-    console.warn(`[SMTP Verify] Port ${initialPort} failed:`, err1.message, err1.code);
+    console.warn(`[SMTP Verify] Port ${initialPort} on ${host} failed:`, err1.message, err1.code);
 
-    // If it's an authentication error, DO NOT retry another port — the password/email is wrong!
+    // If it's an authentication error on Hostinger, test if this mailbox is hosted on Titan Email (smtp.titan.email)
     if (isAuthError(err1)) {
-      const isHostinger = host.includes('hostinger');
+      if (host.includes('hostinger')) {
+        console.info(`[SMTP Verify] smtp.hostinger.com rejected auth. Testing if account is on Titan Email (smtp.titan.email)...`);
+        try {
+          const titanTransporter = createSmtpTransporter(email, appPassword, {
+            host: 'smtp.titan.email',
+            port: 465,
+            secure: true,
+          });
+          await verifySingle(titanTransporter);
+          console.info(`[SMTP Verify] Successfully connected via Titan Email (smtp.titan.email)!`);
+          return {
+            success: true,
+            workingHost: 'smtp.titan.email',
+            workingPort: 465,
+            workingSecure: true,
+          };
+        } catch (titanErr: any) {
+          console.warn(`[SMTP Verify] Titan Email attempt also failed:`, titanErr.message);
+        }
+      }
+
+      const isHostinger = host.includes('hostinger') || host.includes('titan');
       const authMessage = isHostinger
-        ? `Hostinger Authentication Failed: Invalid email or password for ${email}. Please ensure you enter your Hostinger Email Account password (the one used at https://mail.hostinger.com), NOT your main Hostinger account or hPanel login.`
+        ? `Hostinger Authentication Failed: Invalid email or password for ${email}. Both Hostinger Webmail (smtp.hostinger.com) and Titan Email (smtp.titan.email) rejected the credentials. Please verify your Hostinger Mailbox password at https://mail.hostinger.com, or reset it in Hostinger hPanel (Emails -> Manage -> Change Password).`
         : `Authentication failed: Invalid email or password for ${email}.`;
       const enhancedErr = new Error(authMessage);
       (enhancedErr as any).code = 'EAUTH';
@@ -120,7 +143,7 @@ export async function verifySmtpCredentials(
       throw enhancedErr;
     }
 
-    // Otherwise, it was a network/TLS/timeout error. Attempt alternate port!
+    // Otherwise, it was a network/TLS/timeout error. Attempt alternate port on the same host!
     const fallbackPort = initialPort === 465 ? 587 : 465;
     const fallbackSecure = fallbackPort === 465;
 
@@ -135,14 +158,31 @@ export async function verifySmtpCredentials(
     try {
       await verifySingle(transporter2);
       console.info(`[SMTP Verify] Fallback to port ${fallbackPort} succeeded!`);
-      return { success: true, workingPort: fallbackPort, workingSecure: fallbackSecure };
+      return { success: true, workingHost: host, workingPort: fallbackPort, workingSecure: fallbackSecure };
     } catch (err2: any) {
       console.error(`[SMTP Verify] Fallback port ${fallbackPort} also failed:`, err2.message);
 
       if (isAuthError(err2)) {
-        const isHostinger = host.includes('hostinger');
+        if (host.includes('hostinger')) {
+          try {
+            const titanTransporter = createSmtpTransporter(email, appPassword, {
+              host: 'smtp.titan.email',
+              port: 465,
+              secure: true,
+            });
+            await verifySingle(titanTransporter);
+            return {
+              success: true,
+              workingHost: 'smtp.titan.email',
+              workingPort: 465,
+              workingSecure: true,
+            };
+          } catch {}
+        }
+
+        const isHostinger = host.includes('hostinger') || host.includes('titan');
         const authMessage = isHostinger
-          ? `Hostinger Authentication Failed: Invalid email or password for ${email}. Please check your Hostinger Webmail password at https://mail.hostinger.com.`
+          ? `Hostinger Authentication Failed: Invalid email or password for ${email}. Please check your Hostinger Mailbox password at https://mail.hostinger.com or reset it in Hostinger hPanel.`
           : `Authentication failed: Invalid email or password for ${email}.`;
         const enhancedErr = new Error(authMessage);
         (enhancedErr as any).code = 'EAUTH';

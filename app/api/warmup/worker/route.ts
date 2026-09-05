@@ -1,3 +1,4 @@
+import { localDb, loadDbFromSupabase, saveDbAsync } from '@/lib/db/store';
 import { executeWarmupWorker } from '@/lib/warmup/worker';
 import { processAllTargetedJobs } from '@/lib/warmup/targeted_worker';
 import { runSpamRescueForUser } from '@/lib/mail/spam_rescue';
@@ -55,10 +56,16 @@ export async function GET(request: NextRequest) {
   });
 
   try {
+    // 0. Ensure latest data from Supabase Cloud Store
+    await loadDbFromSupabase();
+
     const result = await executeWarmupWorker();
     
     // Also process Targeted Mode jobs
     await processAllTargetedJobs().catch(e => console.error('Targeted job error', e));
+
+    // Synchronously commit updated job stats and progress to Supabase Cloud Database
+    await saveDbAsync(localDb.ensureDbFile());
 
     // Also trigger background Spam Rescue & Auto-Cleanup for user
     try {

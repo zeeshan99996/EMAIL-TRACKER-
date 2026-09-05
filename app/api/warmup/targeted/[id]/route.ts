@@ -1,4 +1,4 @@
-import { localDb } from '@/lib/db/store';
+import { localDb, loadDbFromSupabase, saveDbAsync } from '@/lib/db/store';
 import { targetedLocalDb } from '@/lib/db/targeted_store';
 import { logSecurityEvent } from '@/lib/security/audit';
 import { scheduleTargetedWarmupJobsForUser } from '@/lib/warmup/targeted_scheduler';
@@ -23,6 +23,9 @@ export async function POST(
       });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // 0. Ensure latest data from Supabase Cloud Store
+    await loadDbFromSupabase();
 
     const { action, autoPauseStandard } = await request.json(); // start, pause, stop, trigger_cycle
     const campaignId = params.id;
@@ -67,6 +70,9 @@ export async function POST(
     } else {
       return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
+
+    // Synchronously commit to Supabase Cloud Database
+    await saveDbAsync(localDb.ensureDbFile());
 
     return NextResponse.json({ success: true, status: action });
   } catch (err: any) {

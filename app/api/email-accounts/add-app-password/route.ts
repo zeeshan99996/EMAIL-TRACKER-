@@ -1,5 +1,5 @@
 import { encryptToken } from '@/lib/crypto/encryption';
-import { localDb } from '@/lib/db/store';
+import { localDb, loadDbFromSupabase, saveDbAsync } from '@/lib/db/store';
 import { verifySmtpCredentials } from '@/lib/mail/smtp';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
@@ -18,6 +18,9 @@ export async function POST(request: NextRequest) {
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // 0. Ensure latest data from Supabase Cloud Store
+    await loadDbFromSupabase();
 
     const { email, appPassword } = await request.json();
 
@@ -81,7 +84,10 @@ export async function POST(request: NextRequest) {
       metadata: { action: 'account_connected_app_password', email: cleanEmail },
     });
 
-    // 4. Save to Supabase (persistent cloud db)
+    // 4. Synchronously persist to Supabase Cloud Database
+    await saveDbAsync(localDb.ensureDbFile());
+
+    // 5. Try individual Supabase tables if present
     try {
       const adminSupabase = createAdminClient();
       const { data: supaAcc, error: accErr } = await adminSupabase.from('email_accounts').insert({

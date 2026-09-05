@@ -1,4 +1,4 @@
-import { localDb } from '@/lib/db/store';
+import { localDb, loadDbFromSupabase } from '@/lib/db/store';
 import { logSecurityEvent } from '@/lib/security/audit';
 import { sanitizeAccountForClient } from '@/lib/security/redactor';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
@@ -23,60 +23,10 @@ export async function GET() {
 
     const userId = session.user.id;
 
-    // Try Supabase first
-    try {
-      const { data: accounts, error } = await supabase
-        .from('email_accounts')
-        .select(`
-          id,
-          user_id,
-          email,
-          provider,
-          status,
-          last_sync_at,
-          error_message,
-          created_at,
-          updated_at,
-          warmup_account:email_warmup_accounts(
-            id,
-            status,
-            warmup_level,
-            daily_sent,
-            daily_received,
-            daily_replies,
-            total_sent,
-            total_received,
-            total_replies,
-            next_activity_at,
-            last_activity_at,
-            started_at,
-            completed_at,
-            paused_at,
-            error_message
-          )
-        `)
-        .eq('user_id', userId)
-        .order('created_at', { ascending: true });
+    // 1. Guarantee latest persistent state from Supabase Cloud Database!
+    await loadDbFromSupabase();
 
-      if (!error && accounts && accounts.length > 0) {
-        const formatted = accounts.map((acc: any) => sanitizeAccountForClient({
-          id: acc.id,
-          email: acc.email,
-          provider: acc.provider,
-          status: acc.status,
-          last_sync_at: acc.last_sync_at,
-          error_message: acc.error_message,
-          created_at: acc.created_at,
-          updated_at: acc.updated_at,
-          warmup: Array.isArray(acc.warmup_account) ? acc.warmup_account[0] : acc.warmup_account,
-        }));
-        return NextResponse.json({ accounts: formatted });
-      }
-    } catch {
-      // ignore
-    }
-
-    // Fallback to Local Store
+    // 2. Retrieve persistent accounts
     const localAccounts = localDb.getAccounts(userId);
     const formattedLocal = localAccounts.map((acc) => {
       const warmup = localDb.getWarmupAccountByEmailAccountId(acc.id);
@@ -89,6 +39,7 @@ export async function GET() {
         error_message: acc.error_message,
         created_at: acc.created_at,
         updated_at: acc.updated_at,
+        metadata: acc.metadata,
         warmup,
       });
     });

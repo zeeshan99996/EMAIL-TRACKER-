@@ -93,64 +93,86 @@ export async function fetchImapThreadMessages({
   return messages;
 }
 
+export interface ImapVerifySuccess {
+  success: true;
+  workingHost: string;
+}
+
 /**
- * Validates that the provided email and password can connect to IMAP
+ * Validates that the provided email and password can connect to IMAP.
+ * Automatically tests Titan IMAP (imap.titan.email) if Hostinger IMAP rejects credentials.
  */
-export async function verifyImapCredentials(email: string, appPassword: string, config?: ImapConfig): Promise<boolean> {
+export async function verifyImapCredentials(
+  email: string,
+  appPassword: string,
+  config?: ImapConfig
+): Promise<ImapVerifySuccess> {
   const trimmed = (appPassword || '').trim();
   const isGmailAppPass = (!config?.host || config.host.includes('gmail.com')) && trimmed.replace(/\s+/g, '').length === 16;
   const cleanPassword = isGmailAppPass ? trimmed.replace(/\s+/g, '') : trimmed;
+  const host = config?.host || 'imap.gmail.com';
 
-  const client = new ImapFlow({
-    host: config?.host || 'imap.gmail.com',
-    port: config?.port || 993,
-    secure: config?.secure !== undefined ? config.secure : true,
-    auth: {
-      user: email.trim(),
-      pass: cleanPassword,
-    },
-    tls: {
-      rejectUnauthorized: false,
-      minVersion: 'TLSv1.2',
-    },
-    logger: false,
-    emitLogs: false,
-  });
+  const tryConnect = async (targetHost: string): Promise<boolean> => {
+    const client = new ImapFlow({
+      host: targetHost,
+      port: config?.port || 993,
+      secure: config?.secure !== undefined ? config.secure : true,
+      auth: {
+        user: email.trim(),
+        pass: cleanPassword,
+      },
+      tls: {
+        rejectUnauthorized: false,
+        minVersion: 'TLSv1.2',
+      },
+      logger: false,
+      emitLogs: false,
+    });
 
-  client.on('error', () => {
-    // Suppress unhandled socket errors
-  });
+    client.on('error', () => {});
+
+    try {
+      const connectPromise = client.connect();
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('IMAP connection timed out after 10 seconds')), 10000)
+      );
+      await Promise.race([connectPromise, timeoutPromise]);
+      await client.logout();
+      return true;
+    } finally {
+      try {
+        await client.close();
+      } catch {}
+    }
+  };
 
   try {
-    const connectPromise = client.connect();
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('IMAP connection timed out after 10 seconds')), 10000)
-    );
-    await Promise.race([connectPromise, timeoutPromise]);
-    await client.logout();
-    return true;
+    await tryConnect(host);
+    return { success: true, workingHost: host };
   } catch (err: any) {
     const isAuth =
       err.authenticationFailed ||
       err.responseStatus === 'NO' ||
       /auth|credential|password|login/i.test(err.message || '');
 
+    if (isAuth && host.includes('hostinger')) {
+      // Test Titan IMAP
+      try {
+        await tryConnect('imap.titan.email');
+        return { success: true, workingHost: 'imap.titan.email' };
+      } catch {}
+    }
+
     if (isAuth) {
-      const isHostinger = config?.host?.includes('hostinger');
+      const isHostinger = host.includes('hostinger') || host.includes('titan');
       const authMessage = isHostinger
-        ? `Hostinger IMAP Authentication Failed: Invalid email or password for ${email}. Please ensure you enter your Hostinger Email Account password (the one used at https://mail.hostinger.com), NOT your hPanel account password.`
+        ? `Hostinger IMAP Authentication Failed: Invalid email or password for ${email}. Both Hostinger Webmail (imap.hostinger.com) and Titan Email (imap.titan.email) rejected the credentials. Please verify your mailbox password.`
         : `IMAP Authentication failed: Invalid email or password for ${email}.`;
       const enhancedErr = new Error(authMessage);
       (enhancedErr as any).code = 'EAUTH';
       throw enhancedErr;
     }
     throw err;
-  } finally {
-    try {
-      await client.close();
-    } catch {
-      // ignore
-    }
   }
 }
 

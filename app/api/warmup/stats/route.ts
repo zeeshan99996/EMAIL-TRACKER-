@@ -1,4 +1,4 @@
-import { localDb } from '@/lib/db/store';
+import { localDb, loadDbFromSupabase } from '@/lib/db/store';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
@@ -17,7 +17,10 @@ export async function GET() {
 
     const userId = session.user.id;
 
-    // Use local store as primary or fallback
+    // Guarantee latest persistent state from Supabase Cloud Database!
+    await loadDbFromSupabase();
+
+    // Use store as primary or fallback
     const accounts = localDb.getAccounts(userId);
     const totalAccounts = accounts.length;
     const connectedAccounts = accounts.filter((a) => a.status === 'connected').length;

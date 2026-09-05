@@ -19,6 +19,8 @@ import {
   Server,
   ChevronDown,
   ChevronUp,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/utils';
 import { WARMUP_LEVELS, calculateWarmupProgressPercent } from '@/lib/warmup/levels';
@@ -43,6 +45,7 @@ function AccountsContent() {
   const [customProvider, setCustomProvider] = useState('Hostinger');
   const [customEmail, setCustomEmail] = useState('');
   const [customPassword, setCustomPassword] = useState('');
+  const [showCustomPass, setShowCustomPass] = useState(false);
   const [customImapHost, setCustomImapHost] = useState('imap.hostinger.com');
   const [customImapPort, setCustomImapPort] = useState('993');
   const [customImapSecurity, setCustomImapSecurity] = useState('ssl');
@@ -59,6 +62,14 @@ function AccountsContent() {
       setCustomImapPort('993');
       setCustomImapSecurity('ssl');
       setCustomSmtpHost('smtp.hostinger.com');
+      setCustomSmtpPort('465');
+      setCustomSmtpSecurity('ssl');
+      setShowAdvancedSettings(false);
+    } else if (customProvider === 'Hostinger (Titan Business Email)') {
+      setCustomImapHost('imap.titan.email');
+      setCustomImapPort('993');
+      setCustomImapSecurity('ssl');
+      setCustomSmtpHost('smtp.titan.email');
       setCustomSmtpPort('465');
       setCustomSmtpSecurity('ssl');
       setShowAdvancedSettings(false);
@@ -812,26 +823,40 @@ function AccountsContent() {
                   <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
                   <span className="font-semibold">{customError}</span>
                 </div>
-                {customProvider === 'Hostinger' && (
-                  <div className="pl-6 text-[11px] text-rose-700 bg-white/70 p-2.5 rounded-lg border border-rose-100 space-y-1">
-                    <p className="font-bold text-rose-900">💡 Quick Troubleshooting Checklist:</p>
-                    <ul className="list-disc list-inside space-y-0.5 text-slate-700">
+                {customProvider.includes('Hostinger') && (
+                  <div className="pl-6 text-[11px] text-rose-800 bg-white/80 p-3 rounded-lg border border-rose-200 space-y-2">
+                    <p className="font-bold text-rose-950">💡 How to Fix & Connect Immediately:</p>
+                    <ol className="list-decimal list-inside space-y-1.5 text-slate-700">
                       <li>
-                        <strong>Password:</strong> Verify by logging into{' '}
+                        <strong>Verify or Reset Mailbox Password:</strong> Log into{' '}
+                        <a
+                          href="https://hpanel.hostinger.com"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="underline font-bold text-indigo-700 hover:text-indigo-900 inline-flex items-center gap-0.5"
+                        >
+                          Hostinger hPanel <ExternalLink className="w-2.5 h-2.5 inline" />
+                        </a>{' '}
+                        → <strong>Emails</strong> → your domain → <strong>Change Password</strong> for <em>info@erhatechnologies.com</em>.
+                      </li>
+                      <li>
+                        <strong>Test at Webmail:</strong> Verify you can log into{' '}
                         <a
                           href="https://mail.hostinger.com"
                           target="_blank"
                           rel="noreferrer"
-                          className="underline font-semibold text-indigo-600 hover:text-indigo-800 inline-flex items-center gap-0.5"
+                          className="underline font-bold text-indigo-700 hover:text-indigo-900 inline-flex items-center gap-0.5"
                         >
                           mail.hostinger.com <ExternalLink className="w-2.5 h-2.5 inline" />
-                        </a>
-                        . You must use the password created specifically for this mailbox in Hostinger Emails.
+                        </a>.
                       </li>
                       <li>
-                        <strong>Port:</strong> If Port 465 SSL is blocked on your network or host, try switching to <strong>Port 587 (STARTTLS)</strong> in Advanced Settings below.
+                        <strong>Titan Email Plan:</strong> If your Hostinger plan uses Titan Mail, switch the dropdown to <strong>Hostinger Business Email / Titan (smtp.titan.email)</strong>.
                       </li>
-                    </ul>
+                      <li>
+                        <strong>If routing via Gmail:</strong> Switch dropdown to <strong>Gmail (SMTP)</strong> and use a 16-character Google App Password.
+                      </li>
+                    </ol>
                   </div>
                 )}
               </div>
@@ -847,7 +872,8 @@ function AccountsContent() {
                   onChange={(e) => setCustomProvider(e.target.value)}
                   className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-xs"
                 >
-                  <option value="Hostinger">Hostinger Business Email</option>
+                  <option value="Hostinger">Hostinger Webmail (smtp.hostinger.com)</option>
+                  <option value="Hostinger (Titan Business Email)">Hostinger Business Email / Titan (smtp.titan.email)</option>
                   <option value="Gmail (SMTP)">Gmail / Google Workspace (SMTP)</option>
                   <option value="GoDaddy">GoDaddy Webmail</option>
                   <option value="Microsoft 365">Microsoft 365 / Outlook</option>
@@ -858,29 +884,48 @@ function AccountsContent() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-                    {customProvider === 'Hostinger' ? 'Hostinger Email' : 'Email Address'}
+                    {customProvider.includes('Hostinger') ? 'Hostinger Email' : 'Email Address'}
                   </label>
                   <input
                     type="email"
                     required
                     value={customEmail}
                     onChange={(e) => setCustomEmail(e.target.value)}
-                    placeholder={customProvider === 'Hostinger' ? 'info@yourdomain.com' : 'user@domain.com'}
+                    placeholder={customProvider.includes('Hostinger') ? 'info@yourdomain.com' : 'user@domain.com'}
                     className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-                    {customProvider === 'Hostinger' ? 'Hostinger Password' : 'Password'}
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    value={customPassword}
-                    onChange={(e) => setCustomPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-xs"
-                  />
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+                      {customProvider.includes('Hostinger') ? 'Hostinger Password' : 'Password'}
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowCustomPass(!showCustomPass)}
+                      className="text-[11px] text-slate-500 hover:text-indigo-600 inline-flex items-center gap-1 font-medium cursor-pointer"
+                    >
+                      {showCustomPass ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                      <span>{showCustomPass ? 'Hide' : 'Show'}</span>
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={showCustomPass ? 'text' : 'password'}
+                      required
+                      value={customPassword}
+                      onChange={(e) => setCustomPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-xs pr-9 font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCustomPass(!showCustomPass)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                    >
+                      {showCustomPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
               </div>
 

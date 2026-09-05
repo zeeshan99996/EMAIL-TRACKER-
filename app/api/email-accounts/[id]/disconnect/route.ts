@@ -1,4 +1,4 @@
-import { localDb } from '@/lib/db/store';
+import { localDb, loadDbFromSupabase, saveDbAsync } from '@/lib/db/store';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
@@ -19,10 +19,13 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // 0. Ensure latest data from Supabase Cloud Store
+    await loadDbFromSupabase();
+
     const accountId = params.id;
     const adminSupabase = createAdminClient();
 
-    // 1. Delete from local DB
+    // 1. Delete from store
     localDb.deleteAccount(accountId);
 
     // 2. Try Supabase delete
@@ -39,6 +42,9 @@ export async function POST(
       status: 'info',
       metadata: { action: 'account_disconnected_and_deleted' },
     });
+
+    // 3. Synchronously persist to Supabase Cloud Database
+    await saveDbAsync(localDb.ensureDbFile());
 
     return NextResponse.json({ success: true, message: 'Account removed successfully' });
   } catch (err: any) {

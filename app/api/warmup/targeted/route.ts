@@ -1,4 +1,4 @@
-import { localDb } from '@/lib/db/store';
+import { localDb, loadDbFromSupabase, saveDbAsync } from '@/lib/db/store';
 import { targetedLocalDb } from '@/lib/db/targeted_store';
 import { logSecurityEvent } from '@/lib/security/audit';
 import { sanitizeAccountForClient } from '@/lib/security/redactor';
@@ -20,6 +20,9 @@ export async function POST(request: NextRequest) {
       });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // 0. Ensure latest data from Supabase Cloud Store
+    await loadDbFromSupabase();
 
     const { targetAccountId, peerAccountIds, settings, autoPauseStandard } = await request.json();
 
@@ -112,6 +115,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Synchronously commit to Supabase Cloud Database
+    await saveDbAsync(localDb.ensureDbFile());
+
     return NextResponse.json({ success: true, campaignId: campaign.id });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -129,6 +135,9 @@ export async function GET(request: NextRequest) {
       });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // Guarantee latest persistent data from Supabase Cloud Database!
+    await loadDbFromSupabase();
 
     const campaigns = targetedLocalDb.getCampaigns(session.user.id);
     const allAccounts = localDb.getAccounts(session.user.id);

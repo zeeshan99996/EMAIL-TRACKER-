@@ -1,4 +1,4 @@
-import { localDb } from '@/lib/db/store';
+import { localDb, loadDbFromSupabase } from '@/lib/db/store';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
@@ -22,6 +22,9 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(100, parseInt(searchParams.get('limit') || '50', 10));
     const offset = Math.max(0, parseInt(searchParams.get('offset') || '0', 10));
     const userId = session.user.id;
+
+    // Guarantee latest persistent events from Supabase Cloud Database!
+    await loadDbFromSupabase();
 
     // Try Supabase first
     const adminSupabase = createAdminClient();
