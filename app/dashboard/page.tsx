@@ -16,6 +16,12 @@ import {
   ArrowUpRight,
   Send,
   CheckCircle2,
+  Flame,
+  ShieldCheck,
+  Play,
+  RotateCw,
+  Sparkles,
+  Inbox,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -29,26 +35,55 @@ import {
 
 export default function DashboardPage() {
   const [data, setData] = useState<any>(null);
+  const [warmupData, setWarmupData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [triggeringWarmup, setTriggeringWarmup] = useState(false);
+  const [warmupFeedback, setWarmupFeedback] = useState<string | null>(null);
 
   const loadData = () => {
-    fetch('/api/v1/dashboard', { cache: 'no-store' })
-      .then(r => r.json())
-      .then(res => {
-        if (res && res.summary) {
-          setData(res);
+    Promise.all([
+      fetch('/api/v1/dashboard', { cache: 'no-store' }).then((r) => r.json()),
+      fetch('/api/warmup/stats', { cache: 'no-store' })
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null),
+    ])
+      .then(([dashRes, warmRes]) => {
+        if (dashRes && dashRes.summary) {
+          setData(dashRes);
+        }
+        if (warmRes && warmRes.metrics) {
+          setWarmupData(warmRes);
         }
         setLoading(false);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error('Failed to load dashboard:', err);
         setLoading(false);
       });
   };
 
+  const handleRunWarmupCycle = async () => {
+    setTriggeringWarmup(true);
+    setWarmupFeedback(null);
+    try {
+      const res = await fetch('/api/warmup/worker', { method: 'POST' });
+      const json = await res.json();
+      if (res.ok) {
+        setWarmupFeedback(`Warmup cycle completed! Processed: ${json.jobsProcessed || 0} jobs.`);
+        loadData();
+      } else {
+        setWarmupFeedback(json.error || 'Failed to trigger warmup cycle.');
+      }
+    } catch (err: any) {
+      setWarmupFeedback(err.message || 'Error triggering cycle.');
+    } finally {
+      setTriggeringWarmup(false);
+      setTimeout(() => setWarmupFeedback(null), 5000);
+    }
+  };
+
   useEffect(() => {
     loadData();
-    // Auto-refresh every 10 seconds for real-time live tracking
     const interval = setInterval(loadData, 10000);
     return () => clearInterval(interval);
   }, []);
@@ -56,10 +91,10 @@ export default function DashboardPage() {
   if (loading || !data) {
     return (
       <div className="space-y-6">
-        <Header title="Dashboard Overview" />
+        <Header title="Unified Deliverability & Tracking Command Center" />
         <div className="animate-pulse space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map(i => (
+            {[1, 2, 3, 4].map((i) => (
               <div key={i} className="h-28 bg-slate-200 rounded-xl"></div>
             ))}
           </div>
@@ -104,7 +139,71 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <Header title="Dashboard Overview" />
+      <Header title="Unified Deliverability & Tracking Command Center" />
+
+      {/* Quick Action & Controls Hub */}
+      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
+            <Flame className="w-5 h-5 fill-current" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <span>Gmail Fleet Warmup</span>
+              <span
+                className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                  (warmupData?.metrics?.warmupActive || 0) > 0
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : 'bg-slate-100 text-slate-600'
+                }`}
+              >
+                {(warmupData?.metrics?.warmupActive || 0) > 0 ? '● Active Engine' : 'Idle / Standby'}
+              </span>
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {warmupData?.metrics?.connectedAccounts || 5} connected mailboxes warming up with Gemini 3.6 Flash AI.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={handleRunWarmupCycle}
+            disabled={triggeringWarmup}
+            className="flex items-center space-x-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-amber-500 hover:bg-amber-600 text-white shadow-sm transition-all disabled:opacity-50"
+          >
+            <RotateCw className={`w-3.5 h-3.5 ${triggeringWarmup ? 'animate-spin' : ''}`} />
+            <span>{triggeringWarmup ? 'Running Cycle...' : 'Run Warmup Cycle Now'}</span>
+          </button>
+          <Link
+            href="/dashboard/warmup"
+            className="px-3 py-2 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+          >
+            Warmup Hub
+          </Link>
+          <Link
+            href="/dashboard/verifier"
+            className="px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-colors flex items-center space-x-1"
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Verify Emails</span>
+          </Link>
+          <Link
+            href="/dashboard/emails"
+            className="px-3 py-2 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors flex items-center space-x-1"
+          >
+            <Mail className="w-3.5 h-3.5" />
+            <span>Tracked Emails</span>
+          </Link>
+        </div>
+      </div>
+
+      {warmupFeedback && (
+        <div className="p-3 text-xs rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center space-x-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>{warmupFeedback}</span>
+        </div>
+      )}
 
       {/* Limitation Notice Alert */}
       <div className="bg-blue-50/70 border border-blue-200/80 rounded-xl p-4 flex items-start space-x-3 text-xs text-blue-900">

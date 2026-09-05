@@ -2,7 +2,22 @@
 
 import React, { useState } from 'react';
 import { Header } from '@/components/header';
-import { BookOpen, Copy, Check, Code, ShieldCheck, Zap, Info, Terminal } from 'lucide-react';
+import {
+  BookOpen,
+  Copy,
+  Check,
+  Code,
+  ShieldCheck,
+  Zap,
+  Info,
+  Terminal,
+  Flame,
+  Mail,
+  ArrowRight,
+  CheckCircle2,
+  Inbox,
+  Sparkles,
+} from 'lucide-react';
 
 const APPS_SCRIPT_CODE = `/**
  * Email Tracking Platform — Google Apps Script Integration
@@ -92,18 +107,81 @@ export default function DocsPage() {
   }'`;
 
   return (
-    <div className="space-y-6 max-w-5xl">
-      <Header title="Integration Documentation" />
+    <div className="space-y-8 max-w-5xl">
+      <Header title="Integration & Complete Workflow Guide" />
 
       {/* Intro Banner */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-xl shadow-md space-y-2">
+      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-amber-600 text-white p-6 rounded-xl shadow-md space-y-2">
         <h2 className="text-lg font-bold flex items-center space-x-2">
-          <Zap className="w-5 h-5" />
-          <span>Quickstart Integration Guide</span>
+          <Sparkles className="w-5 h-5 text-amber-300" />
+          <span>Complete All-in-One Deliverability Architecture</span>
         </h2>
-        <p className="text-xs text-blue-100 max-w-2xl leading-relaxed">
-          Connect your Google Apps Script, Google Sheets workflows, or custom backend to send tracked emails in seconds. The platform automatically rewrites destination links and injects invisible open tracking pixels.
+        <p className="text-xs text-blue-100 max-w-3xl leading-relaxed">
+          How the <strong>Gmail Warmup Engine</strong>, <strong>Email Verifier</strong>, and <strong>Email Tracker</strong> work together as a unified system to achieve 99%+ Primary Inbox placement and reliable engagement tracking.
         </p>
+      </div>
+
+      {/* 4-Step Interactive Workflow Walkthrough */}
+      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
+        <div className="border-b border-slate-100 pb-3">
+          <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
+            <Zap className="w-5 h-5 text-amber-500" />
+            <span>End-to-End Operating Workflow (How They Connect)</span>
+          </h3>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Yeh workflow samjhata hai k dono tools mill kar aapke emails ko spam folder se bacha kar direct Inbox me kaise pohanchate hain.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Step 1 */}
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+            <div className="flex items-center space-x-2 text-blue-700 font-bold text-xs uppercase tracking-wider">
+              <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px]">1</span>
+              <span>Connect Mailbox Fleet</span>
+            </div>
+            <h4 className="text-sm font-semibold text-slate-900">Gmail App Passwords & Custom SMTP</h4>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Aap apne 1 ya zyada Gmail accounts ko 16-character Google App Password ke zariye connect karte hain. System unke passwords ko <strong>AES-256-GCM</strong> se securely encrypt karta hai.
+            </p>
+          </div>
+
+          {/* Step 2 */}
+          <div className="p-4 rounded-xl bg-amber-50/60 border border-amber-200/80 space-y-2">
+            <div className="flex items-center space-x-2 text-amber-700 font-bold text-xs uppercase tracking-wider">
+              <span className="w-5 h-5 rounded-full bg-amber-600 text-white flex items-center justify-center text-[10px]">2</span>
+              <span>Gemini AI Contextual Warmup</span>
+            </div>
+            <h4 className="text-sm font-semibold text-slate-900">Natural Human Conversations & Spam Rescue</h4>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Google Gemini 3.6 Flash AI accounts ke darmiyan natural conversations generate karta hai. Agar koi email spam me chali jaye to <strong>Spam Rescue Engine</strong> usay Inbox me move kar ke &quot;Important&quot; mark karta hai taake Google ka trust level 100% ho jaye.
+            </p>
+          </div>
+
+          {/* Step 3 */}
+          <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200/80 space-y-2">
+            <div className="flex items-center space-x-2 text-emerald-700 font-bold text-xs uppercase tracking-wider">
+              <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">3</span>
+              <span>Pre-Send Email Verification</span>
+            </div>
+            <h4 className="text-sm font-semibold text-slate-900">Bounce Protection & Fake Email Purge</h4>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Kisi bhi client ya recipient ko email bhejne se pehle, hamara verification engine DNS MX records aur 250+ disposable email providers ko check karta hai taake bounce rate 0% rahe.
+            </p>
+          </div>
+
+          {/* Step 4 */}
+          <div className="p-4 rounded-xl bg-indigo-50/60 border border-indigo-200/80 space-y-2">
+            <div className="flex items-center space-x-2 text-indigo-700 font-bold text-xs uppercase tracking-wider">
+              <span className="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px]">4</span>
+              <span>Live Tracking & Sent Box Exclusion</span>
+            </div>
+            <h4 className="text-sm font-semibold text-slate-900">Pixel Opens & Clicks Without False Alerts</h4>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Client ke opens aur clicks real-time me track hote hain. Lekin jab aap apna Gmail Sent folder kholte hain, to hamara <strong>Sender Filter</strong> aapke apne opens ko automatically ignore kar deta hai!
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Google Apps Script Integration Section */}

@@ -53,6 +53,10 @@ export const supabaseAdmin = createClient(
   }
 );
 
+export function createAdminClient() {
+  return supabaseAdmin;
+}
+
 /**
  * Validates an incoming API Key and updates last_used_at timestamp.
  */

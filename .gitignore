@@ -32,3 +32,7 @@ lerna-debug.log*
 .DS_Store
 *.pem
 Thumbs.db
+
+# User raw dropped folder (now integrated)
+Email warmup/
+

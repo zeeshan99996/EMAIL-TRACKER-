@@ -536,3 +536,15 @@ export async function verifyEmail(email: string): Promise<EmailVerificationResul
     },
   };
 }
+
+/**
+ * Convenience wrapper returning { ...result, valid: boolean }
+ */
+export async function verifyEmailAddress(email: string): Promise<EmailVerificationResult & { valid: boolean }> {
+  const res = await verifyEmail(email);
+  return {
+    ...res,
+    valid: res.isValid && res.isDeliverable,
+  };
+}
+
