@@ -24,10 +24,12 @@ export async function GET(
   const referer = req.headers.get('referer');
 
   if (trackingId) {
-    // Record open event immediately
-    recordOpenEvent(trackingId, ip, userAgent, referer, false).catch(err => {
+    try {
+      // Must await in serverless/Vercel environment so container does not freeze before DB write
+      await recordOpenEvent(trackingId, ip, userAgent, referer, false);
+    } catch (err) {
       console.error('Error logging open event:', err);
-    });
+    }
   }
 
   const now = new Date().toUTCString();
