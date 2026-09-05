@@ -16,6 +16,9 @@ import {
   ShieldCheck,
   ExternalLink,
   X,
+  Server,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/utils';
 import { WARMUP_LEVELS, calculateWarmupProgressPercent } from '@/lib/warmup/levels';
@@ -46,6 +49,7 @@ function AccountsContent() {
   const [customSmtpHost, setCustomSmtpHost] = useState('smtp.hostinger.com');
   const [customSmtpPort, setCustomSmtpPort] = useState('465');
   const [customSmtpSecurity, setCustomSmtpSecurity] = useState('ssl');
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
   const [submittingCustom, setSubmittingCustom] = useState(false);
   const [customError, setCustomError] = useState<string | null>(null);
 
@@ -57,6 +61,15 @@ function AccountsContent() {
       setCustomSmtpHost('smtp.hostinger.com');
       setCustomSmtpPort('465');
       setCustomSmtpSecurity('ssl');
+      setShowAdvancedSettings(false);
+    } else if (customProvider === 'Gmail (SMTP)') {
+      setCustomImapHost('imap.gmail.com');
+      setCustomImapPort('993');
+      setCustomImapSecurity('ssl');
+      setCustomSmtpHost('smtp.gmail.com');
+      setCustomSmtpPort('465');
+      setCustomSmtpSecurity('ssl');
+      setShowAdvancedSettings(false);
     } else if (customProvider === 'GoDaddy') {
       setCustomImapHost('imap.secureserver.net');
       setCustomImapPort('993');
@@ -64,6 +77,7 @@ function AccountsContent() {
       setCustomSmtpHost('smtpout.secureserver.net');
       setCustomSmtpPort('465');
       setCustomSmtpSecurity('ssl');
+      setShowAdvancedSettings(false);
     } else if (customProvider === 'Microsoft 365') {
       setCustomImapHost('outlook.office365.com');
       setCustomImapPort('993');
@@ -71,11 +85,13 @@ function AccountsContent() {
       setCustomSmtpHost('smtp.office365.com');
       setCustomSmtpPort('587');
       setCustomSmtpSecurity('starttls');
+      setShowAdvancedSettings(false);
     } else {
       setCustomImapHost('');
       setCustomImapPort('');
       setCustomSmtpHost('');
       setCustomSmtpPort('');
+      setShowAdvancedSettings(true);
     }
   }, [customProvider]);
 
@@ -163,6 +179,7 @@ function AccountsContent() {
         body: JSON.stringify({
           email: customEmail,
           password: customPassword,
+          provider: customProvider,
           imapHost: customImapHost,
           imapPort: customImapPort,
           imapSecurity: customImapSecurity,
@@ -309,21 +326,37 @@ function AccountsContent() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setShowAppPasswordModal(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
+            className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
           >
             <Key className="w-4 h-4" />
             <span>+ Add Gmail (App Password)</span>
           </button>
 
           <button
-            onClick={() => setShowCustomModal(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
+            onClick={() => {
+              setCustomProvider('Hostinger');
+              setShowAdvancedSettings(false);
+              setShowCustomModal(true);
+            }}
+            className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
           >
             <Mail className="w-4 h-4" />
-            <span>+ Add Business/Custom Email</span>
+            <span>+ Add Hostinger Email</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setCustomProvider('Custom');
+              setShowAdvancedSettings(true);
+              setShowCustomModal(true);
+            }}
+            className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
+          >
+            <Server className="w-4 h-4" />
+            <span>+ Other SMTP</span>
           </button>
 
           <button
@@ -439,7 +472,11 @@ function AccountsContent() {
                         </div>
                         <span className="text-[10px] text-slate-500 block mt-0.5">
                           {acc.provider === 'gmail_app_password' 
-                            ? 'Direct App Password (SMTP/IMAP)' 
+                            ? 'Gmail App Password (SMTP/IMAP)' 
+                            : acc.provider === 'hostinger_smtp' || acc.metadata?.providerName === 'Hostinger' || acc.metadata?.smtpHost?.includes('hostinger')
+                            ? `Hostinger Business Email (${acc.metadata?.smtpHost || 'smtp.hostinger.com'})`
+                            : acc.provider === 'gmail_smtp' || acc.metadata?.providerName === 'Gmail (SMTP)'
+                            ? `Gmail SMTP (${acc.metadata?.smtpHost || 'smtp.gmail.com'})`
                             : acc.provider === 'custom_smtp' 
                             ? `Custom Email: ${acc.metadata?.smtpHost || 'SMTP/IMAP'}`
                             : 'Google OAuth 2.0 API'}
@@ -708,13 +745,17 @@ function AccountsContent() {
       {showCustomModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+            <div className="flex items-center justify-between mb-5 pb-3.5 border-b border-slate-100">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <Mail className="w-5 h-5 text-blue-600" />
-                  Connect Custom/Business Email
+                  <Mail className={`w-5 h-5 ${customProvider === 'Hostinger' ? 'text-indigo-600' : 'text-blue-600'}`} />
+                  {customProvider === 'Hostinger' ? 'Connect Hostinger Business Email' : 'Connect Business / Custom Email'}
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">Use your custom SMTP and IMAP details.</p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {customProvider === 'Hostinger'
+                    ? 'Instant connection via Hostinger Webmail & SMTP server.'
+                    : 'Connect custom domain mailboxes via SMTP and IMAP.'}
+                </p>
               </div>
               <button
                 onClick={() => setShowCustomModal(false)}
@@ -723,6 +764,34 @@ function AccountsContent() {
                 <X className="w-4 h-4" />
               </button>
             </div>
+
+            {customProvider === 'Hostinger' && (
+              <div className="p-3.5 rounded-xl border border-indigo-200 bg-indigo-50/70 text-indigo-950 flex items-start gap-3 mb-4">
+                <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 shadow-xs">
+                  H
+                </div>
+                <div className="space-y-0.5">
+                  <div className="text-xs font-bold text-indigo-900">Hostinger Business Email Preset Active</div>
+                  <div className="text-[11px] text-indigo-700">
+                    Auto-configured with <strong>smtp.hostinger.com:465</strong> (SSL) & <strong>imap.hostinger.com:993</strong> (SSL). Just enter your email and password!
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {customProvider === 'Gmail (SMTP)' && (
+              <div className="p-3.5 rounded-xl border border-sky-200 bg-sky-50/70 text-sky-950 flex items-start gap-3 mb-4">
+                <div className="w-7 h-7 rounded-lg bg-sky-600 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 shadow-xs">
+                  G
+                </div>
+                <div className="space-y-0.5">
+                  <div className="text-xs font-bold text-sky-900">Gmail SMTP Login Preset Active</div>
+                  <div className="text-[11px] text-sky-700">
+                    Auto-configured with <strong>smtp.gmail.com:465</strong> & <strong>imap.gmail.com:993</strong>. Use your 16-character Google App Password.
+                  </div>
+                </div>
+              </div>
+            )}
 
             {customError && (
               <div className="p-3 rounded-lg border border-rose-200 bg-rose-50 text-xs text-rose-700 flex items-start gap-2 mb-4">
@@ -741,30 +810,31 @@ function AccountsContent() {
                   onChange={(e) => setCustomProvider(e.target.value)}
                   className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-xs"
                 >
-                  <option value="Hostinger">Hostinger</option>
-                  <option value="GoDaddy">GoDaddy</option>
-                  <option value="Microsoft 365">Microsoft 365</option>
-                  <option value="Custom">Custom / Other</option>
+                  <option value="Hostinger">Hostinger Business Email</option>
+                  <option value="Gmail (SMTP)">Gmail / Google Workspace (SMTP)</option>
+                  <option value="GoDaddy">GoDaddy Webmail</option>
+                  <option value="Microsoft 365">Microsoft 365 / Outlook</option>
+                  <option value="Custom">Custom / Other IMAP & SMTP</option>
                 </select>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-                    Email Address
+                    {customProvider === 'Hostinger' ? 'Hostinger Email' : 'Email Address'}
                   </label>
                   <input
                     type="email"
                     required
                     value={customEmail}
                     onChange={(e) => setCustomEmail(e.target.value)}
-                    placeholder="info@yourdomain.com"
+                    placeholder={customProvider === 'Hostinger' ? 'info@yourdomain.com' : 'user@domain.com'}
                     className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-xs"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-                    Email Password
+                    {customProvider === 'Hostinger' ? 'Hostinger Password' : 'Password'}
                   </label>
                   <input
                     type="password"
@@ -777,46 +847,62 @@ function AccountsContent() {
                 </div>
               </div>
 
-              <div className="pt-2 pb-1">
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1 mb-3">IMAP Settings (Receiving)</div>
-                <div className="grid grid-cols-12 gap-3">
-                  <div className="col-span-6">
-                    <label className="block text-[10px] font-semibold text-slate-500 mb-1">Host</label>
-                    <input type="text" required value={customImapHost} onChange={(e) => setCustomImapHost(e.target.value)} className="w-full rounded border px-2.5 py-1.5 text-xs focus:outline-blue-500" />
-                  </div>
-                  <div className="col-span-3">
-                    <label className="block text-[10px] font-semibold text-slate-500 mb-1">Port</label>
-                    <input type="text" required value={customImapPort} onChange={(e) => setCustomImapPort(e.target.value)} className="w-full rounded border px-2.5 py-1.5 text-xs focus:outline-blue-500" />
-                  </div>
-                  <div className="col-span-3">
-                    <label className="block text-[10px] font-semibold text-slate-500 mb-1">Security</label>
-                    <select value={customImapSecurity} onChange={(e) => setCustomImapSecurity(e.target.value)} className="w-full rounded border px-2.5 py-1.5 text-xs focus:outline-blue-500 bg-white">
-                      <option value="ssl">SSL/TLS</option>
-                      <option value="starttls">STARTTLS</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-700 py-1 transition-colors cursor-pointer"
+                >
+                  <Server className="w-3.5 h-3.5" />
+                  <span>{showAdvancedSettings ? 'Hide Advanced Server Settings' : 'Show Advanced Server Settings & Ports (Optional)'}</span>
+                  {showAdvancedSettings ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                </button>
 
-              <div className="pb-2">
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1 mb-3">SMTP Settings (Sending)</div>
-                <div className="grid grid-cols-12 gap-3">
-                  <div className="col-span-6">
-                    <label className="block text-[10px] font-semibold text-slate-500 mb-1">Host</label>
-                    <input type="text" required value={customSmtpHost} onChange={(e) => setCustomSmtpHost(e.target.value)} className="w-full rounded border px-2.5 py-1.5 text-xs focus:outline-blue-500" />
+                {showAdvancedSettings && (
+                  <div className="mt-2.5 p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-3">
+                    <div>
+                      <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">IMAP Settings (Receiving)</div>
+                      <div className="grid grid-cols-12 gap-2.5">
+                        <div className="col-span-6">
+                          <label className="block text-[10px] font-semibold text-slate-500 mb-1">Host</label>
+                          <input type="text" required value={customImapHost} onChange={(e) => setCustomImapHost(e.target.value)} className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs focus:outline-blue-500" />
+                        </div>
+                        <div className="col-span-3">
+                          <label className="block text-[10px] font-semibold text-slate-500 mb-1">Port</label>
+                          <input type="text" required value={customImapPort} onChange={(e) => setCustomImapPort(e.target.value)} className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs focus:outline-blue-500" />
+                        </div>
+                        <div className="col-span-3">
+                          <label className="block text-[10px] font-semibold text-slate-500 mb-1">Security</label>
+                          <select value={customImapSecurity} onChange={(e) => setCustomImapSecurity(e.target.value)} className="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs focus:outline-blue-500">
+                            <option value="ssl">SSL/TLS</option>
+                            <option value="starttls">STARTTLS</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">SMTP Settings (Sending)</div>
+                      <div className="grid grid-cols-12 gap-2.5">
+                        <div className="col-span-6">
+                          <label className="block text-[10px] font-semibold text-slate-500 mb-1">Host</label>
+                          <input type="text" required value={customSmtpHost} onChange={(e) => setCustomSmtpHost(e.target.value)} className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs focus:outline-blue-500" />
+                        </div>
+                        <div className="col-span-3">
+                          <label className="block text-[10px] font-semibold text-slate-500 mb-1">Port</label>
+                          <input type="text" required value={customSmtpPort} onChange={(e) => setCustomSmtpPort(e.target.value)} className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs focus:outline-blue-500" />
+                        </div>
+                        <div className="col-span-3">
+                          <label className="block text-[10px] font-semibold text-slate-500 mb-1">Security</label>
+                          <select value={customSmtpSecurity} onChange={(e) => setCustomSmtpSecurity(e.target.value)} className="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs focus:outline-blue-500">
+                            <option value="ssl">SSL/TLS</option>
+                            <option value="starttls">STARTTLS</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="col-span-3">
-                    <label className="block text-[10px] font-semibold text-slate-500 mb-1">Port</label>
-                    <input type="text" required value={customSmtpPort} onChange={(e) => setCustomSmtpPort(e.target.value)} className="w-full rounded border px-2.5 py-1.5 text-xs focus:outline-blue-500" />
-                  </div>
-                  <div className="col-span-3">
-                    <label className="block text-[10px] font-semibold text-slate-500 mb-1">Security</label>
-                    <select value={customSmtpSecurity} onChange={(e) => setCustomSmtpSecurity(e.target.value)} className="w-full rounded border px-2.5 py-1.5 text-xs focus:outline-blue-500 bg-white">
-                      <option value="ssl">SSL/TLS</option>
-                      <option value="starttls">STARTTLS</option>
-                    </select>
-                  </div>
-                </div>
+                )}
               </div>
 
               <div className="flex items-center justify-end gap-2.5 pt-4 mt-4 border-t border-slate-100">
@@ -831,7 +917,9 @@ function AccountsContent() {
                 <button
                   type="submit"
                   disabled={submittingCustom}
-                  className="flex items-center gap-2 px-5 py-2 rounded-lg bg-slate-900 hover:bg-black text-white text-xs font-semibold shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                  className={`flex items-center gap-2 px-5 py-2 rounded-lg text-white text-xs font-semibold shadow-sm transition-all disabled:opacity-50 cursor-pointer ${
+                    customProvider === 'Hostinger' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-slate-900 hover:bg-black'
+                  }`}
                 >
                   {submittingCustom ? (
                     <>
@@ -841,7 +929,7 @@ function AccountsContent() {
                   ) : (
                     <>
                       <Mail className="w-4 h-4" />
-                      <span>Test & Connect Account</span>
+                      <span>Verify & Connect {customProvider}</span>
                     </>
                   )}
                 </button>

@@ -20,32 +20,52 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { email, password, imapHost, imapPort, imapSecurity, smtpHost, smtpPort, smtpSecurity } = await request.json();
+    const { email, password, imapHost, imapPort, imapSecurity, smtpHost, smtpPort, smtpSecurity, provider } = await request.json();
 
-    if (!email || !password || !imapHost || !smtpHost) {
+    const cleanEmail = (email || '').toLowerCase().trim();
+    const cleanPassword = (password || '').trim();
+
+    if (!cleanEmail || !cleanPassword) {
       return NextResponse.json(
-        { error: 'Email, password, IMAP host, and SMTP host are required.' },
+        { error: 'Both email address and password are required.' },
         { status: 400 }
       );
     }
-
-    const cleanEmail = email.toLowerCase().trim();
-    const cleanPassword = password.trim();
 
     if (!cleanEmail.includes('@')) {
       return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 });
     }
 
+    // Smart Provider Resolution (Hostinger / Gmail / Custom)
+    const provLower = (provider || '').toLowerCase();
+    const isHostinger = provLower === 'hostinger' || (!smtpHost && !imapHost);
+    const isGmailSmtp = provLower.includes('gmail') || smtpHost?.includes('gmail.com');
+
+    const effectiveSmtpHost = smtpHost || (isHostinger ? 'smtp.hostinger.com' : isGmailSmtp ? 'smtp.gmail.com' : '');
+    const effectiveSmtpPort = Number(smtpPort) || (smtpSecurity === 'starttls' ? 587 : 465);
+    const effectiveSmtpSecurity = smtpSecurity || 'ssl';
+
+    const effectiveImapHost = imapHost || (isHostinger ? 'imap.hostinger.com' : isGmailSmtp ? 'imap.gmail.com' : '');
+    const effectiveImapPort = Number(imapPort) || 993;
+    const effectiveImapSecurity = imapSecurity || 'ssl';
+
+    if (!effectiveSmtpHost || !effectiveImapHost) {
+      return NextResponse.json(
+        { error: 'SMTP host and IMAP host are required.' },
+        { status: 400 }
+      );
+    }
+
     const smtpConfig: SmtpConfig = {
-      host: smtpHost,
-      port: Number(smtpPort) || (smtpSecurity === 'starttls' ? 587 : 465),
-      secure: smtpSecurity !== 'starttls', // true for SSL/TLS, false for STARTTLS on 587
+      host: effectiveSmtpHost,
+      port: effectiveSmtpPort,
+      secure: effectiveSmtpSecurity !== 'starttls', // true for SSL/TLS (465), false for STARTTLS (587)
     };
 
     const imapConfig: ImapConfig = {
-      host: imapHost,
-      port: Number(imapPort) || 993,
-      secure: imapSecurity !== 'starttls',
+      host: effectiveImapHost,
+      port: effectiveImapPort,
+      secure: effectiveImapSecurity !== 'starttls',
     };
 
     // 1. Verify SMTP
@@ -79,13 +99,23 @@ export async function POST(request: NextRequest) {
     // 3. Encrypt Password
     const encryptedPassword = encryptToken(cleanPassword);
     const userId = session.user.id;
-    const metadata = { imapHost, imapPort, imapSecurity, smtpHost, smtpPort, smtpSecurity };
+    const metadata = {
+      imapHost: effectiveImapHost,
+      imapPort: effectiveImapPort,
+      imapSecurity: effectiveImapSecurity,
+      smtpHost: effectiveSmtpHost,
+      smtpPort: effectiveSmtpPort,
+      smtpSecurity: effectiveSmtpSecurity,
+      providerName: provider || (isHostinger ? 'Hostinger' : isGmailSmtp ? 'Gmail (SMTP)' : 'Custom SMTP'),
+    };
+
+    const providerKey = isHostinger ? 'hostinger_smtp' : isGmailSmtp ? 'gmail_smtp' : 'custom_smtp';
 
     // 4. Save to local store
     const localAcc = localDb.upsertAccount({
       user_id: userId,
       email: cleanEmail,
-      provider: 'custom_smtp',
+      provider: providerKey,
       access_token: encryptedPassword,
       refresh_token: null,
       status: 'connected',
