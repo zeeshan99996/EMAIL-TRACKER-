@@ -20,6 +20,7 @@ import {
   Building2,
   Layers,
 } from 'lucide-react';
+import ParticleBackground from '@/components/particle-background';
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -92,6 +93,11 @@ export default function LandingPage() {
         background: 'linear-gradient(135deg, #07B4D4 0%, #1c88db 40%, #2784DC 75%, #155ea8 100%)',
       }}
     >
+      {/* ========================================================================= */}
+      {/* FULL HD ANIMATED PARTICLES BACKGROUND (RETINA CANVAS) */}
+      {/* ========================================================================= */}
+      <ParticleBackground />
+
       {/* ========================================================================= */}
       {/* Dynamic Ambient Blur Halos (HD Luminous Cyan & Azure Diffusions) */}
       {/* ========================================================================= */}
