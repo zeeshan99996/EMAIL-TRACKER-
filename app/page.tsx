@@ -45,31 +45,31 @@ export default function RootPage() {
       </header>
 
       {/* Center 2 Cards / Popups Section */}
-      <div className="relative z-10 max-w-5xl mx-auto w-full px-6 py-12 my-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+      <div className="relative z-10 max-w-3xl mx-auto w-full px-6 py-8 my-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
           {/* Card 1: Email Tracker Dashboard */}
           <Link
             href="/dashboard"
-            className="group relative flex flex-col items-center justify-center text-center p-10 md:p-14 rounded-3xl bg-gradient-to-b from-slate-900/90 to-slate-900/40 border border-slate-800 hover:border-blue-500/80 transition-all duration-300 shadow-xl hover:shadow-2xl hover:shadow-blue-500/20 hover:-translate-y-1 backdrop-blur-xl"
+            className="group relative flex flex-col items-center justify-center text-center p-7 md:p-9 rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-900/40 border border-slate-800 hover:border-blue-500/80 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-blue-500/20 hover:-translate-y-1 backdrop-blur-xl"
           >
             {/* Gradient Top Accent Bar */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-3xl bg-gradient-to-r from-blue-500 via-indigo-500 to-cyan-400 group-hover:h-2 transition-all" />
+            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl bg-gradient-to-r from-blue-500 via-indigo-500 to-cyan-400 group-hover:h-1.5 transition-all" />
 
             {/* Icon */}
-            <div className="w-20 h-20 rounded-2xl bg-blue-600/10 border border-blue-500/30 flex items-center justify-center text-blue-400 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-xl mb-6">
-              <Mail className="w-10 h-10" />
+            <div className="w-14 h-14 rounded-xl bg-blue-600/10 border border-blue-500/30 flex items-center justify-center text-blue-400 group-hover:scale-105 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-md mb-4">
+              <Mail className="w-7 h-7" />
             </div>
 
             {/* Title */}
-            <h3 className="text-3xl font-extrabold text-white group-hover:text-blue-400 transition-colors">
+            <h3 className="text-xl md:text-2xl font-bold text-white group-hover:text-blue-400 transition-colors">
               Email Tracker
             </h3>
 
             {/* Launch Button */}
-            <div className="mt-8 w-full max-w-xs">
-              <div className="w-full py-4 px-6 rounded-xl bg-blue-600 group-hover:bg-blue-500 text-white font-bold text-sm flex items-center justify-center space-x-2 shadow-lg shadow-blue-600/30 transition-all">
+            <div className="mt-6 w-full max-w-[260px]">
+              <div className="w-full py-3 px-4 rounded-xl bg-blue-600 group-hover:bg-blue-500 text-white font-semibold text-xs flex items-center justify-center space-x-2 shadow-md shadow-blue-600/30 transition-all">
                 <span>Open Email Tracker Dashboard</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
           </Link>
@@ -77,26 +77,26 @@ export default function RootPage() {
           {/* Card 2: Email Warmup Dashboard */}
           <Link
             href="/dashboard/warmup"
-            className="group relative flex flex-col items-center justify-center text-center p-10 md:p-14 rounded-3xl bg-gradient-to-b from-slate-900/90 to-slate-900/40 border border-slate-800 hover:border-amber-500/80 transition-all duration-300 shadow-xl hover:shadow-2xl hover:shadow-amber-500/20 hover:-translate-y-1 backdrop-blur-xl"
+            className="group relative flex flex-col items-center justify-center text-center p-7 md:p-9 rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-900/40 border border-slate-800 hover:border-amber-500/80 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-amber-500/20 hover:-translate-y-1 backdrop-blur-xl"
           >
             {/* Gradient Top Accent Bar */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-3xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-400 group-hover:h-2 transition-all" />
+            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-400 group-hover:h-1.5 transition-all" />
 
             {/* Icon */}
-            <div className="w-20 h-20 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-110 group-hover:bg-gradient-to-tr group-hover:from-amber-500 group-hover:to-orange-600 group-hover:text-white transition-all shadow-xl mb-6">
-              <Flame className="w-10 h-10 fill-current" />
+            <div className="w-14 h-14 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-105 group-hover:bg-gradient-to-tr group-hover:from-amber-500 group-hover:to-orange-600 group-hover:text-white transition-all shadow-md mb-4">
+              <Flame className="w-7 h-7 fill-current" />
             </div>
 
             {/* Title */}
-            <h3 className="text-3xl font-extrabold text-white group-hover:text-amber-400 transition-colors">
+            <h3 className="text-xl md:text-2xl font-bold text-white group-hover:text-amber-400 transition-colors">
               Email Warmup
             </h3>
 
             {/* Launch Button */}
-            <div className="mt-8 w-full max-w-xs">
-              <div className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 group-hover:from-amber-400 group-hover:to-orange-500 text-white font-bold text-sm flex items-center justify-center space-x-2 shadow-lg shadow-amber-500/20 transition-all">
+            <div className="mt-6 w-full max-w-[260px]">
+              <div className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 group-hover:from-amber-400 group-hover:to-orange-500 text-white font-semibold text-xs flex items-center justify-center space-x-2 shadow-md shadow-amber-500/20 transition-all">
                 <span>Open Email Warmup Dashboard</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
           </Link>
