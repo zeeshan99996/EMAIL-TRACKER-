@@ -147,48 +147,46 @@ export function Sidebar({
             )}
           </div>
 
-          {/* Product Switcher (Identical to reference screenshot: Portal Hub | Tracker | Warmup) */}
-          <div className="p-3 pb-1">
-            <div className="bg-slate-100/95 p-1 rounded-2xl flex items-center justify-between border border-slate-200/80 text-xs shadow-inner">
+          {/* Product Switcher (Email Tracker & Warmup centered & responsive) */}
+          <div className="p-3 pb-1 space-y-2">
+            <div className="bg-slate-100/95 p-1 rounded-2xl flex items-center border border-slate-200/80 text-xs shadow-inner w-full">
               <Link
-                href="/"
+                href="/dashboard"
                 onClick={() => setMobileOpen && setMobileOpen(false)}
-                className="px-2.5 py-1.5 text-slate-600 hover:text-slate-950 rounded-xl font-semibold transition-all text-xs whitespace-nowrap shrink-0"
-                title="Return to Portal Hub"
+                className={`flex-1 flex items-center justify-center py-2 px-2.5 rounded-xl font-bold transition-all text-xs ${
+                  !isWarmupMode
+                    ? 'bg-white text-slate-950 shadow-sm border border-slate-200/80 font-black'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
               >
-                Portal Hub
+                <Mail className={`w-3.5 h-3.5 mr-1.5 shrink-0 ${!isWarmupMode ? 'text-blue-600' : 'text-slate-500'}`} />
+                <span className="truncate">Email Tracker</span>
               </Link>
 
-              <div className="w-[1px] h-4 bg-slate-300 mx-1 shrink-0" />
-
-              <div className="flex-1 flex items-center space-x-1 justify-end">
-                <Link
-                  href="/dashboard"
-                  onClick={() => setMobileOpen && setMobileOpen(false)}
-                  className={`flex items-center justify-center py-1.5 px-3 rounded-xl font-bold transition-all text-xs whitespace-nowrap ${
-                    !isWarmupMode
-                      ? 'bg-white text-slate-950 shadow-sm border border-slate-200/80 font-black'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Mail className={`w-3.5 h-3.5 mr-1.5 ${!isWarmupMode ? 'text-blue-600' : 'text-slate-400'}`} />
-                  <span>Tracker</span>
-                </Link>
-
-                <Link
-                  href="/dashboard/warmup"
-                  onClick={() => setMobileOpen && setMobileOpen(false)}
-                  className={`flex items-center justify-center py-1.5 px-3 rounded-xl font-bold transition-all text-xs whitespace-nowrap ${
-                    isWarmupMode
-                      ? 'bg-white text-slate-950 shadow-sm border border-slate-200/80 font-black'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Flame className="w-3.5 h-3.5 mr-1.5 fill-amber-500 text-amber-500" />
-                  <span>Warmup</span>
-                </Link>
-              </div>
+              <Link
+                href="/dashboard/warmup"
+                onClick={() => setMobileOpen && setMobileOpen(false)}
+                className={`flex-1 flex items-center justify-center py-2 px-2.5 rounded-xl font-bold transition-all text-xs ${
+                  isWarmupMode
+                    ? 'bg-white text-slate-950 shadow-sm border border-slate-200/80 font-black'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Flame className="w-3.5 h-3.5 mr-1.5 shrink-0 fill-amber-500 text-amber-500" />
+                <span className="truncate">Email Warmup</span>
+              </Link>
             </div>
+
+            {/* Portal Hub Button Down of Switcher */}
+            <Link
+              href="/"
+              onClick={() => setMobileOpen && setMobileOpen(false)}
+              className="w-full flex items-center justify-center py-2 px-3 text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800/70 rounded-xl transition-all border border-slate-800/80 hover:border-slate-700 shadow-xs group"
+              title="Return to Main Selection Portal"
+            >
+              <span className="text-slate-400 group-hover:text-[#c6f432] transition-colors mr-1.5">←</span>
+              <span>Back to Selection Portal Hub</span>
+            </Link>
           </div>
 
           {/* Project Selector (shown in tracker mode) */}
