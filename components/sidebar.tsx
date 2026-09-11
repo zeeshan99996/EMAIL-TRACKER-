@@ -147,42 +147,48 @@ export function Sidebar({
             )}
           </div>
 
-          {/* Product Switcher Segmented Control in Sidebar */}
-          <div className="p-3 pb-1 space-y-2">
-            <div className="bg-slate-900/90 p-1.5 rounded-2xl flex items-center border border-slate-800 shadow-inner">
+          {/* Product Switcher (matches screenshot: Portal Hub | Tracker | Warmup) */}
+          <div className="p-3 pb-1">
+            <div className="bg-slate-900/95 p-1 rounded-2xl flex items-center border border-slate-800 text-xs shadow-inner">
               <Link
-                href="/dashboard"
+                href="/"
                 onClick={() => setMobileOpen && setMobileOpen(false)}
-                className={`flex-1 flex items-center justify-center py-2 px-2 rounded-xl text-xs font-bold transition-all duration-150 ${
-                  !isWarmupMode
-                    ? 'bg-[#c6f432] text-slate-950 shadow-md shadow-[#c6f432]/10'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                }`}
+                className="px-2.5 py-1.5 text-slate-300 hover:text-white rounded-xl font-semibold transition-all text-xs whitespace-nowrap shrink-0"
+                title="Return to Portal Hub"
               >
-                <Mail className={`w-3.5 h-3.5 mr-1.5 ${!isWarmupMode ? 'text-slate-950' : 'text-slate-400'}`} />
-                <span>Tracker</span>
+                Portal Hub
               </Link>
-              <Link
-                href="/dashboard/warmup"
-                onClick={() => setMobileOpen && setMobileOpen(false)}
-                className={`flex-1 flex items-center justify-center py-2 px-2 rounded-xl text-xs font-bold transition-all duration-150 ${
-                  isWarmupMode
-                    ? 'bg-[#c6f432] text-slate-950 shadow-md shadow-[#c6f432]/10'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                }`}
-              >
-                <Flame className={`w-3.5 h-3.5 mr-1.5 ${isWarmupMode ? 'fill-current text-slate-950' : 'text-slate-400'}`} />
-                <span>Warmup</span>
-              </Link>
-            </div>
 
-            <Link
-              href="/"
-              onClick={() => setMobileOpen && setMobileOpen(false)}
-              className="w-full flex items-center justify-center py-1.5 px-2 text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-xl transition-colors"
-            >
-              <span>← Back to Selection Portal</span>
-            </Link>
+              <div className="w-[1px] h-4 bg-slate-700/80 mx-1 shrink-0" />
+
+              <div className="flex-1 flex items-center space-x-1">
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMobileOpen && setMobileOpen(false)}
+                  className={`flex-1 flex items-center justify-center py-1.5 px-2 rounded-xl font-bold transition-all text-xs whitespace-nowrap ${
+                    !isWarmupMode
+                      ? 'bg-white text-slate-950 shadow-sm border border-slate-200/80 font-black'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Mail className={`w-3.5 h-3.5 mr-1 ${!isWarmupMode ? 'text-blue-600' : 'text-slate-400'}`} />
+                  <span>Tracker</span>
+                </Link>
+
+                <Link
+                  href="/dashboard/warmup"
+                  onClick={() => setMobileOpen && setMobileOpen(false)}
+                  className={`flex-1 flex items-center justify-center py-1.5 px-2 rounded-xl font-bold transition-all text-xs whitespace-nowrap ${
+                    isWarmupMode
+                      ? 'bg-white text-slate-950 shadow-sm border border-slate-200/80 font-black'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Flame className="w-3.5 h-3.5 mr-1 fill-amber-500 text-amber-500" />
+                  <span>Warmup</span>
+                </Link>
+              </div>
+            </div>
           </div>
 
           {/* Project Selector (shown in tracker mode) */}
