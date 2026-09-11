@@ -91,6 +91,14 @@ export function Header({
           {/* Top Product Switcher Tabs */}
           <div className="hidden sm:flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs">
             <Link
+              href="/"
+              className="px-2.5 py-1 text-slate-500 hover:text-slate-900 rounded-md font-medium transition-all"
+              title="Return to Selection Portal"
+            >
+              Portal Hub
+            </Link>
+            <div className="w-[1px] h-3.5 bg-slate-200 mx-0.5" />
+            <Link
               href="/dashboard"
               className={`flex items-center px-2.5 py-1 rounded-md font-semibold transition-all ${
                 !isWarmupMode

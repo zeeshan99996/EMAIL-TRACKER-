@@ -119,8 +119,8 @@ export function Sidebar({
         <div className="flex-1 overflow-y-auto">
           {/* Brand Header */}
           <div className="p-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
-            <Link href={isWarmupMode ? "/dashboard/warmup" : "/dashboard"} className="flex items-center space-x-3">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-sm ${
+            <Link href="/" title="Back to Main Hub" className="flex items-center space-x-3 group">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-sm transition-transform group-hover:scale-105 ${
                 isWarmupMode ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-blue-600'
               }`}>
                 {isWarmupMode ? (
@@ -130,7 +130,7 @@ export function Sidebar({
                 )}
               </div>
               <div>
-                <h1 className="font-bold text-slate-900 text-sm tracking-tight">
+                <h1 className="font-bold text-slate-900 text-sm tracking-tight group-hover:text-blue-600 transition-colors">
                   {isWarmupMode ? 'Email Warmup AI' : 'Email Tracker AI'}
                 </h1>
                 <p className="text-[11px] text-slate-500 font-medium">
@@ -149,7 +149,7 @@ export function Sidebar({
           </div>
 
           {/* Product Switcher Segmented Control */}
-          <div className="p-3 pb-1">
+          <div className="p-3 pb-1 space-y-1.5">
             <div className="bg-slate-100/90 p-1 rounded-xl flex items-center border border-slate-200/80 shadow-inner">
               <Link
                 href="/dashboard"
@@ -176,6 +176,14 @@ export function Sidebar({
                 <span>Warmup</span>
               </Link>
             </div>
+
+            <Link
+              href="/"
+              onClick={() => setMobileOpen && setMobileOpen(false)}
+              className="w-full flex items-center justify-center py-1.5 px-2 text-[11px] font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
+            >
+              <span>← Back to Selection Portal</span>
+            </Link>
           </div>
 
           {/* Project Selector (shown in tracker mode) */}
