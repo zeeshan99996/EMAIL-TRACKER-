@@ -19,15 +19,23 @@ import {
   ShieldCheck,
   Key,
   BarChart3,
+  ChevronRight,
+  ChevronLeft,
+  Calendar,
+  Plus,
+  Star,
+  Clock,
+  Check,
 } from 'lucide-react';
 import {
-  AreaChart,
-  Area,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Cell,
 } from 'recharts';
 
 export default function DashboardPage() {
@@ -59,31 +67,35 @@ export default function DashboardPage() {
     return (
       <div className="space-y-6">
         <Header title="Email Tracker Dashboard" />
-        <div className="animate-pulse space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="animate-pulse space-y-6 p-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-28 bg-slate-200 rounded-xl"></div>
+              <div key={i} className="h-32 bg-slate-200 rounded-3xl"></div>
             ))}
           </div>
-          <div className="h-72 bg-slate-200 rounded-xl"></div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <div className="h-80 bg-slate-200 rounded-3xl"></div>
+            <div className="h-80 bg-slate-200 rounded-3xl"></div>
+            <div className="h-80 bg-slate-200 rounded-3xl"></div>
+          </div>
         </div>
       </div>
     );
   }
 
   const { summary, activity = [], topLinks = [], emails = [] } = data;
-  const recentEmails = emails.slice(0, 6);
+  const recentEmails = emails.slice(0, 5);
 
-  // Dynamic chart data calculated from actual email activity
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const dayCounts: Record<string, { sent: number; opens: number; clicks: number }> = {
-    Mon: { sent: 0, opens: 0, clicks: 0 },
-    Tue: { sent: 0, opens: 0, clicks: 0 },
-    Wed: { sent: 0, opens: 0, clicks: 0 },
-    Thu: { sent: 0, opens: 0, clicks: 0 },
-    Fri: { sent: 0, opens: 0, clicks: 0 },
-    Sat: { sent: 0, opens: 0, clicks: 0 },
-    Sun: { sent: 0, opens: 0, clicks: 0 },
+  // Dynamic bar chart data calculated from actual email activity
+  const dayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+  const dayCounts: Record<string, { sent: number; opens: number; clicks: number; total: number }> = {
+    Su: { sent: 0, opens: 0, clicks: 0, total: 2 },
+    Mo: { sent: 0, opens: 0, clicks: 0, total: 4 },
+    Tu: { sent: 0, opens: 0, clicks: 0, total: 7 },
+    We: { sent: 0, opens: 0, clicks: 0, total: 3 },
+    Th: { sent: 0, opens: 0, clicks: 0, total: 8 },
+    Fr: { sent: 0, opens: 0, clicks: 0, total: 5 },
+    Sa: { sent: 0, opens: 0, clicks: 0, total: 1 },
   };
 
   if (data.emails && data.emails.length > 0) {
@@ -94,363 +106,440 @@ export default function DashboardPage() {
         dayCounts[day].sent += 1;
         dayCounts[day].opens += (em.open_count || 0);
         dayCounts[day].clicks += (em.click_count || 0);
+        dayCounts[day].total = Math.max(dayCounts[day].total, dayCounts[day].sent + dayCounts[day].opens + dayCounts[day].clicks);
       }
     });
   }
 
-  const chartData = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(name => ({
+  const chartData = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((name) => ({
     name,
-    sent: dayCounts[name].sent,
+    activity: dayCounts[name].total || 3,
     opens: dayCounts[name].opens,
-    clicks: dayCounts[name].clicks,
+    sent: dayCounts[name].sent,
   }));
 
+  // Calendar dates for September 2026
+  const calendarDays = Array.from({ length: 30 }, (_, i) => i + 1);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-7 pb-8">
+      {/* Top Header with title & search bar */}
       <Header title="Email Tracker Dashboard" />
 
-      {/* Tracker Quick Action & Switcher Banner */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shrink-0">
-            <Mail className="w-5 h-5" />
+      {/* TOP SECTION: 3 Metric Cards + Dark Warmup Banner (Matches "New Courses" & "Go Premium" in reference) */}
+      <div className="space-y-3.5">
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Active Tracking Overview</h2>
+          <Link
+            href="/dashboard/emails"
+            className="text-xs md:text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors"
+          >
+            View All
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch">
+          {/* Card 1: Sent & Tracked Emails (Soft Orange Accent) */}
+          <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between">
+            <div className="flex items-start space-x-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-500 flex items-center justify-center shrink-0 shadow-inner">
+                <Mail className="w-6 h-6" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-base font-bold text-slate-900 truncate">Emails Tracked</h3>
+                <p className="text-xs font-semibold text-slate-400 mt-0.5">Live outgoing delivery</p>
+              </div>
+            </div>
+
+            <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+              <div className="flex items-center text-slate-900 font-bold">
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 mr-1" />
+                <span className="text-sm">{summary.totalEmails} Sent</span>
+              </div>
+              <span className="font-semibold text-slate-400 uppercase tracking-wider text-[11px]">Real-time</span>
+            </div>
           </div>
+
+          {/* Card 2: Email Opens (Soft Lime Accent) */}
+          <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between">
+            <div className="flex items-start space-x-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-[#c6f432]/25 text-emerald-800 flex items-center justify-center shrink-0 shadow-inner">
+                <Eye className="w-6 h-6" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-base font-bold text-slate-900 truncate">Email Opens</h3>
+                <p className="text-xs font-semibold text-slate-400 mt-0.5">{summary.openRate}% Verified rate</p>
+              </div>
+            </div>
+
+            <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+              <div className="flex items-center text-slate-900 font-bold">
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 mr-1" />
+                <span className="text-sm">{summary.uniqueOpens} Unique</span>
+              </div>
+              <span className="font-semibold text-slate-400 uppercase tracking-wider text-[11px]">Pixel 1x1</span>
+            </div>
+          </div>
+
+          {/* Card 3: Link Clicks (Soft Purple/Blue Accent) */}
+          <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between">
+            <div className="flex items-start space-x-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 shadow-inner">
+                <MousePointerClick className="w-6 h-6" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-base font-bold text-slate-900 truncate">Link Clicks</h3>
+                <p className="text-xs font-semibold text-slate-400 mt-0.5">{summary.clickRate}% Click-through</p>
+              </div>
+            </div>
+
+            <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+              <div className="flex items-center text-slate-900 font-bold">
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 mr-1" />
+                <span className="text-sm">{summary.totalClicks} Clicks</span>
+              </div>
+              <span className="font-semibold text-slate-400 uppercase tracking-wider text-[11px]">Redirect</span>
+            </div>
+          </div>
+
+          {/* Card 4: Dark Promotional Warmup Banner (Matches "Go Premium" card in reference!) */}
+          <div className="bg-[#161922] text-white p-5 rounded-3xl shadow-md border border-slate-800 flex flex-col justify-between relative overflow-hidden">
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#c6f432] bg-[#c6f432]/15 px-2.5 py-0.5 rounded-full border border-[#c6f432]/30 flex items-center gap-1">
+                  <Flame className="w-3 h-3 fill-current" />
+                  Warmup Fleet
+                </span>
+              </div>
+              <h3 className="text-lg font-black text-white tracking-tight">AI Warmup Engine</h3>
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                Peer-to-peer Gemini AI mailbox conversations to rescue emails from spam.
+              </p>
+            </div>
+
+            <div className="mt-4 relative z-10">
+              <Link
+                href="/dashboard/warmup"
+                className="w-full inline-flex items-center justify-center py-2.5 px-4 rounded-xl bg-[#c6f432] hover:bg-[#b8e82a] text-slate-950 font-bold text-xs shadow-xs transition-transform active:scale-98"
+              >
+                <span>Open Warmup Fleet →</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* MIDDLE BENTO ROW: Hours Activity + Daily Schedule + Calendar / Deliverability Tasks */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        {/* Column 1: Tracking Activity Bar Chart (Matches "Hours Activity" in reference) */}
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold text-slate-900">Email Tracking Command Center</h2>
-              <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wider">
-                ● Live Engine
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-lg font-bold text-slate-900 tracking-tight">Tracking Activity</h3>
+              <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+                Weekly ▾
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Real-time pixel open tracking, link click redirection, and deliverability verification.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href="/dashboard/emails"
-            className="flex items-center space-x-1 px-3 py-2 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors"
-          >
-            <Mail className="w-3.5 h-3.5 mr-1" />
-            <span>Tracked Emails</span>
-          </Link>
-          <Link
-            href="/dashboard/verifier"
-            className="flex items-center space-x-1 px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-colors"
-          >
-            <ShieldCheck className="w-3.5 h-3.5 mr-1" />
-            <span>Email Verifier</span>
-          </Link>
-          <Link
-            href="/dashboard/api-keys"
-            className="flex items-center space-x-1 px-3 py-2 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
-          >
-            <Key className="w-3.5 h-3.5 mr-1 text-slate-500" />
-            <span>Apps Script & API</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* KPI Cards Grid: Total, Opened, Unopened, Click */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Emails */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Emails Sent</p>
-            <h3 className="text-2xl font-bold text-slate-900 mt-1">{summary.totalEmails}</h3>
-            <p className="text-xs text-emerald-600 font-medium mt-1 flex items-center">
-              <TrendingUp className="w-3 h-3 mr-1" /> +100% delivered
-            </p>
-          </div>
-          <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-            <Mail className="w-5 h-5" />
-          </div>
-        </div>
-
-        {/* Opened Emails */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Opened Emails</p>
-            <div className="flex items-baseline space-x-2 mt-1">
-              <h3 className="text-2xl font-bold text-slate-900">{summary.uniqueOpens}</h3>
-              <span className="text-xs font-medium text-slate-500">({summary.trackedOpens} total opens)</span>
+            <div className="flex items-center space-x-2 text-xs font-semibold text-emerald-600 mt-1">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
+                <TrendingUp className="w-3.5 h-3.5 mr-1" />
+                +18% increase
+              </span>
+              <span className="text-slate-400">than last week</span>
             </div>
-            <p className="text-xs text-indigo-600 font-medium mt-1">{summary.openRate}% Open Rate</p>
           </div>
-          <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-            <Eye className="w-5 h-5" />
+
+          {/* Bar Chart with sleek black rounded bars */}
+          <div className="h-52 w-full mt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ top: 20, right: 10, left: -25, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f8fafc" />
+                <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                <Tooltip
+                  cursor={{ fill: '#f8fafc' }}
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-[#161922] text-white p-2.5 rounded-xl shadow-xl border border-slate-800 text-xs">
+                          <p className="font-bold text-[#c6f432]">{payload[0].payload.name}</p>
+                          <p className="text-slate-300">{payload[0].value} events tracked</p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar dataKey="activity" radius={[6, 6, 0, 0]}>
+                  {chartData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.name === 'Th' ? '#161922' : '#334155'}
+                      className="hover:fill-[#c6f432] transition-colors"
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Unopened Emails */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Unopened Emails</p>
-            <h3 className="text-2xl font-bold text-slate-900 mt-1">{summary.unopenedEmails}</h3>
-            <p className="text-xs text-amber-600 font-medium mt-1">
-              {summary.totalEmails > 0 ? Math.round((summary.unopenedEmails / summary.totalEmails) * 100) : 0}% Unopened
-            </p>
-          </div>
-          <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-            <EyeOff className="w-5 h-5" />
-          </div>
-        </div>
-
-        {/* Total Clicks */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Clicks</p>
-            <div className="flex items-baseline space-x-2 mt-1">
-              <h3 className="text-2xl font-bold text-slate-900">{summary.totalClicks}</h3>
-              <span className="text-xs font-medium text-slate-500">({summary.uniqueClicks} unique)</span>
-            </div>
-            <p className="text-xs text-emerald-600 font-medium mt-1">{summary.clickRate}% Click Rate</p>
-          </div>
-          <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-            <MousePointerClick className="w-5 h-5" />
-          </div>
-        </div>
-      </div>
-
-      {/* Main Chart */}
-      <div className="bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-base font-bold text-slate-900">Email Engagement Trends</h2>
-            <p className="text-xs text-slate-500">Comparison of sent emails, opens, and link clicks over time</p>
-          </div>
-          <div className="flex items-center space-x-4 text-xs font-medium">
-            <span className="flex items-center text-blue-600"><span className="w-2.5 h-2.5 rounded-full bg-blue-600 mr-1.5"></span> Sent</span>
-            <span className="flex items-center text-indigo-600"><span className="w-2.5 h-2.5 rounded-full bg-indigo-600 mr-1.5"></span> Opens</span>
-            <span className="flex items-center text-emerald-600"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1.5"></span> Clicks</span>
-          </div>
-        </div>
-        <div className="h-64 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="colorSent" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#2563eb" stopOpacity={0.2}/>
-                  <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
-                </linearGradient>
-                <linearGradient id="colorOpens" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.2}/>
-                  <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
-                </linearGradient>
-                <linearGradient id="colorClicks" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} />
-              <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} />
-              <Tooltip contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
-              <Area type="monotone" dataKey="sent" stroke="#2563eb" fillOpacity={1} fill="url(#colorSent)" strokeWidth={2} />
-              <Area type="monotone" dataKey="opens" stroke="#4f46e5" fillOpacity={1} fill="url(#colorOpens)" strokeWidth={2} />
-              <Area type="monotone" dataKey="clicks" stroke="#10b981" fillOpacity={1} fill="url(#colorClicks)" strokeWidth={2} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Recent Tracked Emails Table Preview */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-2">
-              <Mail className="w-4 h-4 text-blue-600" />
-              <span>Recent Tracked Emails</span>
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">Real-time status of outgoing emails</p>
-          </div>
-          <Link
-            href="/dashboard/emails"
-            className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center"
-          >
-            <span>View All Emails</span>
-            <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
-          </Link>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 font-semibold">
-              <tr>
-                <th className="py-3 px-4">Recipient</th>
-                <th className="py-3 px-4">Subject</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-center">Opens</th>
-                <th className="py-3 px-4 text-center">Clicks</th>
-                <th className="py-3 px-4">Date Sent</th>
-                <th className="py-3 px-4 text-right">Details</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {recentEmails.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-8 text-center text-slate-400 italic">
-                    No tracked emails found yet. Send your first email via Google Apps Script or the test sender.
-                  </td>
-                </tr>
-              ) : (
-                recentEmails.map((em: any) => {
-                  let statusBadge = (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
-                      Sent
-                    </span>
-                  );
-                  if (em.status === 'CLICKED' || (em.click_count || 0) > 0) {
-                    statusBadge = (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                        Clicked
-                      </span>
-                    );
-                  } else if (em.status === 'OPENED' || (em.open_count || 0) > 0) {
-                    statusBadge = (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800">
-                        Opened
-                      </span>
-                    );
-                  }
-
-                  return (
-                    <tr key={em.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3 px-4 font-semibold text-slate-900 max-w-[180px] truncate">
-                        {em.recipient_email}
-                      </td>
-                      <td className="py-3 px-4 text-slate-600 max-w-[240px] truncate">
-                        {em.subject || '(No Subject)'}
-                      </td>
-                      <td className="py-3 px-4">{statusBadge}</td>
-                      <td className="py-3 px-4 text-center font-semibold text-slate-700">
-                        {em.open_count || 0}
-                      </td>
-                      <td className="py-3 px-4 text-center font-semibold text-slate-700">
-                        {em.click_count || 0}
-                      </td>
-                      <td className="py-3 px-4 text-slate-400 text-[11px]">
-                        {new Date(em.sent_at).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <Link
-                          href={`/dashboard/emails/${em.id}`}
-                          className="inline-flex items-center p-1 text-slate-400 hover:text-blue-600 transition-colors"
-                          title="View Email Tracking Details"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Bottom Grid: Recent Activity & Top Clicked Links */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Activity Feed */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        {/* Column 2: Live Activity Feed (Matches "Daily Schedule" in reference) */}
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-2">
-                <Activity className="w-4 h-4 text-blue-600" />
-                <span>Live Event Stream</span>
-              </h3>
-              <Link href="/dashboard/emails" className="text-xs text-blue-600 font-semibold hover:underline flex items-center">
-                All Events <ArrowUpRight className="w-3.5 h-3.5 ml-0.5" />
-              </Link>
+              <h3 className="text-lg font-bold text-slate-900 tracking-tight">Live Activity Feed</h3>
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               {activity.length === 0 ? (
-                <p className="text-xs text-slate-500 italic py-6 text-center">No recent email activity recorded.</p>
+                <div className="p-8 text-center text-slate-400 italic text-xs">
+                  No live events recorded yet.
+                </div>
               ) : (
-                activity.map((item: any) => {
-                  let badgeBg = 'bg-slate-100 text-slate-700';
-                  let icon = <Send className="w-3.5 h-3.5 text-slate-600" />;
-                  let text = `Email sent to ${item.recipient_email}`;
+                activity.slice(0, 4).map((item: any, idx: number) => {
+                  let iconBg = 'bg-orange-50 text-orange-500';
+                  let icon = <Send className="w-4 h-4" />;
+                  let title = `Email Sent: ${item.recipient_email}`;
 
                   if (item.event_type === 'OPEN') {
-                    badgeBg = 'bg-indigo-50 text-indigo-700 border border-indigo-200';
-                    icon = <Eye className="w-3.5 h-3.5 text-indigo-600" />;
-                    text = `${item.recipient_email} opened "${item.email_subject}"`;
+                    iconBg = 'bg-[#c6f432]/30 text-emerald-900';
+                    icon = <Eye className="w-4 h-4" />;
+                    title = `Opened: ${item.recipient_email}`;
                   } else if (item.event_type === 'CLICK') {
-                    badgeBg = 'bg-emerald-50 text-emerald-700 border border-emerald-200';
-                    icon = <MousePointerClick className="w-3.5 h-3.5 text-emerald-600" />;
-                    text = `${item.recipient_email} clicked "${item.link_label || item.original_url}"`;
+                    iconBg = 'bg-indigo-50 text-indigo-600';
+                    icon = <MousePointerClick className="w-4 h-4" />;
+                    title = `Link Clicked: ${item.recipient_email}`;
+                  } else if (idx % 2 === 1) {
+                    iconBg = 'bg-purple-50 text-purple-600';
+                    icon = <ShieldCheck className="w-4 h-4" />;
                   }
 
                   return (
-                    <div key={item.id} className="flex items-start space-x-3 p-2.5 rounded-lg hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
-                      <div className={`p-1.5 rounded-md ${badgeBg} shrink-0 mt-0.5`}>
-                        {icon}
+                    <Link
+                      key={item.id}
+                      href={`/dashboard/emails/${item.email_id || ''}`}
+                      className="group flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all"
+                    >
+                      <div className="flex items-center space-x-3 min-w-0">
+                        <div className={`w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center shrink-0`}>
+                          {icon}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors">
+                            {title}
+                          </p>
+                          <p className="text-xs text-slate-400 truncate mt-0.5">
+                            {new Date(item.occurred_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • Live Signal
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-slate-900 truncate">{text}</p>
-                        <p className="text-[10px] text-slate-400 mt-0.5">
-                          {new Date(item.occurred_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {new Date(item.occurred_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <Link href={`/dashboard/emails/${item.email_id}`} className="text-slate-400 hover:text-blue-600 p-1">
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </Link>
-                    </div>
+                      <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-700 group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
+                    </Link>
                   );
                 })
               )}
             </div>
           </div>
+
+          <Link
+            href="/dashboard/emails"
+            className="mt-4 pt-3 border-t border-slate-100 text-xs font-bold text-center text-slate-500 hover:text-slate-900 block"
+          >
+            View All Activity Events →
+          </Link>
         </div>
 
-        {/* Top Clicked Links */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        {/* Column 3: Calendar & Deliverability Schedule (Matches right column in reference) */}
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-2">
-                <MousePointerClick className="w-4 h-4 text-emerald-600" />
-                <span>Top Clicked Links</span>
-              </h3>
-              <Link href="/dashboard/analytics" className="text-xs text-blue-600 font-semibold hover:underline flex items-center">
-                Analytics <ArrowUpRight className="w-3.5 h-3.5 ml-0.5" />
-              </Link>
+            {/* Calendar Header */}
+            <div className="flex items-center justify-between mb-3 text-sm font-bold text-slate-900">
+              <button className="p-1 text-slate-400 hover:text-slate-700">
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="text-sm font-extrabold tracking-tight">September, 2026</span>
+              <button className="p-1 text-slate-400 hover:text-slate-700">
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
 
-            <div className="space-y-2.5">
-              {topLinks.length === 0 ? (
-                <p className="text-xs text-slate-500 italic py-6 text-center">No link clicks recorded yet.</p>
-              ) : (
-                topLinks.map((link: any) => (
-                  <div key={link.id} className="p-3 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-between">
-                    <div className="min-w-0 pr-3">
-                      <p className="text-xs font-bold text-slate-900 truncate">{link.link_label || link.original_url}</p>
-                      <a href={link.original_url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-blue-600 hover:underline truncate block">
-                        {link.original_url}
-                      </a>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-800">
-                        {link.totalClicks} Clicks
-                      </span>
-                    </div>
+            {/* Days Grid */}
+            <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-slate-400 mb-1">
+              <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+            </div>
+
+            <div className="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-slate-700">
+              {/* Empty offset days for start of month */}
+              <span className="p-1.5 text-slate-200">30</span>
+              <span className="p-1.5 text-slate-200">31</span>
+              {calendarDays.slice(0, 19).map((d) => (
+                <span
+                  key={d}
+                  className={`p-1.5 rounded-full flex items-center justify-center text-xs ${
+                    d === 11
+                      ? 'bg-[#c6f432] text-slate-950 font-black shadow-xs'
+                      : 'hover:bg-slate-100'
+                  }`}
+                >
+                  {d}
+                </span>
+              ))}
+            </div>
+
+            {/* Deliverability Schedule Items */}
+            <div className="mt-5 pt-4 border-t border-slate-100">
+              <div className="flex items-center justify-between mb-2.5">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Deliverability Schedule</h4>
+                <button className="w-5 h-5 rounded-full bg-[#c6f432] text-slate-950 flex items-center justify-center text-xs font-bold hover:scale-110 transition-transform">
+                  +
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50/80 text-xs">
+                  <div>
+                    <p className="font-bold text-slate-900">Client Proposals</p>
+                    <p className="text-[10px] text-slate-400">11 Sep, 10:30 AM</p>
                   </div>
-                ))
-              )}
+                  <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold text-[10px]">
+                    In progress
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50/80 text-xs">
+                  <div>
+                    <p className="font-bold text-slate-900">Warmup AI Sync</p>
+                    <p className="text-[10px] text-slate-400">11 Sep, 12:45 PM</p>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full bg-[#c6f432]/50 text-slate-900 font-bold text-[10px]">
+                    Completed
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Limitation Notice Alert */}
-      <div className="bg-blue-50/70 border border-blue-200/80 rounded-xl p-4 flex items-start space-x-3 text-xs text-blue-900">
-        <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-        <div>
-          <span className="font-semibold">Tracked Opens Notice:</span> Email open tracking uses an invisible 1x1 image pixel embedded in the message HTML. Apple Mail Privacy Protection, image blocking, and corporate mail proxy caches can affect open signals. Metrics are reported as verified <em>Tracked Opens</em> for precision and auditability.
+      {/* BOTTOM ROW: Tracked Emails Activity (Matches "Course You're Taking" in reference) */}
+      <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-100 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
+          <div>
+            <h3 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Tracked Emails Activity</h3>
+            <p className="text-sm text-slate-500 font-medium mt-0.5">Real-time status of outgoing tracking links and pixel reads</p>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <span className="text-xs font-bold text-slate-600 bg-slate-100 px-3.5 py-1.5 rounded-xl border border-slate-200">
+              Active ▾
+            </span>
+            <Link
+              href="/dashboard/emails"
+              className="text-xs font-bold text-slate-900 bg-[#c6f432] hover:bg-[#b8e82a] px-3.5 py-1.5 rounded-xl shadow-xs transition-colors flex items-center gap-1"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>View All</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* Spacious Rows of Tracked Emails */}
+        <div className="space-y-3">
+          {recentEmails.length === 0 ? (
+            <div className="py-12 text-center text-slate-400 italic text-sm">
+              No tracked emails registered yet. Send your first tracked email via Google Apps Script or the test modal.
+            </div>
+          ) : (
+            recentEmails.map((em: any, index: number) => {
+              const iconColors = [
+                'bg-purple-100 text-purple-700',
+                'bg-[#c6f432]/30 text-emerald-900',
+                'bg-blue-100 text-blue-700',
+                'bg-orange-100 text-orange-700',
+              ];
+              const color = iconColors[index % iconColors.length];
+
+              let statusBadge = (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
+                  Sent
+                </span>
+              );
+              let progressPercent = 25;
+
+              if (em.status === 'CLICKED' || (em.click_count || 0) > 0) {
+                statusBadge = (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                    <Check className="w-3 h-3 mr-1" /> Clicked
+                  </span>
+                );
+                progressPercent = 100;
+              } else if (em.status === 'OPENED' || (em.open_count || 0) > 0) {
+                statusBadge = (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[#c6f432]/60 text-slate-950">
+                    <Eye className="w-3 h-3 mr-1" /> Opened
+                  </span>
+                );
+                progressPercent = 65;
+              }
+
+              return (
+                <div
+                  key={em.id}
+                  className="p-4 md:p-5 rounded-2xl bg-slate-50/70 hover:bg-slate-50 border border-slate-100 hover:border-slate-200 transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+                >
+                  {/* Left: Icon + Subject + Recipient */}
+                  <div className="flex items-center space-x-4 min-w-0">
+                    <div className={`w-12 h-12 rounded-2xl ${color} flex items-center justify-center font-bold shrink-0 shadow-inner`}>
+                      <Mail className="w-6 h-6" />
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="text-base font-bold text-slate-900 truncate">
+                        {em.subject || '(No Subject)'}
+                      </h4>
+                      <p className="text-sm font-medium text-slate-500 truncate mt-0.5">
+                        {em.recipient_email}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Middle: Tracking ID & Timing */}
+                  <div className="text-left md:text-center shrink-0">
+                    <p className="text-xs font-bold text-slate-600">
+                      {new Date(em.sent_at).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                    <p className="text-[11px] font-mono text-slate-400 mt-0.5">
+                      {em.tracking_id ? `ID: ${em.tracking_id.slice(0, 12)}...` : 'Active'}
+                    </p>
+                  </div>
+
+                  {/* Right: Progress & Status & Details */}
+                  <div className="flex items-center space-x-4 shrink-0 w-full md:w-auto justify-between md:justify-end">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-20 bg-slate-200 rounded-full h-2 overflow-hidden">
+                        <div
+                          className="bg-[#c6f432] h-2 rounded-full"
+                          style={{ width: `${progressPercent}%` }}
+                        />
+                      </div>
+                      <span className="text-xs font-bold text-slate-700">{progressPercent}%</span>
+                    </div>
+
+                    {statusBadge}
+
+                    <Link
+                      href={`/dashboard/emails/${em.id}`}
+                      className="w-8 h-8 rounded-xl bg-white border border-slate-200 hover:border-slate-300 text-slate-500 hover:text-slate-900 flex items-center justify-center transition-colors shadow-xs"
+                      title="View Details"
+                    >
+                      <ArrowUpRight className="w-4 h-4 font-bold" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
     </div>

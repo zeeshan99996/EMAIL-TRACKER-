@@ -21,6 +21,7 @@ import {
   LogOut,
   Zap,
   X,
+  ArrowUpRight,
 } from 'lucide-react';
 import { ProjectSelector } from './project-selector';
 
@@ -41,16 +42,16 @@ const trackerNavSections: NavSection[] = [
   {
     title: 'EMAIL TRACKING',
     items: [
-      { name: 'Tracker Overview', href: '/dashboard', icon: LayoutDashboard },
+      { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
       { name: 'Tracked Emails', href: '/dashboard/emails', icon: Mail },
-      { name: 'Email Verifier', href: '/dashboard/verifier', icon: ShieldCheck, badge: 'Clean', badgeColor: 'bg-emerald-100 text-emerald-700' },
-      { name: 'Tracking Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+      { name: 'Email Verifier', href: '/dashboard/verifier', icon: ShieldCheck, badge: 'Clean', badgeColor: 'bg-emerald-500/20 text-emerald-300' },
+      { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     ],
   },
   {
     title: 'INTEGRATIONS & DEV',
     items: [
-      { name: 'API Keys & Script', href: '/dashboard/api-keys', icon: Key },
+      { name: 'API & Apps Script', href: '/dashboard/api-keys', icon: Key },
       { name: 'Projects', href: '/dashboard/projects', icon: FolderKanban },
     ],
   },
@@ -67,7 +68,7 @@ const warmupNavSections: NavSection[] = [
   {
     title: 'WARMUP & FLEET',
     items: [
-      { name: 'Warmup Overview', href: '/dashboard/warmup', icon: Flame, badge: 'AI', badgeColor: 'bg-amber-100 text-amber-700' },
+      { name: 'Warmup Overview', href: '/dashboard/warmup', icon: Flame, badge: 'AI', badgeColor: 'bg-amber-500/20 text-amber-300' },
       { name: 'Connected Mailboxes', href: '/dashboard/warmup/accounts', icon: Inbox },
       { name: 'Targeted Campaigns', href: '/dashboard/warmup/targeted', icon: Target },
     ],
@@ -106,63 +107,59 @@ export function Sidebar({
       {mobileOpen && (
         <div
           onClick={() => setMobileOpen && setMobileOpen(false)}
-          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden"
+          className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-40 md:hidden"
         />
       )}
 
-      {/* Sidebar Container */}
+      {/* Sidebar Container - Dark charcoal style */}
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 transform transition-transform duration-200 ease-in-out ${
+        className={`fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#161922] text-slate-100 border-r border-slate-800/80 flex flex-col justify-between shrink-0 transform transition-transform duration-200 ease-in-out ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
         <div className="flex-1 overflow-y-auto">
           {/* Brand Header */}
-          <div className="p-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+          <div className="p-4 border-b border-slate-800/80 flex items-center justify-between sticky top-0 bg-[#161922] z-10">
             <Link href="/" title="Back to Main Hub" className="flex items-center space-x-3 group">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-sm transition-transform group-hover:scale-105 ${
-                isWarmupMode ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-blue-600'
-              }`}>
+              <div className="w-9 h-9 rounded-xl bg-[#c6f432] text-slate-950 flex items-center justify-center font-black shadow-md shadow-[#c6f432]/20 transition-transform group-hover:scale-105">
                 {isWarmupMode ? (
-                  <Flame className="w-5 h-5 fill-current text-white" />
+                  <Flame className="w-5 h-5 fill-current text-slate-950" />
                 ) : (
-                  <Zap className="w-5 h-5 fill-current" />
+                  <Zap className="w-5 h-5 fill-current text-slate-950" />
                 )}
               </div>
               <div>
-                <h1 className="font-bold text-slate-900 text-sm tracking-tight group-hover:text-blue-600 transition-colors">
-                  {isWarmupMode ? 'Email Warmup AI' : 'Email Tracker AI'}
+                <h1 className="font-bold text-white text-base tracking-tight group-hover:text-[#c6f432] transition-colors">
+                  {isWarmupMode ? 'Email Warmup' : 'EmailTracker'}
                 </h1>
-                <p className="text-[11px] text-slate-500 font-medium">
-                  {isWarmupMode ? 'Deliverability & Reputation' : 'Live Tracking & Analytics'}
+                <p className="text-[11px] text-slate-400 font-medium">
+                  {isWarmupMode ? 'AI Reputation Engine' : 'Live Opens & Clicks'}
                 </p>
               </div>
             </Link>
             {setMobileOpen && (
               <button
                 onClick={() => setMobileOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 md:hidden"
+                className="p-1 text-slate-400 hover:text-white md:hidden"
               >
                 <X className="w-5 h-5" />
               </button>
             )}
           </div>
 
-
-
           {/* Project Selector (shown in tracker mode) */}
-          <div className="px-3 py-2">
+          <div className="px-3 py-3">
             <ProjectSelector />
           </div>
 
           {/* Nav Sections */}
-          <nav className="px-2 py-1 space-y-4">
+          <nav className="px-3 py-1 space-y-5">
             {activeSections.map((section) => (
               <div key={section.title}>
-                <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <div className="px-3 pb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
                   {section.title}
                 </div>
-                <div className="space-y-0.5">
+                <div className="space-y-1">
                   {section.items.map((item) => {
                     const isActive =
                       pathname === item.href ||
@@ -175,26 +172,26 @@ export function Sidebar({
                         key={item.name}
                         href={item.href}
                         onClick={() => setMobileOpen && setMobileOpen(false)}
-                        className={`flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
+                        className={`flex items-center justify-between px-3.5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-150 ${
                           isActive
-                            ? isWarmupMode
-                              ? 'bg-amber-50 text-amber-800 font-semibold'
-                              : 'bg-blue-50 text-blue-700 font-semibold'
-                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                            ? 'bg-[#c6f432] text-slate-950 shadow-md shadow-[#c6f432]/10 font-bold'
+                            : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
                         }`}
                       >
-                        <div className="flex items-center space-x-2.5">
+                        <div className="flex items-center space-x-3">
                           <Icon className={`w-4 h-4 ${
                             isActive 
-                              ? (isWarmupMode ? 'text-amber-600' : 'text-blue-600') 
+                              ? 'text-slate-950' 
                               : 'text-slate-400'
                           }`} />
                           <span>{item.name}</span>
                         </div>
                         {item.badge && (
                           <span
-                            className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                              item.badgeColor || 'bg-slate-100 text-slate-600'
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                              isActive
+                                ? 'bg-slate-950/15 text-slate-950'
+                                : item.badgeColor || 'bg-slate-800 text-slate-300'
                             }`}
                           >
                             {item.badge}
@@ -207,24 +204,42 @@ export function Sidebar({
               </div>
             ))}
           </nav>
+        </div>
 
+        {/* Bottom Accent Widget (like reference image) */}
+        <div className="p-3">
+          <div className="relative overflow-hidden p-3.5 rounded-2xl bg-[#c6f432]/10 border border-[#c6f432]/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-white">Google Apps Script</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">Real-time Gmail tracking</p>
+              </div>
+              <Link
+                href="/dashboard/api-keys"
+                className="w-8 h-8 rounded-full bg-[#c6f432] text-slate-950 flex items-center justify-center shadow-sm hover:scale-105 transition-transform"
+                title="View Apps Script & API Key"
+              >
+                <ArrowUpRight className="w-4 h-4 font-bold stroke-[2.5]" />
+              </Link>
+            </div>
+          </div>
         </div>
 
         {/* Footer User Badge */}
-        <div className="p-3 border-t border-slate-100">
-          <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+        <div className="p-3 border-t border-slate-800/80">
+          <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/90 border border-slate-800">
             <div className="flex items-center space-x-2.5 overflow-hidden">
-              <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
                 ET
               </div>
               <div className="truncate">
-                <p className="text-xs font-semibold text-slate-900 truncate">ERHA Technologies</p>
-                <p className="text-[10px] text-slate-500 truncate">admin@erha.com</p>
+                <p className="text-xs font-bold text-white truncate">ERHA Technologies</p>
+                <p className="text-[11px] text-slate-400 truncate">admin@erha.com</p>
               </div>
             </div>
             <Link
               href="/auth/login"
-              className="p-1 text-slate-400 hover:text-rose-600 transition-colors"
+              className="p-1.5 text-slate-400 hover:text-rose-400 transition-colors"
               title="Logout"
             >
               <LogOut className="w-4 h-4" />
