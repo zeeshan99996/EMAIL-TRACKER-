@@ -7,8 +7,6 @@ import {
   Flame,
   Zap,
   ArrowRight,
-  Lock,
-  Sparkles,
 } from 'lucide-react';
 
 export default function RootPage() {
@@ -104,22 +102,11 @@ export default function RootPage() {
       </div>
 
       {/* Footer Info */}
-      <footer className="relative z-10 max-w-7xl mx-auto w-full px-6 py-6 border-t border-slate-800/60 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+      <footer className="relative z-10 max-w-7xl mx-auto w-full px-6 py-6 border-t border-slate-800/60 flex items-center justify-center text-xs text-slate-500">
         <div className="flex items-center space-x-2">
           <span>© 2026 EmailTracker AI Platform.</span>
           <span>•</span>
           <span>All rights reserved.</span>
-        </div>
-        <div className="flex items-center space-x-4">
-          <span className="flex items-center">
-            <Lock className="w-3.5 h-3.5 mr-1 text-slate-400" />
-            Supabase Cloud Persistent
-          </span>
-          <span>•</span>
-          <span className="flex items-center">
-            <Sparkles className="w-3.5 h-3.5 mr-1 text-amber-400" />
-            Gemini 3.6 Flash Engine
-          </span>
         </div>
       </footer>
     </main>
