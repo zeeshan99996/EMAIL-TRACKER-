@@ -52,7 +52,15 @@ describe('Data Persistence & Tracking Lifecycle', () => {
     expect(dashData.summary.totalClicks).toBeGreaterThanOrEqual(1);
 
     // 7. Re-read raw disk file to ensure disk state is 100% in sync
-    const reloadedDb = JSON.parse(fs.readFileSync(dbPath, 'utf-8'));
+    await new Promise(resolve => setTimeout(resolve, 50));
+    let rawContent = fs.readFileSync(dbPath, 'utf-8');
+    let retryCount = 0;
+    while ((!rawContent || rawContent.trim() === '') && retryCount < 5) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+      rawContent = fs.readFileSync(dbPath, 'utf-8');
+      retryCount++;
+    }
+    const reloadedDb = JSON.parse(rawContent);
     const reloadedEmail = reloadedDb.emails.find((e: any) => e.tracking_id === res.trackingId);
     expect(reloadedEmail.open_count).toBe(1);
     expect(reloadedEmail.click_count).toBe(1);
