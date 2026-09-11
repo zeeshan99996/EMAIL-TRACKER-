@@ -15,7 +15,6 @@ import {
   ArrowUpRight,
   Send,
   CheckCircle2,
-  Flame,
   ShieldCheck,
   Key,
   BarChart3,
@@ -202,27 +201,27 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Card 4: Dark Promotional Warmup Banner (Matches "Go Premium" card in reference!) */}
+          {/* Card 4: Dark Promotional Verifier Banner (Matches dark card in reference Bento!) */}
           <div className="bg-[#161922] text-white p-5 rounded-3xl shadow-md border border-slate-800 flex flex-col justify-between relative overflow-hidden">
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] font-black uppercase tracking-wider text-[#c6f432] bg-[#c6f432]/15 px-2.5 py-0.5 rounded-full border border-[#c6f432]/30 flex items-center gap-1">
-                  <Flame className="w-3 h-3 fill-current" />
-                  Warmup Fleet
+                  <ShieldCheck className="w-3 h-3" />
+                  Email Verifier
                 </span>
               </div>
-              <h3 className="text-lg font-black text-white tracking-tight">AI Warmup Engine</h3>
+              <h3 className="text-lg font-black text-white tracking-tight">Clean Recipient Lists</h3>
               <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                Peer-to-peer Gemini AI mailbox conversations to rescue emails from spam.
+                Check MX records, syntax & disposable emails for 100% inbox delivery.
               </p>
             </div>
 
             <div className="mt-4 relative z-10">
               <Link
-                href="/dashboard/warmup"
+                href="/dashboard/verifier"
                 className="w-full inline-flex items-center justify-center py-2.5 px-4 rounded-xl bg-[#c6f432] hover:bg-[#b8e82a] text-slate-950 font-bold text-xs shadow-xs transition-transform active:scale-98"
               >
-                <span>Open Warmup Fleet →</span>
+                <span>Verify Email List →</span>
               </Link>
             </div>
           </div>
@@ -410,10 +409,10 @@ export default function DashboardPage() {
 
                 <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50/80 text-xs">
                   <div>
-                    <p className="font-bold text-slate-900">Warmup AI Sync</p>
+                    <p className="font-bold text-slate-900">Tracking Pixel Sync</p>
                     <p className="text-[10px] text-slate-400">11 Sep, 12:45 PM</p>
                   </div>
-                  <span className="px-2 py-0.5 rounded-full bg-[#c6f432]/50 text-slate-900 font-bold text-[10px]">
+                  <span className="px-2 py-0.5 rounded-full bg-[#c6f432]/50 text-slate-950 font-bold text-[10px]">
                     Completed
                   </span>
                 </div>
