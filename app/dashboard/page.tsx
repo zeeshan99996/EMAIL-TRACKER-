@@ -150,14 +150,6 @@ export default function DashboardPage() {
             <Key className="w-3.5 h-3.5 mr-1 text-slate-500" />
             <span>Apps Script & API</span>
           </Link>
-          <Link
-            href="/dashboard/warmup"
-            className="flex items-center space-x-1 px-3 py-2 text-xs font-semibold rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition-all"
-            title="Switch to Warmup Dashboard"
-          >
-            <Flame className="w-3.5 h-3.5 mr-1 fill-amber-500 text-amber-500" />
-            <span>Go to Warmup →</span>
-          </Link>
         </div>
       </div>
 

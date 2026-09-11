@@ -89,13 +89,13 @@ export function Header({
         {/* Header Right Actions & Top Switcher */}
         <div className="flex items-center space-x-2 md:space-x-3">
           {/* Top Product Switcher Tabs */}
-          <div className="hidden sm:flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs">
+          <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs">
             <Link
               href="/"
-              className="px-2.5 py-1 text-slate-500 hover:text-slate-900 rounded-md font-medium transition-all"
+              className="px-2 py-1 text-slate-500 hover:text-slate-900 rounded-md font-medium transition-all text-[11px] sm:text-xs"
               title="Return to Selection Portal"
             >
-              Portal Hub
+              <span className="hidden sm:inline">Portal </span>Hub
             </Link>
             <div className="w-[1px] h-3.5 bg-slate-200 mx-0.5" />
             <Link

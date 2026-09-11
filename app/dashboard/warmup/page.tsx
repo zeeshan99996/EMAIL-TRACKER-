@@ -180,15 +180,6 @@ export default function WarmupDashboardPage() {
               Targeted Warmup
             </Link>
           </div>
-
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold shadow-xs transition-all"
-            title="Switch to Email Tracker Dashboard"
-          >
-            <Mail className="w-3.5 h-3.5" />
-            <span>Go to Tracker →</span>
-          </Link>
         </div>
       </div>
 

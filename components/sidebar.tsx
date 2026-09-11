@@ -148,43 +148,7 @@ export function Sidebar({
             )}
           </div>
 
-          {/* Product Switcher Segmented Control */}
-          <div className="p-3 pb-1 space-y-1.5">
-            <div className="bg-slate-100/90 p-1 rounded-xl flex items-center border border-slate-200/80 shadow-inner">
-              <Link
-                href="/dashboard"
-                onClick={() => setMobileOpen && setMobileOpen(false)}
-                className={`flex-1 flex items-center justify-center py-2 px-2 rounded-lg text-xs font-semibold transition-all duration-150 ${
-                  !isWarmupMode
-                    ? 'bg-white text-blue-600 shadow-sm border border-slate-200/60 font-bold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
-                }`}
-              >
-                <Mail className={`w-3.5 h-3.5 mr-1.5 ${!isWarmupMode ? 'text-blue-600' : 'text-slate-500'}`} />
-                <span>Tracker</span>
-              </Link>
-              <Link
-                href="/dashboard/warmup"
-                onClick={() => setMobileOpen && setMobileOpen(false)}
-                className={`flex-1 flex items-center justify-center py-2 px-2 rounded-lg text-xs font-semibold transition-all duration-150 ${
-                  isWarmupMode
-                    ? 'bg-white text-amber-600 shadow-sm border border-slate-200/60 font-bold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
-                }`}
-              >
-                <Flame className={`w-3.5 h-3.5 mr-1.5 ${isWarmupMode ? 'text-amber-500 fill-amber-500' : 'text-slate-500'}`} />
-                <span>Warmup</span>
-              </Link>
-            </div>
 
-            <Link
-              href="/"
-              onClick={() => setMobileOpen && setMobileOpen(false)}
-              className="w-full flex items-center justify-center py-1.5 px-2 text-[11px] font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
-            >
-              <span>← Back to Selection Portal</span>
-            </Link>
-          </div>
 
           {/* Project Selector (shown in tracker mode) */}
           <div className="px-3 py-2">
@@ -244,42 +208,6 @@ export function Sidebar({
             ))}
           </nav>
 
-          {/* Cross-Product Switcher Card */}
-          <div className="px-3 py-3">
-            {isWarmupMode ? (
-              <Link
-                href="/dashboard"
-                onClick={() => setMobileOpen && setMobileOpen(false)}
-                className="group block p-3 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 hover:border-blue-200 transition-all text-left shadow-xs"
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 flex items-center">
-                    <Mail className="w-3 h-3 mr-1" />
-                    Email Tracker
-                  </span>
-                  <span className="text-xs text-blue-600 group-hover:translate-x-0.5 transition-transform">→</span>
-                </div>
-                <p className="text-xs font-semibold text-slate-800">Track Opens & Clicks</p>
-                <p className="text-[10px] text-slate-500 mt-0.5">Switch to tracking pixels & analytics</p>
-              </Link>
-            ) : (
-              <Link
-                href="/dashboard/warmup"
-                onClick={() => setMobileOpen && setMobileOpen(false)}
-                className="group block p-3 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 hover:border-amber-200 transition-all text-left shadow-xs"
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 flex items-center">
-                    <Flame className="w-3 h-3 mr-1 fill-amber-500 text-amber-500" />
-                    Email Warmup
-                  </span>
-                  <span className="text-xs text-amber-600 group-hover:translate-x-0.5 transition-transform">→</span>
-                </div>
-                <p className="text-xs font-semibold text-slate-800">Boost Deliverability</p>
-                <p className="text-[10px] text-slate-500 mt-0.5">Warm up mailboxes & rescue spam</p>
-              </Link>
-            )}
-          </div>
         </div>
 
         {/* Footer User Badge */}
