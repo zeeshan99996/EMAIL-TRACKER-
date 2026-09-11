@@ -103,40 +103,6 @@ export function Header({
             />
           </div>
 
-          {/* Top Product Switcher Tabs */}
-          <div className="flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200 text-xs shadow-inner">
-            <Link
-              href="/"
-              className="px-3 py-1.5 text-slate-600 hover:text-slate-900 rounded-lg font-semibold transition-all text-xs"
-              title="Return to Selection Portal"
-            >
-              <span className="hidden sm:inline">Portal </span>Hub
-            </Link>
-            <div className="w-[1px] h-4 bg-slate-300 mx-1" />
-            <Link
-              href="/dashboard"
-              className={`flex items-center px-3 py-1.5 rounded-lg font-bold transition-all text-xs ${
-                !isWarmupMode
-                  ? 'bg-white text-slate-950 shadow-sm border border-slate-200/80'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Mail className="w-3.5 h-3.5 mr-1.5 text-blue-600" />
-              Tracker
-            </Link>
-            <Link
-              href="/dashboard/warmup"
-              className={`flex items-center px-3 py-1.5 rounded-lg font-bold transition-all text-xs ${
-                isWarmupMode
-                  ? 'bg-white text-slate-950 shadow-sm border border-slate-200/80'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Flame className="w-3.5 h-3.5 mr-1.5 fill-amber-500 text-amber-500" />
-              Warmup
-            </Link>
-          </div>
-
           {isWarmupMode ? (
             <Link
               href="/dashboard/warmup/accounts"

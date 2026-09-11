@@ -147,6 +147,44 @@ export function Sidebar({
             )}
           </div>
 
+          {/* Product Switcher Segmented Control in Sidebar */}
+          <div className="p-3 pb-1 space-y-2">
+            <div className="bg-slate-900/90 p-1.5 rounded-2xl flex items-center border border-slate-800 shadow-inner">
+              <Link
+                href="/dashboard"
+                onClick={() => setMobileOpen && setMobileOpen(false)}
+                className={`flex-1 flex items-center justify-center py-2 px-2 rounded-xl text-xs font-bold transition-all duration-150 ${
+                  !isWarmupMode
+                    ? 'bg-[#c6f432] text-slate-950 shadow-md shadow-[#c6f432]/10'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <Mail className={`w-3.5 h-3.5 mr-1.5 ${!isWarmupMode ? 'text-slate-950' : 'text-slate-400'}`} />
+                <span>Tracker</span>
+              </Link>
+              <Link
+                href="/dashboard/warmup"
+                onClick={() => setMobileOpen && setMobileOpen(false)}
+                className={`flex-1 flex items-center justify-center py-2 px-2 rounded-xl text-xs font-bold transition-all duration-150 ${
+                  isWarmupMode
+                    ? 'bg-[#c6f432] text-slate-950 shadow-md shadow-[#c6f432]/10'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <Flame className={`w-3.5 h-3.5 mr-1.5 ${isWarmupMode ? 'fill-current text-slate-950' : 'text-slate-400'}`} />
+                <span>Warmup</span>
+              </Link>
+            </div>
+
+            <Link
+              href="/"
+              onClick={() => setMobileOpen && setMobileOpen(false)}
+              className="w-full flex items-center justify-center py-1.5 px-2 text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-xl transition-colors"
+            >
+              <span>← Back to Selection Portal</span>
+            </Link>
+          </div>
+
           {/* Project Selector (shown in tracker mode) */}
           <div className="px-3 py-3">
             <ProjectSelector />
