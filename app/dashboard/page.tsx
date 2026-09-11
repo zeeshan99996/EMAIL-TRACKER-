@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/header';
-import { DEMO_PROJECT } from '@/lib/demo-store';
 import {
   Mail,
   Eye,
@@ -18,10 +17,8 @@ import {
   CheckCircle2,
   Flame,
   ShieldCheck,
-  Play,
-  RotateCw,
-  Sparkles,
-  Inbox,
+  Key,
+  BarChart3,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -35,51 +32,21 @@ import {
 
 export default function DashboardPage() {
   const [data, setData] = useState<any>(null);
-  const [warmupData, setWarmupData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [triggeringWarmup, setTriggeringWarmup] = useState(false);
-  const [warmupFeedback, setWarmupFeedback] = useState<string | null>(null);
 
   const loadData = () => {
-    Promise.all([
-      fetch('/api/v1/dashboard', { cache: 'no-store' }).then((r) => r.json()),
-      fetch('/api/warmup/stats', { cache: 'no-store' })
-        .then((r) => (r.ok ? r.json() : null))
-        .catch(() => null),
-    ])
-      .then(([dashRes, warmRes]) => {
+    fetch('/api/v1/dashboard', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((dashRes) => {
         if (dashRes && dashRes.summary) {
           setData(dashRes);
-        }
-        if (warmRes && warmRes.metrics) {
-          setWarmupData(warmRes);
         }
         setLoading(false);
       })
       .catch((err) => {
-        console.error('Failed to load dashboard:', err);
+        console.error('Failed to load tracker dashboard:', err);
         setLoading(false);
       });
-  };
-
-  const handleRunWarmupCycle = async () => {
-    setTriggeringWarmup(true);
-    setWarmupFeedback(null);
-    try {
-      const res = await fetch('/api/warmup/worker', { method: 'POST' });
-      const json = await res.json();
-      if (res.ok) {
-        setWarmupFeedback(`Warmup cycle completed! Processed: ${json.jobsProcessed || 0} jobs.`);
-        loadData();
-      } else {
-        setWarmupFeedback(json.error || 'Failed to trigger warmup cycle.');
-      }
-    } catch (err: any) {
-      setWarmupFeedback(err.message || 'Error triggering cycle.');
-    } finally {
-      setTriggeringWarmup(false);
-      setTimeout(() => setWarmupFeedback(null), 5000);
-    }
   };
 
   useEffect(() => {
@@ -91,7 +58,7 @@ export default function DashboardPage() {
   if (loading || !data) {
     return (
       <div className="space-y-6">
-        <Header title="Unified Deliverability & Tracking Command Center" />
+        <Header title="Email Tracker Dashboard" />
         <div className="animate-pulse space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
@@ -104,7 +71,8 @@ export default function DashboardPage() {
     );
   }
 
-  const { summary, activity, topLinks } = data;
+  const { summary, activity = [], topLinks = [], emails = [] } = data;
+  const recentEmails = emails.slice(0, 6);
 
   // Dynamic chart data calculated from actual email activity
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -139,77 +107,57 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <Header title="Unified Deliverability & Tracking Command Center" />
+      <Header title="Email Tracker Dashboard" />
 
-      {/* Quick Action & Controls Hub */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      {/* Tracker Quick Action & Switcher Banner */}
+      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
-            <Flame className="w-5 h-5 fill-current" />
+          <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shrink-0">
+            <Mail className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <span>Gmail Fleet Warmup</span>
-              <span
-                className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                  (warmupData?.metrics?.warmupActive || 0) > 0
-                    ? 'bg-emerald-100 text-emerald-800'
-                    : 'bg-slate-100 text-slate-600'
-                }`}
-              >
-                {(warmupData?.metrics?.warmupActive || 0) > 0 ? '● Active Engine' : 'Idle / Standby'}
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-slate-900">Email Tracking Command Center</h2>
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wider">
+                ● Live Engine
               </span>
-            </h2>
+            </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              {warmupData?.metrics?.connectedAccounts || 5} connected mailboxes warming up with Gemini 3.6 Flash AI.
+              Real-time pixel open tracking, link click redirection, and deliverability verification.
             </p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={handleRunWarmupCycle}
-            disabled={triggeringWarmup}
-            className="flex items-center space-x-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-amber-500 hover:bg-amber-600 text-white shadow-sm transition-all disabled:opacity-50"
-          >
-            <RotateCw className={`w-3.5 h-3.5 ${triggeringWarmup ? 'animate-spin' : ''}`} />
-            <span>{triggeringWarmup ? 'Running Cycle...' : 'Run Warmup Cycle Now'}</span>
-          </button>
           <Link
-            href="/dashboard/warmup"
-            className="px-3 py-2 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+            href="/dashboard/emails"
+            className="flex items-center space-x-1 px-3 py-2 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors"
           >
-            Warmup Hub
+            <Mail className="w-3.5 h-3.5 mr-1" />
+            <span>Tracked Emails</span>
           </Link>
           <Link
             href="/dashboard/verifier"
-            className="px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-colors flex items-center space-x-1"
+            className="flex items-center space-x-1 px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-colors"
           >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Verify Emails</span>
+            <ShieldCheck className="w-3.5 h-3.5 mr-1" />
+            <span>Email Verifier</span>
           </Link>
           <Link
-            href="/dashboard/emails"
-            className="px-3 py-2 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors flex items-center space-x-1"
+            href="/dashboard/api-keys"
+            className="flex items-center space-x-1 px-3 py-2 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
           >
-            <Mail className="w-3.5 h-3.5" />
-            <span>Tracked Emails</span>
+            <Key className="w-3.5 h-3.5 mr-1 text-slate-500" />
+            <span>Apps Script & API</span>
           </Link>
-        </div>
-      </div>
-
-      {warmupFeedback && (
-        <div className="p-3 text-xs rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center space-x-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-          <span>{warmupFeedback}</span>
-        </div>
-      )}
-
-      {/* Limitation Notice Alert */}
-      <div className="bg-blue-50/70 border border-blue-200/80 rounded-xl p-4 flex items-start space-x-3 text-xs text-blue-900">
-        <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-        <div>
-          <span className="font-semibold">Tracked Opens Disclaimer:</span> Email open tracking relies on an invisible 1x1 image pixel. Apple Mail Privacy Protection, image blocking, and email proxy caching can prevent or artificially trigger open signals. Metrics are reported as verified <em>Tracked Opens</em> rather than guaranteed human readership.
+          <Link
+            href="/dashboard/warmup"
+            className="flex items-center space-x-1 px-3 py-2 text-xs font-semibold rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition-all"
+            title="Switch to Warmup Dashboard"
+          >
+            <Flame className="w-3.5 h-3.5 mr-1 fill-amber-500 text-amber-500" />
+            <span>Go to Warmup →</span>
+          </Link>
         </div>
       </div>
 
@@ -316,24 +264,120 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Recent Tracked Emails Table Preview */}
+      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-2">
+              <Mail className="w-4 h-4 text-blue-600" />
+              <span>Recent Tracked Emails</span>
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">Real-time status of outgoing emails</p>
+          </div>
+          <Link
+            href="/dashboard/emails"
+            className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center"
+          >
+            <span>View All Emails</span>
+            <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
+          </Link>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 font-semibold">
+              <tr>
+                <th className="py-3 px-4">Recipient</th>
+                <th className="py-3 px-4">Subject</th>
+                <th className="py-3 px-4">Status</th>
+                <th className="py-3 px-4 text-center">Opens</th>
+                <th className="py-3 px-4 text-center">Clicks</th>
+                <th className="py-3 px-4">Date Sent</th>
+                <th className="py-3 px-4 text-right">Details</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {recentEmails.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-8 text-center text-slate-400 italic">
+                    No tracked emails found yet. Send your first email via Google Apps Script or the test sender.
+                  </td>
+                </tr>
+              ) : (
+                recentEmails.map((em: any) => {
+                  let statusBadge = (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                      Sent
+                    </span>
+                  );
+                  if (em.status === 'CLICKED' || (em.click_count || 0) > 0) {
+                    statusBadge = (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                        Clicked
+                      </span>
+                    );
+                  } else if (em.status === 'OPENED' || (em.open_count || 0) > 0) {
+                    statusBadge = (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800">
+                        Opened
+                      </span>
+                    );
+                  }
+
+                  return (
+                    <tr key={em.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-3 px-4 font-semibold text-slate-900 max-w-[180px] truncate">
+                        {em.recipient_email}
+                      </td>
+                      <td className="py-3 px-4 text-slate-600 max-w-[240px] truncate">
+                        {em.subject || '(No Subject)'}
+                      </td>
+                      <td className="py-3 px-4">{statusBadge}</td>
+                      <td className="py-3 px-4 text-center font-semibold text-slate-700">
+                        {em.open_count || 0}
+                      </td>
+                      <td className="py-3 px-4 text-center font-semibold text-slate-700">
+                        {em.click_count || 0}
+                      </td>
+                      <td className="py-3 px-4 text-slate-400 text-[11px]">
+                        {new Date(em.sent_at).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <Link
+                          href={`/dashboard/emails/${em.id}`}
+                          className="inline-flex items-center p-1 text-slate-400 hover:text-blue-600 transition-colors"
+                          title="View Email Tracking Details"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* Bottom Grid: Recent Activity & Top Clicked Links */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Activity Feed */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-2">
                 <Activity className="w-4 h-4 text-blue-600" />
-                <span>Recent Activity Feed</span>
+                <span>Live Event Stream</span>
               </h3>
               <Link href="/dashboard/emails" className="text-xs text-blue-600 font-semibold hover:underline flex items-center">
-                View all <ArrowUpRight className="w-3.5 h-3.5 ml-0.5" />
+                All Events <ArrowUpRight className="w-3.5 h-3.5 ml-0.5" />
               </Link>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {activity.length === 0 ? (
-                <p className="text-xs text-slate-500 italic py-4 text-center">No recent email activity recorded.</p>
+                <p className="text-xs text-slate-500 italic py-6 text-center">No recent email activity recorded.</p>
               ) : (
                 activity.map((item: any) => {
                   let badgeBg = 'bg-slate-100 text-slate-700';
@@ -341,11 +385,11 @@ export default function DashboardPage() {
                   let text = `Email sent to ${item.recipient_email}`;
 
                   if (item.event_type === 'OPEN') {
-                    badgeBg = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+                    badgeBg = 'bg-indigo-50 text-indigo-700 border border-indigo-200';
                     icon = <Eye className="w-3.5 h-3.5 text-indigo-600" />;
                     text = `${item.recipient_email} opened "${item.email_subject}"`;
                   } else if (item.event_type === 'CLICK') {
-                    badgeBg = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                    badgeBg = 'bg-emerald-50 text-emerald-700 border border-emerald-200';
                     icon = <MousePointerClick className="w-3.5 h-3.5 text-emerald-600" />;
                     text = `${item.recipient_email} clicked "${item.link_label || item.original_url}"`;
                   }
@@ -373,7 +417,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Top Clicked Links */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-2">
@@ -381,13 +425,13 @@ export default function DashboardPage() {
                 <span>Top Clicked Links</span>
               </h3>
               <Link href="/dashboard/analytics" className="text-xs text-blue-600 font-semibold hover:underline flex items-center">
-                Detailed Analytics <ArrowUpRight className="w-3.5 h-3.5 ml-0.5" />
+                Analytics <ArrowUpRight className="w-3.5 h-3.5 ml-0.5" />
               </Link>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {topLinks.length === 0 ? (
-                <p className="text-xs text-slate-500 italic py-4 text-center">No link clicks recorded yet.</p>
+                <p className="text-xs text-slate-500 italic py-6 text-center">No link clicks recorded yet.</p>
               ) : (
                 topLinks.map((link: any) => (
                   <div key={link.id} className="p-3 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-between">
@@ -407,6 +451,14 @@ export default function DashboardPage() {
               )}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Limitation Notice Alert */}
+      <div className="bg-blue-50/70 border border-blue-200/80 rounded-xl p-4 flex items-start space-x-3 text-xs text-blue-900">
+        <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+        <div>
+          <span className="font-semibold">Tracked Opens Notice:</span> Email open tracking uses an invisible 1x1 image pixel embedded in the message HTML. Apple Mail Privacy Protection, image blocking, and corporate mail proxy caches can affect open signals. Metrics are reported as verified <em>Tracked Opens</em> for precision and auditability.
         </div>
       </div>
     </div>

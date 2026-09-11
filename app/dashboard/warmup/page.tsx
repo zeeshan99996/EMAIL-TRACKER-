@@ -19,6 +19,9 @@ import {
   Plus,
   Loader2,
   TrendingUp,
+  RotateCw,
+  Mail,
+  Zap,
 } from 'lucide-react';
 import { formatDate, formatRelativeTime } from '@/lib/utils';
 import { WARMUP_LEVELS, calculateWarmupProgressPercent } from '@/lib/warmup/levels';
@@ -29,6 +32,7 @@ export default function WarmupDashboardPage() {
   const [recentEvents, setRecentEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [triggeringCycle, setTriggeringCycle] = useState(false);
   const [feedback, setFeedback] = useState<{ message: string; isError?: boolean } | null>(null);
 
   const fetchData = async () => {
@@ -88,10 +92,32 @@ export default function WarmupDashboardPage() {
     }
   };
 
+  const handleRunInstantCycle = async () => {
+    setTriggeringCycle(true);
+    setFeedback(null);
+    try {
+      const res = await fetch('/api/warmup/worker', { method: 'POST' });
+      const json = await res.json();
+      if (res.ok) {
+        setFeedback({
+          message: `Instant warmup cycle executed! Jobs processed: ${json.standard?.processed || json.jobsProcessed || 0}.`,
+          isError: false,
+        });
+        await fetchData();
+      } else {
+        setFeedback({ message: json.error || 'Failed to trigger cycle.', isError: true });
+      }
+    } catch (err: any) {
+      setFeedback({ message: err.message || 'Error triggering warmup cycle.', isError: true });
+    } finally {
+      setTriggeringCycle(false);
+    }
+  };
+
   if (loading && !metrics) {
     return (
       <div className="flex h-96 items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
       </div>
     );
   }
@@ -126,46 +152,76 @@ export default function WarmupDashboardPage() {
       {/* Header & Campaign Controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2.5">
-            <span>Email Warmup</span>
-            <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+              Email Warmup Dashboard
+            </h1>
+            <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-amber-50 text-amber-800 border border-amber-200">
               Standard Mode
             </span>
-          </h1>
+          </div>
           <p className="text-sm text-slate-500 mt-1">
-            Real-time multi-account deliverability engine & peer-to-peer exchange monitor.
+            Real-time mailbox deliverability engine & AI peer-to-peer reputation booster.
           </p>
         </div>
 
-        <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200 self-start md:self-center">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
+            <Link
+              href="/dashboard/warmup"
+              className="px-3.5 py-1.5 text-xs font-bold rounded-md bg-white text-slate-900 shadow-sm border border-slate-200"
+            >
+              Standard Warmup
+            </Link>
+            <Link
+              href="/dashboard/warmup/targeted"
+              className="px-3.5 py-1.5 text-xs font-bold rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors"
+            >
+              Targeted Warmup
+            </Link>
+          </div>
+
           <Link
-            href="/dashboard/warmup"
-            className="px-4 py-1.5 text-xs font-bold rounded-md bg-white text-slate-900 shadow-sm border border-slate-200"
+            href="/dashboard"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold shadow-xs transition-all"
+            title="Switch to Email Tracker Dashboard"
           >
-            Standard Warmup
-          </Link>
-          <Link
-            href="/dashboard/warmup/targeted"
-            className="px-4 py-1.5 text-xs font-bold rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors"
-          >
-            Targeted Warmup
+            <Mail className="w-3.5 h-3.5" />
+            <span>Go to Tracker →</span>
           </Link>
         </div>
+      </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
+      {/* Action Strip: Instant Cycle + Warmup Controls */}
+      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
+        <div className="flex items-center space-x-2.5">
+          <button
+            onClick={handleRunInstantCycle}
+            disabled={triggeringCycle || accounts.length === 0}
+            className="flex items-center space-x-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-amber-500 hover:bg-amber-600 text-white shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+          >
+            <RotateCw className={`w-3.5 h-3.5 ${triggeringCycle ? 'animate-spin' : ''}`} />
+            <span>{triggeringCycle ? 'Running Cycle...' : 'Run AI Warmup Cycle'}</span>
+          </button>
+          <span className="text-xs text-slate-500 hidden sm:inline">
+            Manually trigger Gemini AI starter & reply exchanges right now.
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => handleCampaignAction('start')}
             disabled={actionLoading || accounts.length === 0}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-all disabled:opacity-50 cursor-pointer"
           >
             <Play className="w-3.5 h-3.5 fill-white" />
-            <span>Start Warmup</span>
+            <span>Start</span>
           </button>
 
           <button
             onClick={() => handleCampaignAction('pause')}
             disabled={actionLoading || accounts.length === 0}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-semibold shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-semibold shadow-xs transition-all disabled:opacity-50 cursor-pointer"
           >
             <Pause className="w-3.5 h-3.5" />
             <span>Pause All</span>
@@ -174,7 +230,7 @@ export default function WarmupDashboardPage() {
           <button
             onClick={() => handleCampaignAction('resume')}
             disabled={actionLoading || m.pausedAccounts === 0}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-xs transition-all disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Resume</span>
@@ -183,7 +239,7 @@ export default function WarmupDashboardPage() {
           <button
             onClick={() => handleCampaignAction('stop')}
             disabled={actionLoading || (m.warmupActive === 0 && m.queuedAccounts === 0)}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold shadow-xs transition-all disabled:opacity-50 cursor-pointer"
           >
             <StopCircle className="w-3.5 h-3.5" />
             <span>Stop</span>
@@ -191,7 +247,7 @@ export default function WarmupDashboardPage() {
 
           <Link
             href="/dashboard/warmup/accounts"
-            className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Manage Accounts</span>

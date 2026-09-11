@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { BookOpen, ShieldCheck, Menu, Plus, Send, Check } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { BookOpen, ShieldCheck, Menu, Plus, Send, Check, Flame, Mail, Inbox, Sparkles } from 'lucide-react';
 
 export function Header({
   title,
@@ -11,6 +12,8 @@ export function Header({
   title: string;
   onMenuClick?: () => void;
 }) {
+  const pathname = usePathname();
+  const isWarmupMode = pathname.startsWith('/dashboard/warmup');
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
   const [recipient, setRecipient] = useState('testclient@example.com');
   const [subject, setSubject] = useState('Website Services Inquiry & Proposal');
@@ -58,7 +61,7 @@ export function Header({
 
   return (
     <>
-      <header className="h-16 bg-white border-b border-slate-200 px-4 md:px-6 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+      <header className="h-16 bg-white border-b border-slate-200 px-4 md:px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs">
         <div className="flex items-center space-x-3">
           <button
             onClick={onMenuClick}
@@ -67,22 +70,69 @@ export function Header({
           >
             <Menu className="w-5 h-5" />
           </button>
-          <h1 className="text-base md:text-lg font-bold text-slate-900 truncate">{title}</h1>
-          <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse" />
-            Live Tracking
-          </span>
+          <div className="flex items-center space-x-2">
+            <h1 className="text-base md:text-lg font-bold text-slate-900 truncate">{title}</h1>
+            {isWarmupMode ? (
+              <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                <Flame className="w-3.5 h-3.5 fill-amber-500 text-amber-500 mr-1 animate-pulse" />
+                Warmup Engine
+              </span>
+            ) : (
+              <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse" />
+                Live Tracking
+              </span>
+            )}
+          </div>
         </div>
 
+        {/* Header Right Actions & Top Switcher */}
         <div className="flex items-center space-x-2 md:space-x-3">
-          <button
-            onClick={() => setIsTestModalOpen(true)}
-            className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Send Test Email</span>
-            <span className="sm:hidden">Test</span>
-          </button>
+          {/* Top Product Switcher Tabs */}
+          <div className="hidden sm:flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs">
+            <Link
+              href="/dashboard"
+              className={`flex items-center px-2.5 py-1 rounded-md font-semibold transition-all ${
+                !isWarmupMode
+                  ? 'bg-white text-blue-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Mail className="w-3.5 h-3.5 mr-1 text-blue-600" />
+              Tracker
+            </Link>
+            <Link
+              href="/dashboard/warmup"
+              className={`flex items-center px-2.5 py-1 rounded-md font-semibold transition-all ${
+                isWarmupMode
+                  ? 'bg-white text-amber-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Flame className="w-3.5 h-3.5 mr-1 fill-amber-500 text-amber-500" />
+              Warmup
+            </Link>
+          </div>
+
+          {isWarmupMode ? (
+            <Link
+              href="/dashboard/warmup/accounts"
+              className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 rounded-lg shadow-sm transition-all"
+            >
+              <Inbox className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Connect Mailbox</span>
+              <span className="sm:hidden">Mailbox</span>
+            </Link>
+          ) : (
+            <button
+              onClick={() => setIsTestModalOpen(true)}
+              className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Send Test Email</span>
+              <span className="sm:hidden">Test</span>
+            </button>
+          )}
 
           <Link
             href="/dashboard/docs"
