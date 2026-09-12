@@ -88,16 +88,90 @@ export default function MizuLanding() {
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans relative overflow-x-hidden selection:bg-sky-100 selection:text-sky-900">
       {/* ========================================================================= */}
-      {/* 1. AMBIENT GLOW AURAS (EXACT REPLICATION FROM REFERENCE IMAGE) */}
+      {/* 1. AMBIENT GLOW AURAS & HERO BLUISH SIDE ANIMATION (EXACT REFERENCE MATCH) */}
       {/* ========================================================================= */}
       {/* Top Left Peach / Coral Glow */}
-      <div className="absolute top-0 left-[-5%] w-[480px] sm:w-[620px] h-[480px] sm:h-[620px] bg-gradient-to-br from-[#ffdcd7]/70 via-[#ffcfc9]/45 to-transparent rounded-full blur-[110px] pointer-events-none -z-10" />
+      <div className="absolute top-[-2%] left-[-4%] w-[480px] sm:w-[640px] h-[480px] sm:h-[640px] bg-gradient-to-br from-[#ffd5cc]/80 via-[#fecdd3]/60 to-transparent rounded-full blur-[100px] pointer-events-none -z-10 animate-coral-bloom" />
 
-      {/* Top Right Sky Blue Diffusion */}
-      <div className="absolute top-[-5%] right-[-10%] w-[520px] sm:w-[720px] h-[520px] sm:h-[720px] bg-gradient-to-bl from-sky-400/30 via-blue-300/20 to-transparent rounded-full blur-[130px] pointer-events-none -z-10" />
+      {/* Hero Bluish Side Arc & Luminous Halo Portal */}
+      <div className="absolute top-[50px] sm:top-[70px] left-1/2 -translate-x-1/2 w-[720px] h-[720px] sm:w-[940px] sm:h-[940px] lg:w-[1100px] lg:h-[1100px] pointer-events-none -z-10 flex items-center justify-center">
+        {/* Outer Right Bluish Blooming Aura */}
+        <div className="absolute top-[2%] right-[-5%] sm:right-[2%] w-[380px] sm:w-[500px] lg:w-[620px] h-[480px] sm:h-[620px] lg:h-[750px] bg-gradient-to-bl from-blue-600/50 via-sky-400/60 to-transparent rounded-full blur-[90px] animate-blue-bloom" />
 
-      {/* Center Hero Circular Halo Ring */}
-      <div className="absolute top-[80px] sm:top-[100px] left-1/2 -translate-x-1/2 w-[720px] h-[720px] sm:w-[920px] sm:h-[920px] lg:w-[1080px] lg:h-[1080px] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,1)_40%,rgba(224,242,254,0.5)_62%,rgba(56,189,248,0.25)_78%,transparent_100%)] shadow-[0_0_120px_rgba(56,189,248,0.25)] pointer-events-none -z-10 animate-pulse-slow" />
+        {/* Center Circular Portal Base with White Interior */}
+        <div className="absolute inset-8 sm:inset-12 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,1)_48%,rgba(240,249,255,0.7)_64%,rgba(186,230,253,0.3)_78%,transparent_100%)] shadow-[0_0_80px_rgba(56,189,248,0.2)] animate-pulse-slow" />
+
+        {/* Crisp Radiant Bluish Arc SVG (Right Side Orbital Curve) */}
+        <svg
+          className="w-full h-full overflow-visible"
+          viewBox="0 0 1000 1000"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            {/* Electric Blue Gradient */}
+            <linearGradient id="blueArcGradient" x1="60%" y1="0%" x2="100%" y2="85%">
+              <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.4" />
+              <stop offset="35%" stopColor="#38bdf8" stopOpacity="0.95" />
+              <stop offset="70%" stopColor="#2563eb" stopOpacity="0.95" />
+              <stop offset="100%" stopColor="#1d4ed8" stopOpacity="0.3" />
+            </linearGradient>
+
+            {/* Glowing Core Particle Gradient */}
+            <linearGradient id="blueCoreShimmer" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#e0f2fe" />
+              <stop offset="50%" stopColor="#38bdf8" />
+              <stop offset="100%" stopColor="#60a5fa" />
+            </linearGradient>
+
+            {/* Peach / Coral Top-Left Arc Gradient */}
+            <linearGradient id="coralArcGradient" x1="40%" y1="0%" x2="0%" y2="60%">
+              <stop offset="0%" stopColor="#fecdd3" stopOpacity="0.8" />
+              <stop offset="60%" stopColor="#fda4af" stopOpacity="0.6" />
+              <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.1" />
+            </linearGradient>
+
+            {/* Gaussian Blur for Arc Bloom */}
+            <filter id="arcGlow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="22" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+
+          {/* Left Coral Arc Subtle Halo */}
+          <path
+            d="M 500 70 A 430 430 0 0 0 110 520"
+            stroke="url(#coralArcGradient)"
+            strokeWidth="50"
+            strokeLinecap="round"
+            opacity="0.6"
+            className="animate-coral-bloom"
+          />
+
+          {/* Right Bluish Arc - Outer Soft Bloom Stroke */}
+          <path
+            d="M 580 85 A 430 430 0 0 1 850 750"
+            stroke="url(#blueArcGradient)"
+            strokeWidth="70"
+            strokeLinecap="round"
+            filter="url(#arcGlow)"
+            className="animate-blue-arc-pulse"
+          />
+
+          {/* Right Bluish Arc - High-Density Electric Core Stroke */}
+          <path
+            d="M 620 95 A 430 430 0 0 1 820 720"
+            stroke="url(#blueCoreShimmer)"
+            strokeWidth="24"
+            strokeLinecap="round"
+            opacity="0.9"
+            className="animate-blue-arc-flow"
+          />
+        </svg>
+      </div>
 
       {/* ========================================================================= */}
       {/* 2. TOP NAVIGATION BAR */}
