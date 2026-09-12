@@ -2,8 +2,8 @@ import './globals.css';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Email Tracker & Analytics Platform',
-  description: 'Track email sending, opens, link clicks, timestamps, and analytics with Google Apps Script.',
+  title: 'Mizu — Automate Anything. Effortlessly.',
+  description: 'Mizu is the AI that turns your ideas into automations, without a single line of code.',
 };
 
 export default function RootLayout({
@@ -13,7 +13,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-slate-50 antialiased">{children}</body>
+      <body className="min-h-screen bg-white text-slate-900 antialiased selection:bg-sky-100 selection:text-sky-900">{children}</body>
     </html>
   );
 }
