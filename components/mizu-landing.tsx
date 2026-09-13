@@ -88,92 +88,6 @@ export default function MizuLanding() {
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans relative overflow-x-hidden selection:bg-sky-100 selection:text-sky-900">
       {/* ========================================================================= */}
-      {/* 1. AMBIENT GLOW AURAS & HERO BLUISH SIDE ANIMATION (EXACT REFERENCE MATCH) */}
-      {/* ========================================================================= */}
-      {/* Top Left Peach / Coral Glow */}
-      <div className="absolute top-[-2%] left-[-4%] w-[480px] sm:w-[640px] h-[480px] sm:h-[640px] bg-gradient-to-br from-[#ffd5cc]/80 via-[#fecdd3]/60 to-transparent rounded-full blur-[100px] pointer-events-none -z-10 animate-coral-bloom" />
-
-      {/* Hero Bluish Side Arc & Luminous Halo Portal */}
-      <div className="absolute top-[50px] sm:top-[70px] left-1/2 -translate-x-1/2 w-[720px] h-[720px] sm:w-[940px] sm:h-[940px] lg:w-[1100px] lg:h-[1100px] pointer-events-none -z-10 flex items-center justify-center">
-        {/* Outer Right Bluish Blooming Aura */}
-        <div className="absolute top-[2%] right-[-5%] sm:right-[2%] w-[380px] sm:w-[500px] lg:w-[620px] h-[480px] sm:h-[620px] lg:h-[750px] bg-gradient-to-bl from-blue-600/50 via-sky-400/60 to-transparent rounded-full blur-[90px] animate-blue-bloom" />
-
-        {/* Center Circular Portal Base with White Interior */}
-        <div className="absolute inset-8 sm:inset-12 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,1)_48%,rgba(240,249,255,0.7)_64%,rgba(186,230,253,0.3)_78%,transparent_100%)] shadow-[0_0_80px_rgba(56,189,248,0.2)] animate-pulse-slow" />
-
-        {/* Crisp Radiant Bluish Arc SVG (Right Side Orbital Curve) */}
-        <svg
-          className="w-full h-full overflow-visible"
-          viewBox="0 0 1000 1000"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <defs>
-            {/* Electric Blue Gradient */}
-            <linearGradient id="blueArcGradient" x1="60%" y1="0%" x2="100%" y2="85%">
-              <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.4" />
-              <stop offset="35%" stopColor="#38bdf8" stopOpacity="0.95" />
-              <stop offset="70%" stopColor="#2563eb" stopOpacity="0.95" />
-              <stop offset="100%" stopColor="#1d4ed8" stopOpacity="0.3" />
-            </linearGradient>
-
-            {/* Glowing Core Particle Gradient */}
-            <linearGradient id="blueCoreShimmer" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#e0f2fe" />
-              <stop offset="50%" stopColor="#38bdf8" />
-              <stop offset="100%" stopColor="#60a5fa" />
-            </linearGradient>
-
-            {/* Peach / Coral Top-Left Arc Gradient */}
-            <linearGradient id="coralArcGradient" x1="40%" y1="0%" x2="0%" y2="60%">
-              <stop offset="0%" stopColor="#fecdd3" stopOpacity="0.8" />
-              <stop offset="60%" stopColor="#fda4af" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.1" />
-            </linearGradient>
-
-            {/* Gaussian Blur for Arc Bloom */}
-            <filter id="arcGlow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="22" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-
-          {/* Left Coral Arc Subtle Halo */}
-          <path
-            d="M 500 70 A 430 430 0 0 0 110 520"
-            stroke="url(#coralArcGradient)"
-            strokeWidth="50"
-            strokeLinecap="round"
-            opacity="0.6"
-            className="animate-coral-bloom"
-          />
-
-          {/* Right Bluish Arc - Outer Soft Bloom Stroke */}
-          <path
-            d="M 580 85 A 430 430 0 0 1 850 750"
-            stroke="url(#blueArcGradient)"
-            strokeWidth="70"
-            strokeLinecap="round"
-            filter="url(#arcGlow)"
-            className="animate-blue-arc-pulse"
-          />
-
-          {/* Right Bluish Arc - High-Density Electric Core Stroke */}
-          <path
-            d="M 620 95 A 430 430 0 0 1 820 720"
-            stroke="url(#blueCoreShimmer)"
-            strokeWidth="24"
-            strokeLinecap="round"
-            opacity="0.9"
-            className="animate-blue-arc-flow"
-          />
-        </svg>
-      </div>
-
-      {/* ========================================================================= */}
       {/* 2. TOP NAVIGATION BAR */}
       {/* ========================================================================= */}
       <header className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between relative z-40">
@@ -277,11 +191,97 @@ export default function MizuLanding() {
       )}
 
       {/* ========================================================================= */}
-      {/* 3. HERO SECTION */}
+      {/* 3. FULL HERO SECTION (FULL SCREEN RESPONSIVE EXPERIENCE) */}
       {/* ========================================================================= */}
-      <section className="pt-10 sm:pt-14 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center relative">
+      <section className="relative min-h-[calc(100vh-80px)] flex flex-col justify-center items-center pt-8 pb-16 sm:pt-14 sm:pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center overflow-visible">
+        {/* ========================================================================= */}
+        {/* HERO AMBIENT GLOW AURAS & BLUISH SIDE ANIMATION (PERFECTLY CENTERED) */}
+        {/* ========================================================================= */}
+        {/* Top Left Peach / Coral Glow */}
+        <div className="absolute top-[-5%] left-[-8%] sm:left-[-4%] w-[420px] sm:w-[600px] h-[420px] sm:h-[600px] bg-gradient-to-br from-[#ffd5cc]/80 via-[#fecdd3]/60 to-transparent rounded-full blur-[85px] sm:blur-[105px] pointer-events-none -z-10 animate-coral-bloom" />
+
+        {/* Hero Bluish Side Arc & Luminous Halo Portal (Centered behind Title & Chat Box) */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] h-[720px] sm:w-[940px] sm:h-[940px] lg:w-[1140px] lg:h-[1140px] pointer-events-none -z-10 flex items-center justify-center">
+          {/* Outer Right Bluish Blooming Aura */}
+          <div className="absolute top-[2%] right-[-6%] sm:right-[-2%] w-[380px] sm:w-[520px] lg:w-[660px] h-[480px] sm:h-[640px] lg:h-[780px] bg-gradient-to-bl from-blue-600/50 via-sky-400/60 to-transparent rounded-full blur-[85px] sm:blur-[105px] animate-blue-bloom" />
+
+          {/* Center Circular Portal Base with Pure White Interior */}
+          <div className="absolute inset-8 sm:inset-12 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,1)_48%,rgba(240,249,255,0.75)_65%,rgba(186,230,253,0.32)_80%,transparent_100%)] shadow-[0_0_90px_rgba(56,189,248,0.2)] animate-pulse-slow" />
+
+          {/* Crisp Radiant Bluish Arc SVG (Right Side Orbital Curve) */}
+          <svg
+            className="w-full h-full overflow-visible"
+            viewBox="0 0 1000 1000"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              {/* Electric Blue Gradient */}
+              <linearGradient id="blueArcGradient" x1="60%" y1="0%" x2="100%" y2="85%">
+                <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.4" />
+                <stop offset="35%" stopColor="#38bdf8" stopOpacity="0.95" />
+                <stop offset="70%" stopColor="#2563eb" stopOpacity="0.95" />
+                <stop offset="100%" stopColor="#1d4ed8" stopOpacity="0.3" />
+              </linearGradient>
+
+              {/* Glowing Core Particle Gradient */}
+              <linearGradient id="blueCoreShimmer" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#e0f2fe" />
+                <stop offset="50%" stopColor="#38bdf8" />
+                <stop offset="100%" stopColor="#60a5fa" />
+              </linearGradient>
+
+              {/* Peach / Coral Top-Left Arc Gradient */}
+              <linearGradient id="coralArcGradient" x1="40%" y1="0%" x2="0%" y2="60%">
+                <stop offset="0%" stopColor="#fecdd3" stopOpacity="0.8" />
+                <stop offset="60%" stopColor="#fda4af" stopOpacity="0.6" />
+                <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.1" />
+              </linearGradient>
+
+              {/* Gaussian Blur for Arc Bloom */}
+              <filter id="arcGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="22" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+
+            {/* Left Coral Arc Subtle Halo */}
+            <path
+              d="M 500 70 A 430 430 0 0 0 110 520"
+              stroke="url(#coralArcGradient)"
+              strokeWidth="50"
+              strokeLinecap="round"
+              opacity="0.6"
+              className="animate-coral-bloom"
+            />
+
+            {/* Right Bluish Arc - Outer Soft Bloom Stroke */}
+            <path
+              d="M 580 85 A 430 430 0 0 1 850 750"
+              stroke="url(#blueArcGradient)"
+              strokeWidth="70"
+              strokeLinecap="round"
+              filter="url(#arcGlow)"
+              className="animate-blue-arc-pulse"
+            />
+
+            {/* Right Bluish Arc - High-Density Electric Core Stroke */}
+            <path
+              d="M 620 95 A 430 430 0 0 1 820 720"
+              stroke="url(#blueCoreShimmer)"
+              strokeWidth="24"
+              strokeLinecap="round"
+              opacity="0.9"
+              className="animate-blue-arc-flow"
+            />
+          </svg>
+        </div>
+
         {/* Main Headline */}
-        <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-slate-900 leading-[1.08] max-w-4xl mx-auto">
+        <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-slate-900 leading-[1.06] max-w-5xl mx-auto">
           Automate Anything.
           <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-sky-500 to-blue-600">
@@ -290,43 +290,43 @@ export default function MizuLanding() {
         </h1>
 
         {/* Subtitle */}
-        <p className="mt-4 text-sm sm:text-base md:text-lg text-slate-500 max-w-xl mx-auto font-normal leading-relaxed">
+        <p className="mt-4 sm:mt-6 text-sm sm:text-base md:text-lg lg:text-xl text-slate-500 max-w-2xl mx-auto font-normal leading-relaxed">
           Mizu is the AI that turns your ideas into automations, without a single line of code.
         </p>
 
         {/* ========================================================================= */}
-        {/* 4. HERO FLOATING AI INPUT CARD (CENTERPIECE) */}
+        {/* 4. HERO FLOATING AI INPUT CARD (FULL RESPONSIVE CENTERPIECE) */}
         {/* ========================================================================= */}
-        <div className="mt-14 sm:mt-16 md:mt-20 max-w-2xl mx-auto">
-          <div className="bg-[#18181e] rounded-3xl p-5 border border-slate-800/80 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.35),0_0_40px_rgba(56,189,248,0.12)] text-left relative group">
+        <div className="mt-8 sm:mt-12 md:mt-16 w-full max-w-3xl lg:max-w-4xl mx-auto z-10 px-1 sm:px-0">
+          <div className="bg-[#18181e] rounded-[24px] sm:rounded-3xl p-5 sm:p-7 border border-slate-800/80 shadow-[0_25px_70px_-15px_rgba(0,0,0,0.35),0_0_50px_rgba(56,189,248,0.15)] text-left relative group">
             {/* Input field area */}
-            <div className="flex items-start justify-between min-h-[52px]">
-              <div className="flex items-center text-slate-300 text-sm sm:text-base w-full">
-                <span className="text-sky-400 mr-1.5 animate-cursor-blink font-light text-lg">|</span>
+            <div className="flex items-start justify-between min-h-[52px] sm:min-h-[60px]">
+              <div className="flex items-center text-slate-300 text-sm sm:text-base md:text-lg w-full">
+                <span className="text-sky-400 mr-2 animate-cursor-blink font-light text-lg sm:text-xl">|</span>
                 <input
                   type="text"
                   value={promptText}
                   onChange={(e) => setPromptText(e.target.value)}
                   placeholder={typedPlaceholder || defaultPlaceholder}
-                  className="bg-transparent border-none outline-none text-slate-100 placeholder-slate-400 text-sm sm:text-base w-full font-normal"
+                  className="bg-transparent border-none outline-none text-slate-100 placeholder-slate-400 text-sm sm:text-base md:text-lg w-full font-normal"
                 />
               </div>
             </div>
 
             {/* Bottom Controls Bar */}
-            <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between flex-wrap gap-3">
+            <div className="mt-4 pt-3.5 border-t border-slate-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               {/* Connect Tools Link */}
               <Link
                 href="/dashboard"
-                className="text-xs text-sky-400 hover:text-sky-300 transition-colors flex items-center gap-1 font-medium group-hover:translate-x-0.5"
+                className="text-xs sm:text-sm text-sky-400 hover:text-sky-300 transition-colors flex items-center gap-1 font-medium group-hover:translate-x-0.5"
               >
                 <span>Connect your tools to Mizu</span>
               </Link>
 
               {/* Connected Tool Icons & Action Buttons */}
-              <div className="flex items-center space-x-2.5">
+              <div className="flex items-center justify-between sm:justify-end space-x-2 sm:space-x-3 w-full sm:w-auto">
                 {/* Micro App Badges */}
-                <div className="flex items-center -space-x-1.5 bg-slate-900/90 px-2 py-1 rounded-full border border-slate-800">
+                <div className="flex items-center -space-x-1.5 bg-slate-900/90 px-2.5 py-1 rounded-full border border-slate-800">
                   {/* Gmail Icon */}
                   <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center text-[10px] font-bold text-red-600 shadow-xs">
                     M
@@ -346,31 +346,33 @@ export default function MizuLanding() {
                   <ChevronRight className="w-3.5 h-3.5 text-slate-400 ml-1" />
                 </div>
 
-                {/* Mic & Attachment Controls */}
-                <button
-                  type="button"
-                  aria-label="Attachment"
-                  className="p-1.5 text-slate-400 hover:text-slate-200 transition-colors"
-                >
-                  <Paperclip className="w-3.5 h-3.5" />
-                </button>
+                {/* Controls */}
+                <div className="flex items-center space-x-1.5 sm:space-x-2">
+                  <button
+                    type="button"
+                    aria-label="Attachment"
+                    className="p-1.5 text-slate-400 hover:text-slate-200 transition-colors"
+                  >
+                    <Paperclip className="w-4 h-4" />
+                  </button>
 
-                <button
-                  type="button"
-                  aria-label="Voice Input"
-                  className="p-1.5 text-slate-400 hover:text-slate-200 transition-colors"
-                >
-                  <Mic className="w-3.5 h-3.5" />
-                </button>
+                  <button
+                    type="button"
+                    aria-label="Voice Input"
+                    className="p-1.5 text-slate-400 hover:text-slate-200 transition-colors"
+                  >
+                    <Mic className="w-4 h-4" />
+                  </button>
 
-                {/* Send Button */}
-                <Link
-                  href="/dashboard"
-                  aria-label="Execute prompt"
-                  className="w-7 h-7 rounded-full bg-slate-800 hover:bg-sky-500 text-slate-300 hover:text-white flex items-center justify-center transition-all shadow-xs"
-                >
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
+                  {/* Send Button */}
+                  <Link
+                    href="/dashboard"
+                    aria-label="Execute prompt"
+                    className="w-8 h-8 rounded-full bg-slate-800 hover:bg-sky-500 text-slate-300 hover:text-white flex items-center justify-center transition-all shadow-xs"
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
