@@ -377,11 +377,13 @@ export default function MizuLanding() {
             </div>
           </div>
         </div>
+      </section>
 
-        {/* ========================================================================= */}
-        {/* 5. HERO INTERACTIVE WORKFLOW FLOW VISUALIZER */}
-        {/* ========================================================================= */}
-        <div className="mt-14 sm:mt-20 max-w-5xl mx-auto relative px-2 sm:px-4">
+      {/* ========================================================================= */}
+      {/* 5. INTERACTIVE WORKFLOW FLOW VISUALIZER (MOVED DOWN WITH GENEROUS SPACING) */}
+      {/* ========================================================================= */}
+      <section className="pt-16 sm:pt-24 md:pt-32 pb-12 sm:pb-20 max-w-5xl mx-auto relative px-4 sm:px-6">
+        <div className="relative">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-4 relative">
             {/* ------------------------------------------------------------- */}
             {/* Left Column: Stacked Prompt Pills */}
