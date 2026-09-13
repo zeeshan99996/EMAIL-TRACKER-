@@ -297,7 +297,7 @@ export default function MizuLanding() {
         {/* ========================================================================= */}
         {/* 4. HERO FLOATING AI INPUT CARD (CENTERPIECE) */}
         {/* ========================================================================= */}
-        <div className="mt-10 max-w-2xl mx-auto">
+        <div className="mt-14 sm:mt-16 md:mt-20 max-w-2xl mx-auto">
           <div className="bg-[#18181e] rounded-3xl p-5 border border-slate-800/80 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.35),0_0_40px_rgba(56,189,248,0.12)] text-left relative group">
             {/* Input field area */}
             <div className="flex items-start justify-between min-h-[52px]">
@@ -377,55 +377,9 @@ export default function MizuLanding() {
         </div>
 
         {/* ========================================================================= */}
-        {/* 5. LOGO BAR (GROK, CLAUDE, PERPLEXITY, COPILOT, FLYWHEEL) */}
+        {/* 5. HERO INTERACTIVE WORKFLOW FLOW VISUALIZER */}
         {/* ========================================================================= */}
-        <div className="mt-8 flex items-center justify-center flex-wrap gap-6 sm:gap-10 text-xs sm:text-sm font-medium text-slate-500 opacity-80 hover:opacity-100 transition-opacity">
-          {/* Grok */}
-          <div className="flex items-center gap-1.5 hover:text-slate-800 transition-colors">
-            <span className="w-4 h-4 rounded-full border border-slate-600 flex items-center justify-center text-[10px] font-mono">
-              Ø
-            </span>
-            <span className="font-semibold tracking-tight">Grok</span>
-          </div>
-
-          {/* Claude */}
-          <div className="flex items-center gap-1.5 hover:text-slate-800 transition-colors">
-            <span className="text-amber-700 text-base leading-none">✳</span>
-            <span className="font-serif font-bold tracking-tight">Claude</span>
-          </div>
-
-          {/* Perplexity */}
-          <div className="flex items-center gap-1.5 hover:text-slate-800 transition-colors">
-            <div className="w-3.5 h-3.5 border-2 border-slate-600 rotate-45" />
-            <span className="font-sans font-medium tracking-tight">perplexity</span>
-          </div>
-
-          {/* Microsoft Copilot */}
-          <div className="flex items-center gap-1.5 hover:text-slate-800 transition-colors">
-            <div className="grid grid-cols-2 gap-0.5 w-3.5 h-3.5">
-              <span className="bg-red-500 rounded-[1px]" />
-              <span className="bg-emerald-500 rounded-[1px]" />
-              <span className="bg-blue-500 rounded-[1px]" />
-              <span className="bg-amber-400 rounded-[1px]" />
-            </div>
-            <span className="font-sans font-medium tracking-tight text-xs sm:text-sm">
-              <span className="font-normal text-slate-500">Microsoft</span> Copilot
-            </span>
-          </div>
-
-          {/* Flywheel */}
-          <div className="flex items-center gap-1.5 hover:text-slate-800 transition-colors">
-            <span className="w-4 h-4 text-sky-600 font-black text-sm leading-none flex items-center">
-              F
-            </span>
-            <span className="font-sans font-bold tracking-tight">Flywheel</span>
-          </div>
-        </div>
-
-        {/* ========================================================================= */}
-        {/* 6. HERO INTERACTIVE WORKFLOW FLOW VISUALIZER */}
-        {/* ========================================================================= */}
-        <div className="mt-16 sm:mt-20 max-w-5xl mx-auto relative px-2 sm:px-4">
+        <div className="mt-14 sm:mt-20 max-w-5xl mx-auto relative px-2 sm:px-4">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-4 relative">
             {/* ------------------------------------------------------------- */}
             {/* Left Column: Stacked Prompt Pills */}
