@@ -282,19 +282,10 @@ export default function MizuLanding() {
           </svg>
         </div>
 
-        {/* Main Headline */}
-        <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-slate-900 leading-[1.06] max-w-5xl mx-auto">
-          Automate Anything.
-          <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-sky-500 to-blue-600">
-            Effortlessly.
-          </span>
+        {/* Headline: Turn your ideas into interfaces */}
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-normal text-slate-900 tracking-tight text-center mb-6 sm:mb-8">
+          Turn your <span className="font-bold text-slate-950">ideas</span> into <span className="font-bold text-slate-950">interfaces</span>
         </h1>
-
-        {/* Subtitle */}
-        <p className="mt-4 sm:mt-6 text-sm sm:text-base md:text-lg lg:text-xl text-slate-500 max-w-2xl mx-auto font-normal leading-relaxed">
-          Mizu is the AI that turns your ideas into automations, without a single line of code.
-        </p>
 
         {/* ========================================================================= */}
         {/* ========================================================================= */}
