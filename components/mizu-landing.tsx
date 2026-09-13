@@ -23,6 +23,8 @@ import {
   FileSpreadsheet,
   FileCode,
   Bell,
+  ChevronDown,
+  Lightbulb,
 } from 'lucide-react';
 
 export default function MizuLanding() {
@@ -295,84 +297,201 @@ export default function MizuLanding() {
         </p>
 
         {/* ========================================================================= */}
-        {/* 4. HERO FLOATING AI INPUT CARD (FULL RESPONSIVE CENTERPIECE) */}
         {/* ========================================================================= */}
-        <div className="mt-8 sm:mt-12 md:mt-16 w-full max-w-3xl lg:max-w-4xl mx-auto z-10 px-1 sm:px-0">
-          <div className="bg-[#18181e] rounded-[24px] sm:rounded-3xl p-5 sm:p-7 border border-slate-800/80 shadow-[0_25px_70px_-15px_rgba(0,0,0,0.35),0_0_50px_rgba(56,189,248,0.15)] text-left relative group">
+        {/* 4. HERO CHAT INPUT CARD (FRAMER-STYLE WHITE CARD WITH 3D ROBOT MASCOT) */}
+        {/* ========================================================================= */}
+        <div className="mt-8 sm:mt-12 w-full max-w-xl sm:max-w-2xl mx-auto z-10 px-2 sm:px-0 relative">
+          {/* 3D Cute Robot Mascot sitting on top edge of the card */}
+          <div className="absolute -top-16 sm:-top-20 right-6 sm:right-10 pointer-events-none z-20 select-none">
+            <svg
+              width="100"
+              height="95"
+              viewBox="0 0 100 95"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-20 h-20 sm:w-24 sm:h-24 drop-shadow-[0_12px_20px_rgba(0,0,0,0.12)] transition-transform hover:scale-105"
+            >
+              <defs>
+                {/* Robot Body Gloss Gradient */}
+                <linearGradient id="robotHeadGrad" x1="20%" y1="0%" x2="80%" y2="100%">
+                  <stop offset="0%" stopColor="#ffffff" />
+                  <stop offset="50%" stopColor="#f8fafc" />
+                  <stop offset="100%" stopColor="#e2e8f0" />
+                </linearGradient>
+
+                {/* Visor Screen Gradient */}
+                <linearGradient id="robotVisorGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#0f172a" />
+                  <stop offset="100%" stopColor="#020617" />
+                </linearGradient>
+
+                {/* Glowing Green Eye Filter */}
+                <filter id="robotEyeGlow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+
+              {/* Antenna */}
+              <rect x="47" y="2" width="6" height="5" rx="2.5" fill="#cbd5e1" />
+              <circle cx="50" cy="2" r="3" fill="#94a3b8" />
+
+              {/* Robot Rounded Head */}
+              <rect
+                x="10"
+                y="7"
+                width="80"
+                height="54"
+                rx="22"
+                fill="url(#robotHeadGrad)"
+                stroke="#cbd5e1"
+                strokeWidth="1.5"
+              />
+
+              {/* Visor Screen */}
+              <rect
+                x="20"
+                y="15"
+                width="60"
+                height="38"
+                rx="14"
+                fill="url(#robotVisorGrad)"
+              />
+
+              {/* Camera Sensor Dot */}
+              <circle cx="50" cy="20" r="1.8" fill="#64748b" />
+
+              {/* Left Glowing Green Eye */}
+              <rect
+                x="33"
+                y="27"
+                width="9"
+                height="13"
+                rx="3.5"
+                fill="#4ade80"
+                filter="url(#robotEyeGlow)"
+              />
+
+              {/* Right Glowing Green Eye */}
+              <rect
+                x="58"
+                y="27"
+                width="9"
+                height="13"
+                rx="3.5"
+                fill="#4ade80"
+                filter="url(#robotEyeGlow)"
+              />
+
+              {/* Neck Joint */}
+              <rect x="45" y="61" width="10" height="6" rx="2.5" fill="#cbd5e1" />
+
+              {/* Torso resting behind card rim */}
+              <ellipse cx="50" cy="71" rx="18" ry="7" fill="#e2e8f0" />
+
+              {/* Left Leg (sitting & hanging over card rim) */}
+              <rect
+                x="34"
+                y="68"
+                width="10"
+                height="20"
+                rx="5"
+                fill="#f1f5f9"
+                stroke="#cbd5e1"
+                strokeWidth="1"
+              />
+
+              {/* Right Leg (sitting & hanging over card rim) */}
+              <rect
+                x="56"
+                y="68"
+                width="10"
+                height="20"
+                rx="5"
+                fill="#f1f5f9"
+                stroke="#cbd5e1"
+                strokeWidth="1"
+              />
+            </svg>
+          </div>
+
+          {/* White Card Surface */}
+          <div className="bg-white rounded-[26px] p-5 sm:p-6 border border-slate-200/90 shadow-[0_20px_50px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)] text-left relative transition-all hover:shadow-[0_25px_60px_rgba(0,0,0,0.09)]">
             {/* Input field area */}
-            <div className="flex items-start justify-between min-h-[52px] sm:min-h-[60px]">
-              <div className="flex items-center text-slate-300 text-sm sm:text-base md:text-lg w-full">
-                <span className="text-sky-400 mr-2 animate-cursor-blink font-light text-lg sm:text-xl">|</span>
+            <div className="flex items-start justify-between min-h-[46px]">
+              <div className="flex items-center text-slate-800 text-sm sm:text-base w-full">
+                <span className="text-blue-500 mr-1.5 animate-cursor-blink font-light text-lg">|</span>
                 <input
                   type="text"
                   value={promptText}
                   onChange={(e) => setPromptText(e.target.value)}
-                  placeholder={typedPlaceholder || defaultPlaceholder}
-                  className="bg-transparent border-none outline-none text-slate-100 placeholder-slate-400 text-sm sm:text-base md:text-lg w-full font-normal"
+                  placeholder={typedPlaceholder || "What do you want to design?"}
+                  className="bg-transparent border-none outline-none text-slate-800 placeholder-slate-400 text-sm sm:text-base w-full font-normal"
                 />
               </div>
             </div>
 
             {/* Bottom Controls Bar */}
-            <div className="mt-4 pt-3.5 border-t border-slate-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              {/* Connect Tools Link */}
-              <Link
-                href="/dashboard"
-                className="text-xs sm:text-sm text-sky-400 hover:text-sky-300 transition-colors flex items-center gap-1 font-medium group-hover:translate-x-0.5"
-              >
-                <span>Connect your tools to Mizu</span>
-              </Link>
+            <div className="mt-4 pt-3.5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
+              {/* Left Group */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Paperclip Button */}
+                <button
+                  type="button"
+                  aria-label="Attachment"
+                  className="w-8 h-8 rounded-full border border-slate-200/90 hover:border-slate-300 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-600 transition-colors shadow-2xs"
+                >
+                  <Paperclip className="w-3.5 h-3.5" />
+                </button>
 
-              {/* Connected Tool Icons & Action Buttons */}
-              <div className="flex items-center justify-between sm:justify-end space-x-2 sm:space-x-3 w-full sm:w-auto">
-                {/* Micro App Badges */}
-                <div className="flex items-center -space-x-1.5 bg-slate-900/90 px-2.5 py-1 rounded-full border border-slate-800">
-                  {/* Gmail Icon */}
-                  <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center text-[10px] font-bold text-red-600 shadow-xs">
-                    M
-                  </span>
-                  {/* Google Drive Icon */}
-                  <span className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-[10px] text-emerald-400 shadow-xs">
-                    ▲
-                  </span>
-                  {/* Slack Icon */}
-                  <span className="w-5 h-5 rounded-full bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-[10px] text-amber-300 shadow-xs">
-                    #
-                  </span>
-                  {/* Database/Notion Icon */}
-                  <span className="w-5 h-5 rounded-full bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-[10px] text-sky-300 shadow-xs">
-                    ●
-                  </span>
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-400 ml-1" />
-                </div>
+                {/* Design Style Pill Dropdown */}
+                <button
+                  type="button"
+                  className="px-3.5 py-1.5 rounded-full border border-slate-200/90 hover:border-slate-300 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 flex items-center gap-1.5 transition-colors shadow-2xs"
+                >
+                  <span>Design Style</span>
+                  <ChevronDown className="w-3 h-3 text-slate-400" />
+                </button>
 
-                {/* Controls */}
-                <div className="flex items-center space-x-1.5 sm:space-x-2">
-                  <button
-                    type="button"
-                    aria-label="Attachment"
-                    className="p-1.5 text-slate-400 hover:text-slate-200 transition-colors"
-                  >
-                    <Paperclip className="w-4 h-4" />
-                  </button>
+                {/* Ideas Pill with light blue badge */}
+                <button
+                  type="button"
+                  onClick={() => setPromptText("Back up my files to Google Drive every Friday")}
+                  className="px-3.5 py-1.5 rounded-full border border-blue-200/70 bg-blue-50/90 hover:bg-blue-100/80 text-blue-600 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
+                >
+                  <Lightbulb className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Ideas</span>
+                </button>
+              </div>
 
-                  <button
-                    type="button"
-                    aria-label="Voice Input"
-                    className="p-1.5 text-slate-400 hover:text-slate-200 transition-colors"
-                  >
-                    <Mic className="w-4 h-4" />
-                  </button>
+              {/* Right Group */}
+              <div className="flex items-center gap-2.5 ml-auto">
+                {/* Framer / Mizu AI Dropdown */}
+                <button
+                  type="button"
+                  className="text-xs font-medium text-slate-700 hover:text-slate-900 flex items-center gap-1 transition-colors px-1 py-1"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-slate-900" />
+                  <span>Framer AI</span>
+                  <ChevronDown className="w-3 h-3 text-slate-400" />
+                </button>
 
-                  {/* Send Button */}
-                  <Link
-                    href="/dashboard"
-                    aria-label="Execute prompt"
-                    className="w-8 h-8 rounded-full bg-slate-800 hover:bg-sky-500 text-slate-300 hover:text-white flex items-center justify-center transition-all shadow-xs"
-                  >
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
+                {/* Black Pill Action Button with Audio Soundwave Bars */}
+                <Link
+                  href="/dashboard"
+                  aria-label="Voice & Send"
+                  className="bg-slate-950 hover:bg-slate-800 text-white px-3.5 py-1.5 rounded-full flex items-center justify-center gap-1 shadow-sm transition-all hover:scale-[1.03] active:scale-98"
+                >
+                  <span className="flex items-center gap-[2px] h-4">
+                    <span className="w-[2px] h-2 bg-white rounded-full animate-pulse" />
+                    <span className="w-[2px] h-3.5 bg-white rounded-full animate-pulse" />
+                    <span className="w-[2px] h-2.5 bg-white rounded-full animate-pulse" />
+                    <span className="w-[2px] h-3 bg-white rounded-full animate-pulse" />
+                  </span>
+                </Link>
               </div>
             </div>
           </div>
