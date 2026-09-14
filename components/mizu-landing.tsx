@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Menu, X, User, Mail, Lock, ArrowRight } from 'lucide-react';
@@ -10,11 +10,50 @@ export default function MizuLanding() {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [getStartedModalOpen, setGetStartedModalOpen] = useState(false);
+  const [hasSubmittedBefore, setHasSubmittedBefore] = useState(false);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+
+  // Check if this user has already submitted the form on this device/browser
+  useEffect(() => {
+    try {
+      const savedUser = localStorage.getItem('mailify_submitted_user');
+      if (savedUser) {
+        setHasSubmittedBefore(true);
+      } else {
+        // Also verify if there's an active server session
+        fetch('/api/auth/me')
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.authenticated) {
+              setHasSubmittedBefore(true);
+              localStorage.setItem('mailify_submitted_user', JSON.stringify(data.user));
+            }
+          })
+          .catch(() => {});
+      }
+    } catch {}
+  }, []);
+
+  const handleGetStartedClick = () => {
+    // If the person has already filled and submitted the form once, directly open dashboard!
+    const alreadySubmitted =
+      hasSubmittedBefore ||
+      (typeof window !== 'undefined' &&
+        !!localStorage.getItem('mailify_submitted_user'));
+
+    if (alreadySubmitted) {
+      router.push('/dashboard');
+      return;
+    }
+
+    // First time visitor: show simple light theme form
+    setAuthError(null);
+    setGetStartedModalOpen(true);
+  };
 
   const handleGetStartedSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +82,22 @@ export default function MizuLanding() {
         setIsSubmitting(false);
         return;
       }
+
+      // Mark this user as registered/submitted in browser storage
+      try {
+        localStorage.setItem(
+          'mailify_submitted_user',
+          JSON.stringify({
+            id: data.user?.id,
+            email: data.user?.email,
+            name: data.user?.name,
+            submittedAt: Date.now(),
+          })
+        );
+      } catch {}
+
+      setHasSubmittedBefore(true);
+      setGetStartedModalOpen(false);
 
       // Success! Open dashboard
       router.push('/dashboard');
@@ -202,10 +257,7 @@ export default function MizuLanding() {
           <div className="hidden sm:flex items-center">
             <button
               type="button"
-              onClick={() => {
-                setAuthError(null);
-                setGetStartedModalOpen(true);
-              }}
+              onClick={handleGetStartedClick}
               className="px-5 py-2 text-xs sm:text-sm font-semibold text-slate-950 bg-white hover:bg-slate-100 rounded-full shadow-sm hover:shadow transition-all hover:scale-[1.02] active:scale-98 cursor-pointer"
             >
               Get Started
@@ -246,8 +298,7 @@ export default function MizuLanding() {
                 type="button"
                 onClick={() => {
                   setMobileMenuOpen(false);
-                  setAuthError(null);
-                  setGetStartedModalOpen(true);
+                  handleGetStartedClick();
                 }}
                 className="w-full text-center py-2.5 text-sm font-semibold text-slate-950 bg-white hover:bg-slate-100 rounded-full cursor-pointer"
               >
