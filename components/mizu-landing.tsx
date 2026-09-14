@@ -321,14 +321,14 @@ export default function MizuLanding() {
         {/* ========================================================================= */}
         <section className="relative min-h-[calc(100vh-100px)] flex flex-col justify-center items-center pt-8 pb-14 sm:pt-12 sm:pb-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
           
-          {/* Big Headline (Exact to Reference Image) */}
+          {/* Big Headline (User Requested) */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-normal text-white tracking-tight text-center max-w-4xl mx-auto leading-tight">
-            Build Apps <span className="font-semibold text-white">People Love</span>
+            Send <span className="text-[#53E2FE] opacity-80 font-light mx-1.5 sm:mx-2">•</span> Verify <span className="text-[#53E2FE] opacity-80 font-light mx-1.5 sm:mx-2">•</span> Warmup <span className="text-[#53E2FE] opacity-80 font-light mx-1.5 sm:mx-2">•</span> <span className="font-semibold text-white">Track</span>
           </h1>
 
-          {/* Subtitle (Exact to Reference Image) */}
-          <p className="text-slate-300/90 text-sm sm:text-base font-light text-center max-w-2xl mx-auto mt-3 sm:mt-4 mb-8 sm:mb-10 leading-relaxed">
-            From ideas to Apps, generate, design and ship native platform apps with an ai-powered workflow built for creators.
+          {/* Subheadline (User Requested) */}
+          <p className="text-slate-200/90 text-sm sm:text-base md:text-lg font-light text-center max-w-3xl mx-auto mt-3 sm:mt-4 mb-8 sm:mb-10 leading-relaxed">
+            One powerful platform to send emails, track engagement, verify addresses, and warm up your inbox.
           </p>
 
           {/* ========================================================================= */}
