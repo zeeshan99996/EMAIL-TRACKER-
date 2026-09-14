@@ -174,14 +174,13 @@ export default function MizuLanding() {
         {/* TOP NAVIGATION BAR (FEATURING #53E2FE GLOW) */}
         {/* ========================================================================= */}
         <header className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between relative z-40">
-          {/* Brand Logo with #53E2FE Glowing Circular Ring */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-7 h-7 rounded-full border-2 border-[#53E2FE] flex items-center justify-center shadow-[0_0_15px_#53E2FE] group-hover:scale-105 transition-all">
-              <div className="w-2 h-2 rounded-full bg-[#53E2FE] shadow-[0_0_10px_#53E2FE]" />
-            </div>
-            <span className="text-xl font-bold tracking-tight text-white ml-0.5">
-              mizu
-            </span>
+          {/* Brand Logo: Mailify */}
+          <Link href="/" className="flex items-center group py-1">
+            <img
+              src="/images/mailify-logo-white.png"
+              alt="Mailify"
+              className="h-7 sm:h-8 md:h-9 w-auto object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-[0_0_12px_rgba(83,226,254,0.35)]"
+            />
           </Link>
 
           {/* Desktop Navigation Links */}
@@ -331,18 +330,20 @@ export default function MizuLanding() {
             </button>
 
             {/* Header */}
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-full border-2 border-[#53E2FE] flex items-center justify-center shadow-[0_0_15px_#53E2FE]">
-                <div className="w-3 h-3 rounded-full bg-[#53E2FE] shadow-[0_0_10px_#53E2FE]" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold tracking-tight text-white">
+            <div className="flex items-center gap-3.5 mb-6">
+              <img
+                src="/images/mailify-logo-white.png"
+                alt="Mailify"
+                className="h-8 sm:h-9 w-auto object-contain drop-shadow-[0_0_12px_rgba(83,226,254,0.4)]"
+              />
+              <div className="border-l border-white/20 pl-3">
+                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white">
                   {authMode === 'signup' ? 'Create Your Account' : 'Welcome Back'}
                 </h2>
                 <p className="text-xs text-slate-300">
                   {authMode === 'signup'
-                    ? 'Fill details to open your Mizu dashboard'
-                    : 'Sign in to access your Mizu dashboard'}
+                    ? 'Fill details to open your Mailify dashboard'
+                    : 'Sign in to access your Mailify dashboard'}
                 </p>
               </div>
             </div>

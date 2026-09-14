@@ -2,8 +2,8 @@ import './globals.css';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Mizu — Automate Anything. Effortlessly.',
-  description: 'Mizu is the AI that turns your ideas into automations, without a single line of code.',
+  title: 'Mailify — Send, Verify, Warmup, Track',
+  description: 'One powerful platform to send emails, track engagement, verify addresses, and warm up your inbox.',
 };
 
 export default function RootLayout({

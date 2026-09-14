@@ -206,21 +206,18 @@ export function HeroIntegrationsBeam() {
         </span>
       </div>
 
-      {/* 3. CENTER MAIN HUB: MIZU LOGO */}
+      {/* 3. CENTER MAIN HUB: MAILIFY LOGO */}
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30 group flex flex-col items-center">
         {/* Soft Radial Backlight */}
-        <div className="absolute -inset-2.5 sm:-inset-3 bg-gradient-to-r from-[#53E2FE] via-cyan-300 to-[#53E2FE] rounded-[28px] sm:rounded-[34px] blur-md sm:blur-lg opacity-60 group-hover:opacity-100 transition duration-500 animate-pulse pointer-events-none" />
+        <div className="absolute -inset-2.5 sm:-inset-3 bg-gradient-to-r from-[#53E2FE] via-cyan-300 to-[#53E2FE] rounded-[24px] sm:rounded-[28px] blur-md sm:blur-lg opacity-60 group-hover:opacity-100 transition duration-500 animate-pulse pointer-events-none" />
 
-        {/* Central Mizu Squircle Hub */}
-        <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-slate-950/95 rounded-2xl sm:rounded-[26px] border-2 border-[#53E2FE] flex flex-col items-center justify-center shadow-[0_0_35px_rgba(83,226,254,0.55),0_20px_40px_rgba(0,0,0,0.85)] backdrop-blur-xl group-hover:scale-105 transition-transform duration-300 cursor-pointer">
-          {/* Glowing Orb Ring */}
-          <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full border-2 border-[#53E2FE] flex items-center justify-center shadow-[0_0_20px_#53E2FE]">
-            <div className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 rounded-full bg-[#53E2FE] shadow-[0_0_12px_#53E2FE] animate-ping" />
-            <div className="absolute w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded-full bg-[#53E2FE] shadow-[0_0_10px_#53E2FE]" />
-          </div>
-          <span className="text-[10px] sm:text-xs font-bold tracking-widest text-white uppercase mt-1 drop-shadow-[0_0_8px_rgba(83,226,254,0.9)]">
-            mizu
-          </span>
+        {/* Central Mailify Hub Card */}
+        <div className="relative px-3.5 sm:px-5 py-2.5 sm:py-3.5 min-w-[95px] sm:min-w-[125px] md:min-w-[145px] bg-slate-950/95 rounded-2xl sm:rounded-[24px] border-2 border-[#53E2FE] flex items-center justify-center shadow-[0_0_35px_rgba(83,226,254,0.55),0_20px_40px_rgba(0,0,0,0.85)] backdrop-blur-xl group-hover:scale-105 transition-transform duration-300 cursor-pointer">
+          <img
+            src="/images/mailify-logo-white.png"
+            alt="Mailify"
+            className="h-6 sm:h-7 md:h-8 w-auto object-contain drop-shadow-[0_0_10px_rgba(83,226,254,0.8)]"
+          />
         </div>
       </div>
 
