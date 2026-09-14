@@ -9,7 +9,9 @@ export async function POST() {
     const supabase = createServerSupabaseClient();
     await supabase.auth.signOut().catch(() => {});
     clearSessionCookie();
-    return NextResponse.json({ success: true });
+    const res = NextResponse.json({ success: true });
+    res.cookies.delete('mailify_has_submitted');
+    return res;
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Error signing out' }, { status: 500 });
   }

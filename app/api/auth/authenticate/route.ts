@@ -51,11 +51,17 @@ export async function POST(request: NextRequest) {
           details: { method: 'get_started_existing_user', email: cleanEmail },
         });
 
-        return NextResponse.json({
+        const res = NextResponse.json({
           success: true,
           user: { id: authResult.user.id, email: authResult.user.email, name: authResult.user.name },
           existing: true,
         });
+        res.cookies.set('mailify_has_submitted', '1', {
+          maxAge: 60 * 60 * 24 * 365,
+          path: '/',
+          sameSite: 'lax',
+        });
+        return res;
       }
 
       // New User -> Store in database (zero duplicates)
@@ -90,10 +96,16 @@ export async function POST(request: NextRequest) {
         details: { method: 'get_started_new_user', email: cleanEmail },
       });
 
-      return NextResponse.json({
+      const res = NextResponse.json({
         success: true,
         user: { id: newUser.id, email: newUser.email, name: newUser.name },
       });
+      res.cookies.set('mailify_has_submitted', '1', {
+        maxAge: 60 * 60 * 24 * 365,
+        path: '/',
+        sameSite: 'lax',
+      });
+      return res;
     }
 
     // =========================================================================

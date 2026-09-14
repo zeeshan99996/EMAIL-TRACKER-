@@ -10,6 +10,7 @@ export default function MizuLanding() {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [getStartedModalOpen, setGetStartedModalOpen] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [hasSubmittedBefore, setHasSubmittedBefore] = useState(false);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -17,26 +18,33 @@ export default function MizuLanding() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  // Check if this user has already submitted the form on this device/browser
+  // When a returning user visits the site, landing page DOES NOT open - directly open dashboard!
   useEffect(() => {
     try {
       const savedUser = localStorage.getItem('mailify_submitted_user');
-      if (savedUser) {
-        setHasSubmittedBefore(true);
-      } else {
-        // Also verify if there's an active server session
-        fetch('/api/auth/me')
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.authenticated) {
-              setHasSubmittedBefore(true);
-              localStorage.setItem('mailify_submitted_user', JSON.stringify(data.user));
-            }
-          })
-          .catch(() => {});
+      const hasCookie =
+        document.cookie.includes('warmup_user_session') ||
+        document.cookie.includes('mailify_has_submitted');
+
+      if (savedUser || hasCookie) {
+        setIsRedirecting(true);
+        router.replace('/dashboard');
+        return;
       }
+
+      // Check active server session
+      fetch('/api/auth/me')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.authenticated) {
+            setIsRedirecting(true);
+            localStorage.setItem('mailify_submitted_user', JSON.stringify(data.user));
+            router.replace('/dashboard');
+          }
+        })
+        .catch(() => {});
     } catch {}
-  }, []);
+  }, [router]);
 
   const handleGetStartedClick = () => {
     // If the person has already filled and submitted the form once, directly open dashboard!
@@ -94,6 +102,7 @@ export default function MizuLanding() {
             submittedAt: Date.now(),
           })
         );
+        document.cookie = 'mailify_has_submitted=1; max-age=31536000; path=/; samesite=lax';
       } catch {}
 
       setHasSubmittedBefore(true);
@@ -106,6 +115,22 @@ export default function MizuLanding() {
       setIsSubmitting(false);
     }
   };
+
+  // If returning user, do not render landing page - redirecting to dashboard
+  if (isRedirecting) {
+    return (
+      <div className="min-h-screen bg-[#01040f] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <img
+            src="/images/mailify-logo-white.png"
+            alt="Mailify"
+            className="h-9 w-auto object-contain animate-pulse"
+          />
+          <div className="w-5 h-5 border-2 border-[#53E2FE]/30 border-t-[#53E2FE] rounded-full animate-spin" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#050c1e] text-white font-sans relative overflow-x-hidden selection:bg-[#53E2FE]/20 selection:text-[#53E2FE]">
