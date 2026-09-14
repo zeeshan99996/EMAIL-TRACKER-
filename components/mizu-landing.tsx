@@ -158,42 +158,42 @@ export default function MizuLanding() {
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans relative overflow-x-hidden selection:bg-sky-100 selection:text-sky-900">
       {/* ========================================================================= */}
-      {/* 2. HD BLUE AND BLACK GRADIENT HERO MASTER SHOWCASE (MATCHING USER REFERENCE) */}
+      {/* 2. HD BLUE AND BLACK GRADIENT HERO MASTER SHOWCASE (FEATURING #53E2FE) */}
       {/* ========================================================================= */}
-      <div className="w-full bg-gradient-to-b from-[#0e2775] via-[#1a44a5] to-[#0c1f5e] p-2 sm:p-4 md:p-6 lg:p-8">
-        <div className="w-full max-w-[1440px] mx-auto rounded-[28px] sm:rounded-[38px] md:rounded-[46px] overflow-hidden border border-sky-400/40 shadow-[0_30px_100px_rgba(14,35,97,0.55),0_0_60px_rgba(59,130,246,0.35)] relative hero-hd-blue-black-gradient text-white">
+      <div className="w-full bg-gradient-to-b from-[#061838] via-[#0284c7]/90 to-[#53E2FE]/80 p-2 sm:p-4 md:p-6 lg:p-8">
+        <div className="w-full max-w-[1440px] mx-auto rounded-[28px] sm:rounded-[38px] md:rounded-[46px] overflow-hidden border-2 border-[#53E2FE]/70 shadow-[0_20px_100px_rgba(83,226,254,0.4),0_0_60px_rgba(83,226,254,0.3)] relative hero-hd-blue-black-gradient text-white">
           {/* ========================================================================= */}
-          {/* BACKGROUND GLOW AURAS, VERTICAL LINES & SINE WAVES (HD BLUE-BLACK DEPTH) */}
+          {/* BACKGROUND GLOW AURAS, VERTICAL LINES & SINE WAVES (VIBRANT #53E2FE GLOW) */}
           {/* ========================================================================= */}
 
-        {/* Left Side Deep Royal Blue Bloom */}
+        {/* Left Side Vibrant #53E2FE Bloom */}
         <div
-          className="absolute -left-[14%] sm:-left-[7%] top-[25%] sm:top-[30%] w-[550px] sm:w-[750px] h-[550px] sm:h-[750px] rounded-full pointer-events-none -z-10 blur-[100px] sm:blur-[140px] opacity-90"
+          className="absolute -left-[14%] sm:-left-[7%] top-[20%] sm:top-[25%] w-[580px] sm:w-[780px] h-[580px] sm:h-[780px] rounded-full pointer-events-none -z-10 blur-[90px] sm:blur-[130px] opacity-95"
           style={{
             background:
-              'radial-gradient(ellipse at center, rgba(37,99,235,0.75) 0%, rgba(29,78,216,0.5) 45%, rgba(30,58,138,0.2) 70%, transparent 85%)',
+              'radial-gradient(ellipse at center, rgba(83,226,254,0.85) 0%, rgba(14,165,233,0.65) 42%, rgba(2,132,199,0.35) 70%, transparent 85%)',
           }}
         />
 
-        {/* Right Side High-Reaching Electric Azure Bloom */}
+        {/* Right Side High-Reaching Radiant #53E2FE Bloom */}
         <div
-          className="absolute -right-[16%] sm:-right-[8%] top-[14%] sm:top-[18%] w-[600px] sm:w-[850px] h-[650px] sm:h-[900px] rounded-full pointer-events-none -z-10 blur-[110px] sm:blur-[150px] opacity-95"
+          className="absolute -right-[15%] sm:-right-[8%] top-[12%] sm:top-[16%] w-[620px] sm:w-[880px] h-[680px] sm:h-[920px] rounded-full pointer-events-none -z-10 blur-[95px] sm:blur-[135px] opacity-98"
           style={{
             background:
-              'radial-gradient(ellipse at center, rgba(59,130,246,0.85) 0%, rgba(37,99,235,0.65) 45%, rgba(29,78,216,0.25) 75%, transparent 85%)',
+              'radial-gradient(ellipse at center, #53E2FE 0%, rgba(83,226,254,0.85) 35%, rgba(14,165,233,0.5) 65%, transparent 85%)',
           }}
         />
 
-        {/* Bottom Center Horizon Intense White-Cyan Core Glow */}
+        {/* Bottom Center Horizon Intense White & #53E2FE Core Glow */}
         <div
-          className="absolute -bottom-[22%] sm:-bottom-[30%] left-1/2 -translate-x-1/2 w-[850px] sm:w-[1300px] lg:w-[1600px] h-[450px] sm:h-[650px] rounded-[100%] pointer-events-none -z-10 blur-[90px] sm:blur-[120px]"
+          className="absolute -bottom-[20%] sm:-bottom-[26%] left-1/2 -translate-x-1/2 w-[900px] sm:w-[1400px] lg:w-[1700px] h-[480px] sm:h-[680px] rounded-[100%] pointer-events-none -z-10 blur-[80px] sm:blur-[110px]"
           style={{
             background:
-              'radial-gradient(ellipse 75% 55% at 50% 100%, rgba(255,255,255,0.98) 0%, rgba(224,242,254,0.9) 20%, rgba(147,197,253,0.75) 38%, rgba(59,130,246,0.55) 58%, rgba(29,78,216,0.25) 80%, transparent 100%)',
+              'radial-gradient(ellipse 85% 60% at 50% 100%, #ffffff 0%, #53E2FE 30%, rgba(83,226,254,0.85) 52%, rgba(2,132,199,0.4) 75%, transparent 100%)',
           }}
         />
 
-        {/* Vertical Coordinate Grid Columns (16 Lines Fading Out to Top) */}
+        {/* Vertical Coordinate Grid Columns (16 Lines in Radiant #53E2FE) */}
         <svg
           className="absolute inset-0 w-full h-full pointer-events-none -z-10"
           preserveAspectRatio="none"
@@ -202,24 +202,24 @@ export default function MizuLanding() {
           <defs>
             <linearGradient id="verticalGridMaskGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#ffffff" stopOpacity="0" />
-              <stop offset="35%" stopColor="#ffffff" stopOpacity="0.02" />
-              <stop offset="60%" stopColor="#ffffff" stopOpacity="0.12" />
-              <stop offset="85%" stopColor="#ffffff" stopOpacity="0.26" />
-              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.05" />
+              <stop offset="30%" stopColor="#ffffff" stopOpacity="0.04" />
+              <stop offset="55%" stopColor="#ffffff" stopOpacity="0.2" />
+              <stop offset="85%" stopColor="#ffffff" stopOpacity="0.45" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.1" />
             </linearGradient>
             <mask id="verticalGridMask">
               <rect width="100%" height="100%" fill="url(#verticalGridMaskGrad)" />
             </mask>
           </defs>
-          <g mask="url(#verticalGridMask)" stroke="#93c5fd" strokeWidth="1" strokeOpacity="0.45">
+          <g mask="url(#verticalGridMask)" stroke="#53E2FE" strokeWidth="1.2" strokeOpacity="0.6">
             {[...Array(17)].map((_, i) => (
               <line key={i} x1={`${(i / 16) * 100}%`} y1="0" x2={`${(i / 16) * 100}%`} y2="100%" />
             ))}
           </g>
         </svg>
 
-        {/* Intersecting Undulating Laser Sine Waves (Bottom Horizon) */}
-        <div className="absolute bottom-0 left-0 right-0 h-44 sm:h-56 pointer-events-none -z-10 overflow-hidden">
+        {/* Intersecting Undulating Laser Sine Waves in Glowing #53E2FE */}
+        <div className="absolute bottom-0 left-0 right-0 h-48 sm:h-60 pointer-events-none -z-10 overflow-hidden">
           <svg
             className="w-full h-full"
             viewBox="0 0 1440 240"
@@ -229,55 +229,57 @@ export default function MizuLanding() {
           >
             <defs>
               <linearGradient id="waveCyanGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.1" />
-                <stop offset="25%" stopColor="#60a5fa" stopOpacity="0.5" />
-                <stop offset="65%" stopColor="#38bdf8" stopOpacity="0.65" />
-                <stop offset="100%" stopColor="#93c5fd" stopOpacity="0.2" />
+                <stop offset="0%" stopColor="#53E2FE" stopOpacity="0.2" />
+                <stop offset="25%" stopColor="#53E2FE" stopOpacity="0.85" />
+                <stop offset="65%" stopColor="#ffffff" stopOpacity="0.95" />
+                <stop offset="85%" stopColor="#53E2FE" stopOpacity="0.85" />
+                <stop offset="100%" stopColor="#53E2FE" stopOpacity="0.3" />
               </linearGradient>
               <linearGradient id="waveBlueGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#2563eb" stopOpacity="0.1" />
-                <stop offset="40%" stopColor="#38bdf8" stopOpacity="0.5" />
-                <stop offset="75%" stopColor="#60a5fa" stopOpacity="0.6" />
-                <stop offset="100%" stopColor="#2563eb" stopOpacity="0.15" />
+                <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.15" />
+                <stop offset="40%" stopColor="#53E2FE" stopOpacity="0.75" />
+                <stop offset="75%" stopColor="#38bdf8" stopOpacity="0.8" />
+                <stop offset="100%" stopColor="#0284c7" stopOpacity="0.2" />
               </linearGradient>
               <linearGradient id="waveSubtleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#bae6fd" stopOpacity="0.05" />
-                <stop offset="50%" stopColor="#e0f2fe" stopOpacity="0.4" />
-                <stop offset="100%" stopColor="#bae6fd" stopOpacity="0.05" />
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.05" />
+                <stop offset="50%" stopColor="#ffffff" stopOpacity="0.6" />
+                <stop offset="100%" stopColor="#ffffff" stopOpacity="0.05" />
               </linearGradient>
             </defs>
-            {/* Primary Sine Wave */}
+            {/* Primary Sine Wave in Brilliant #53E2FE */}
             <path
               d="M 0 140 C 220 70, 420 180, 680 120 C 940 60, 1180 170, 1440 100"
               stroke="url(#waveCyanGrad)"
-              strokeWidth="1.75"
+              strokeWidth="2.5"
               fill="none"
+              style={{ filter: 'drop-shadow(0 0 8px rgba(83,226,254,0.6))' }}
             />
             {/* Counter Intersecting Sine Wave */}
             <path
               d="M 0 110 C 260 170, 520 80, 780 160 C 1040 220, 1260 110, 1440 150"
               stroke="url(#waveBlueGrad)"
-              strokeWidth="1.5"
+              strokeWidth="2"
               fill="none"
             />
             {/* Gentle Harmonic Wave */}
             <path
               d="M 0 160 C 320 110, 600 190, 900 130 C 1140 85, 1320 150, 1440 120"
               stroke="url(#waveSubtleGrad)"
-              strokeWidth="1"
+              strokeWidth="1.2"
               fill="none"
             />
           </svg>
         </div>
 
         {/* ========================================================================= */}
-        {/* TOP NAVIGATION BAR (DARK LUXURY THEME TO MATCH REFERENCE IMAGE) */}
+        {/* TOP NAVIGATION BAR (FEATURING #53E2FE GLOW) */}
         {/* ========================================================================= */}
         <header className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between relative z-40">
-          {/* Brand Logo with Glowing Circular Ring as in Reference */}
+          {/* Brand Logo with #53E2FE Glowing Circular Ring */}
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-7 h-7 rounded-full border-2 border-white/80 flex items-center justify-center shadow-[0_0_12px_rgba(255,255,255,0.4)] group-hover:border-white transition-all">
-              <div className="w-2 h-2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
+            <div className="w-7 h-7 rounded-full border-2 border-[#53E2FE] flex items-center justify-center shadow-[0_0_15px_#53E2FE] group-hover:scale-105 transition-all">
+              <div className="w-2 h-2 rounded-full bg-[#53E2FE] shadow-[0_0_10px_#53E2FE]" />
             </div>
             <span className="text-xl font-bold tracking-tight text-white ml-0.5">
               mizu
@@ -692,7 +694,7 @@ export default function MizuLanding() {
 
           {/* Floating Horizon Badge (Exact match to Reference Image) */}
           <div className="mt-8 sm:mt-12 flex items-center justify-center gap-2 text-slate-400 text-xs sm:text-sm font-light z-20">
-            <span className="text-sky-400 text-base leading-none">•</span>
+            <span className="text-[#53E2FE] text-base leading-none drop-shadow-[0_0_8px_#53E2FE]">•</span>
             <span>Launch app 10x faster</span>
           </div>
 
