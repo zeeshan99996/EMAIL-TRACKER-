@@ -25,15 +25,7 @@ import {
   Bell,
   ChevronDown,
   Lightbulb,
-  Battery,
-  Wifi,
-  Signal,
-  Headphones,
-  ShoppingCart,
-  Coffee,
-  ArrowUp,
   CircleDot,
-  Smartphone,
 } from 'lucide-react';
 
 export default function MizuLanding() {
@@ -43,8 +35,7 @@ export default function MizuLanding() {
   const [isLiveActive, setIsLiveActive] = useState(true);
   const [zoomScale, setZoomScale] = useState(1);
 
-  // Hero view mode: 'generator' (matches new reference image) or 'mobile' (matches mobile ChatGPT mockup)
-  const [heroViewMode, setHeroViewMode] = useState<'generator' | 'mobile'>('generator');
+  // App Generator state (matching reference image)
   const [selectedPlatform, setSelectedPlatform] = useState<'Android' | 'iOS' | 'Mac OS' | 'Windows'>('iOS');
   const [generatePrompt, setGeneratePrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -59,47 +50,6 @@ export default function MizuLanding() {
       setGeneratedSuccess(true);
       setTimeout(() => setGeneratedSuccess(false), 3000);
     }, 1200);
-  };
-
-  // Mobile ChatGPT showcase state
-  const [mobileChat, setMobileChat] = useState<Array<{ id: number; sender: 'user' | 'assistant'; text: string; time: string }>>([
-    {
-      id: 1,
-      sender: 'user',
-      text: 'Track my business expenses and automatically sync them to Google Sheets.',
-      time: '9:41 AM',
-    },
-    {
-      id: 2,
-      sender: 'assistant',
-      text: "Done! I've categorized 2 new transactions ($54.00) and synced them live to your expense sheet.",
-      time: '9:42 AM',
-    },
-  ]);
-  const [mobileInput, setMobileInput] = useState('');
-  const [isAiTyping, setIsAiTyping] = useState(false);
-
-  const handleMobileSend = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!mobileInput.trim()) return;
-    const userText = mobileInput.trim();
-    const newMsgId = Date.now();
-    setMobileChat((prev) => [...prev, { id: newMsgId, sender: 'user', text: userText, time: 'Just now' }]);
-    setMobileInput('');
-    setIsAiTyping(true);
-
-    setTimeout(() => {
-      setMobileChat((prev) => [
-        ...prev,
-        {
-          id: Date.now() + 1,
-          sender: 'assistant',
-          text: `Got it! Executing "${userText}" across your workspace with real-time sync.`,
-          time: 'Just now',
-        },
-      ]);
-      setIsAiTyping(false);
-    }, 800);
   };
 
   // Typewriter effect simulation for placeholder if user hasn't typed
@@ -371,36 +321,6 @@ export default function MizuLanding() {
         {/* ========================================================================= */}
         <section className="relative min-h-[calc(100vh-100px)] flex flex-col justify-center items-center pt-8 pb-14 sm:pt-12 sm:pb-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
           
-          {/* Mode Switcher Pill (App Generator or Mobile Chat Showcase) */}
-          <div className="flex items-center justify-center gap-2 mb-6 sm:mb-8 z-20">
-            <div className="inline-flex items-center p-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-medium">
-              <button
-                type="button"
-                onClick={() => setHeroViewMode('generator')}
-                className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
-                  heroViewMode === 'generator'
-                    ? 'bg-white text-slate-950 font-semibold shadow-sm'
-                    : 'text-slate-300 hover:text-white'
-                }`}
-              >
-                <Zap className="w-3.5 h-3.5" />
-                <span>App Generator</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setHeroViewMode('mobile')}
-                className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
-                  heroViewMode === 'mobile'
-                    ? 'bg-white text-slate-950 font-semibold shadow-sm'
-                    : 'text-slate-300 hover:text-white'
-                }`}
-              >
-                <Smartphone className="w-3.5 h-3.5" />
-                <span>Mobile Chat (ChatGPT)</span>
-              </button>
-            </div>
-          </div>
-
           {/* Big Headline (Exact to Reference Image) */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-normal text-white tracking-tight text-center max-w-4xl mx-auto leading-tight">
             Build Apps <span className="font-semibold text-white">People Love</span>
@@ -412,285 +332,67 @@ export default function MizuLanding() {
           </p>
 
           {/* ========================================================================= */}
-          {/* VIEW MODE 1: FROSTED GLASS APP GENERATOR CARD (FROM REFERENCE IMAGE) */}
+          {/* FROSTED GLASS APP GENERATOR CARD (FROM REFERENCE IMAGE) */}
           {/* ========================================================================= */}
-          {heroViewMode === 'generator' && (
-            <div className="w-full max-w-2xl mx-auto relative z-20">
-              <form
-                onSubmit={handleGenerate}
-                className="bg-white/85 sm:bg-white/90 backdrop-blur-2xl rounded-[28px] sm:rounded-[32px] p-6 sm:p-7 border border-white/70 shadow-[0_25px_60px_rgba(0,0,0,0.35)] text-left transition-all hover:shadow-[0_30px_70px_rgba(0,0,0,0.4)]"
-              >
-                {/* Input prompt area */}
-                <div className="min-h-[52px] flex items-start">
-                  <input
-                    type="text"
-                    value={generatePrompt}
-                    onChange={(e) => setGeneratePrompt(e.target.value)}
-                    placeholder="Type something to generate"
-                    className="w-full bg-transparent text-slate-800 placeholder-slate-400 text-sm sm:text-base font-normal outline-none"
-                  />
-                </div>
-
-                {/* Bottom Platform Pills & Generate Button */}
-                <div className="mt-5 pt-4 border-t border-slate-200/70 flex flex-wrap items-center justify-between gap-3">
-                  {/* Platform Pills */}
-                  <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                    {(['Android', 'iOS', 'Mac OS', 'Windows'] as const).map((platform) => (
-                      <button
-                        key={platform}
-                        type="button"
-                        onClick={() => setSelectedPlatform(platform)}
-                        className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
-                          selectedPlatform === platform
-                            ? 'bg-slate-900 text-white shadow-xs'
-                            : 'bg-slate-100/90 hover:bg-slate-200 text-slate-700'
-                        }`}
-                      >
-                        {platform}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Generate Button */}
-                  <button
-                    type="submit"
-                    disabled={isGenerating}
-                    className="px-6 py-2 rounded-full bg-slate-950 hover:bg-slate-800 text-white text-xs sm:text-sm font-medium shadow-md transition-all hover:scale-[1.02] active:scale-98 ml-auto flex items-center gap-1.5 cursor-pointer disabled:opacity-75"
-                  >
-                    {isGenerating ? (
-                      <>
-                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        <span>Generating...</span>
-                      </>
-                    ) : generatedSuccess ? (
-                      <>
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>Generated!</span>
-                      </>
-                    ) : (
-                      <span>Generate</span>
-                    )}
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
-
-          {/* ========================================================================= */}
-          {/* VIEW MODE 2: IPHONE CHATGPT MOBILE SHOWCASE */}
-          {/* ========================================================================= */}
-          {heroViewMode === 'mobile' && (
-            <div className="w-full flex justify-center z-20 px-3 sm:px-0 relative">
-              {/* iPhone 16 Pro Style Hardware Chassis */}
-              <div className="w-full max-w-[340px] sm:max-w-[375px] h-[640px] sm:h-[680px] bg-white rounded-[46px] sm:rounded-[50px] border-[8px] sm:border-[10px] border-slate-950 shadow-[0_25px_80px_rgba(0,0,0,0.4),0_10px_30px_rgba(0,0,0,0.25)] ring-1 ring-slate-900/20 flex flex-col relative overflow-hidden transition-all duration-300">
-                {/* Top iOS Status Bar with Dynamic Island */}
-                <div className="bg-white/95 backdrop-blur-md pt-3 px-5 pb-2 flex items-center justify-between z-30 shrink-0 border-b border-slate-100/50">
-                  <span className="text-[11px] font-semibold text-slate-800 tracking-tight">9:41</span>
-                  
-                  {/* Dynamic Island Notch */}
-                  <div className="w-20 h-4.5 bg-black rounded-full flex items-center justify-end px-2 mx-auto">
-                    <div className="w-1.5 h-1.5 rounded-full bg-slate-900 border border-slate-700/80" />
-                  </div>
-
-                  {/* Status Icons */}
-                  <div className="flex items-center gap-1.5 text-slate-800">
-                    <Signal className="w-3 h-3 stroke-[2.2]" />
-                    <Wifi className="w-3 h-3 stroke-[2.2]" />
-                    <Battery className="w-4 h-4 stroke-[2.2]" />
-                  </div>
-                </div>
-
-                {/* Inner Phone Content (Scrollable Area) */}
-                <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar bg-gradient-to-b from-sky-50/70 via-white to-white text-slate-900">
-                  {/* Profile Bar & Actions */}
-                  <div className="px-5 pt-3 pb-2 flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 p-[2px] shadow-sm">
-                        <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-xs font-bold text-sky-700">
-                          IM
-                        </div>
-                      </div>
-                      <div className="text-left">
-                        <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Personal</div>
-                        <div className="text-xs font-bold text-slate-800">$8,690.00</div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        aria-label="Notifications"
-                        className="w-8 h-8 rounded-full bg-white/80 hover:bg-white shadow-2xs border border-slate-200/70 flex items-center justify-center text-slate-600 transition-colors"
-                      >
-                        <Bell className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        aria-label="Options"
-                        className="w-8 h-8 rounded-full bg-white/80 hover:bg-white shadow-2xs border border-slate-200/70 flex items-center justify-center text-slate-600 transition-colors"
-                      >
-                        <Sparkles className="w-3.5 h-3.5 text-sky-500" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Big Greeting: Hello, Imran */}
-                  <div className="px-5 pt-1.5 pb-2 text-left">
-                    <h2 className="text-xl sm:text-2xl font-light text-slate-700 tracking-tight">
-                      Hello, <span className="font-bold text-slate-900">Imran</span>
-                    </h2>
-                  </div>
-
-                  {/* Floating Auto-Categorized Cards */}
-                  <div className="mx-4 my-1 p-3 rounded-2xl bg-gradient-to-r from-sky-500/90 to-blue-600/95 text-white shadow-md shadow-sky-500/20 space-y-2 text-left backdrop-blur-xs">
-                    {/* Item 1: Grocery Store */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center text-white shrink-0">
-                          <ShoppingCart className="w-3.5 h-3.5" />
-                        </div>
-                        <div>
-                          <div className="text-xs font-semibold leading-tight">Grocery Store</div>
-                          <div className="text-[10px] text-sky-100 opacity-90">-$49.50 • Auto-categorized</div>
-                        </div>
-                      </div>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white font-medium">
-                        Food
-                      </span>
-                    </div>
-
-                    <div className="h-px bg-white/15 w-full" />
-
-                    {/* Item 2: Coffee Shop */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center text-white shrink-0">
-                          <Coffee className="w-3.5 h-3.5" />
-                        </div>
-                        <div>
-                          <div className="text-xs font-semibold leading-tight">Coffee Shop</div>
-                          <div className="text-[10px] text-sky-100 opacity-90">-$4.50 • Auto-categorized</div>
-                        </div>
-                      </div>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white font-medium">
-                        Cafe
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Chat Stream */}
-                  <div className="flex-1 px-4 py-3 space-y-3 text-left">
-                    <div className="text-center my-1">
-                      <span className="text-[10px] uppercase font-semibold text-slate-400 bg-slate-100/90 px-2.5 py-0.5 rounded-full">
-                        Today with Mizu AI
-                      </span>
-                    </div>
-
-                    {mobileChat.map((msg) => (
-                      <div
-                        key={msg.id}
-                        className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start items-start gap-2'}`}
-                      >
-                        {msg.sender === 'assistant' && (
-                          <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-white shrink-0 shadow-2xs mt-0.5">
-                            <Sparkles className="w-3 h-3" />
-                          </div>
-                        )}
-                        <div
-                          className={`max-w-[85%] text-xs leading-relaxed px-3.5 py-2.5 rounded-2xl ${
-                            msg.sender === 'user'
-                              ? 'bg-slate-900 text-white rounded-tr-xs shadow-xs font-normal'
-                              : 'bg-white text-slate-800 rounded-tl-xs shadow-2xs border border-slate-100'
-                          }`}
-                        >
-                          {msg.text}
-                          {msg.time && (
-                            <div
-                              className={`text-[9px] mt-1 text-right ${
-                                msg.sender === 'user' ? 'text-slate-400' : 'text-slate-400'
-                              }`}
-                            >
-                              {msg.time}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-
-                    {isAiTyping && (
-                      <div className="flex items-start gap-2">
-                        <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-white shrink-0 shadow-2xs mt-0.5">
-                          <Sparkles className="w-3 h-3" />
-                        </div>
-                        <div className="bg-white border border-slate-100 rounded-2xl rounded-tl-xs px-3 py-2 flex items-center gap-1 shadow-2xs">
-                          <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-bounce" />
-                          <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-bounce [animation-delay:0.15s]" />
-                          <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-bounce [animation-delay:0.3s]" />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* ChatGPT iOS Mobile Style Bottom Input Bar */}
-                <form
-                  onSubmit={handleMobileSend}
-                  className="p-2.5 bg-white border-t border-slate-100/90 flex flex-col gap-1.5 shrink-0"
-                >
-                  <div className="flex items-center gap-2">
-                    {/* Plus (+) Button */}
-                    <button
-                      type="button"
-                      aria-label="Add attachment"
-                      className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center shrink-0 transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
-
-                    {/* Pill Input Container */}
-                    <div className="flex-1 bg-slate-100/90 rounded-full px-3.5 py-1.5 flex items-center gap-2 border border-slate-200/50 focus-within:border-sky-400 focus-within:bg-white transition-all">
-                      <input
-                        type="text"
-                        value={mobileInput}
-                        onChange={(e) => setMobileInput(e.target.value)}
-                        placeholder="Message Mizu..."
-                        className="bg-transparent text-xs text-slate-800 placeholder-slate-400 outline-none w-full font-normal"
-                      />
-                      <button
-                        type="button"
-                        aria-label="Voice input"
-                        className="text-slate-400 hover:text-slate-600 transition-colors shrink-0"
-                      >
-                        <Mic className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-
-                    {/* Right Action Button (Send Arrow if text, Headphones if empty) */}
-                    {mobileInput.trim() ? (
-                      <button
-                        type="submit"
-                        aria-label="Send message"
-                        className="w-8 h-8 rounded-full bg-slate-950 hover:bg-slate-800 text-white flex items-center justify-center shrink-0 shadow-2xs transition-transform active:scale-95 cursor-pointer"
-                      >
-                        <ArrowUp className="w-4 h-4 stroke-[2.5]" />
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        aria-label="Voice conversation"
-                        className="w-8 h-8 rounded-full bg-slate-950 hover:bg-slate-800 text-white flex items-center justify-center shrink-0 shadow-2xs transition-transform active:scale-95 cursor-pointer"
-                      >
-                        <Headphones className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
-
-                  {/* iPhone Home Indicator Line */}
-                  <div className="w-28 h-1 bg-slate-300/80 rounded-full mx-auto mt-1 mb-0.5" />
-                </form>
+          <div className="w-full max-w-2xl mx-auto relative z-20">
+            <form
+              onSubmit={handleGenerate}
+              className="bg-white/85 sm:bg-white/90 backdrop-blur-2xl rounded-[28px] sm:rounded-[32px] p-6 sm:p-7 border border-white/70 shadow-[0_25px_60px_rgba(0,0,0,0.35)] text-left transition-all hover:shadow-[0_30px_70px_rgba(0,0,0,0.4)]"
+            >
+              {/* Input prompt area */}
+              <div className="min-h-[52px] flex items-start">
+                <input
+                  type="text"
+                  value={generatePrompt}
+                  onChange={(e) => setGeneratePrompt(e.target.value)}
+                  placeholder="Type something to generate"
+                  className="w-full bg-transparent text-slate-800 placeholder-slate-400 text-sm sm:text-base font-normal outline-none"
+                />
               </div>
-            </div>
-          )}
+
+              {/* Bottom Platform Pills & Generate Button */}
+              <div className="mt-5 pt-4 border-t border-slate-200/70 flex flex-wrap items-center justify-between gap-3">
+                {/* Platform Pills */}
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                  {(['Android', 'iOS', 'Mac OS', 'Windows'] as const).map((platform) => (
+                    <button
+                      key={platform}
+                      type="button"
+                      onClick={() => setSelectedPlatform(platform)}
+                      className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                        selectedPlatform === platform
+                          ? 'bg-slate-900 text-white shadow-xs'
+                          : 'bg-slate-100/90 hover:bg-slate-200 text-slate-700'
+                      }`}
+                    >
+                      {platform}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Generate Button */}
+                <button
+                  type="submit"
+                  disabled={isGenerating}
+                  className="px-6 py-2 rounded-full bg-slate-950 hover:bg-slate-800 text-white text-xs sm:text-sm font-medium shadow-md transition-all hover:scale-[1.02] active:scale-98 ml-auto flex items-center gap-1.5 cursor-pointer disabled:opacity-75"
+                >
+                  {isGenerating ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Generating...</span>
+                    </>
+                  ) : generatedSuccess ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Generated!</span>
+                    </>
+                  ) : (
+                    <span>Generate</span>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
 
           {/* Floating Horizon Badge (Exact match to Reference Image) */}
           <div className="mt-8 sm:mt-12 flex items-center justify-center gap-2 text-slate-400 text-xs sm:text-sm font-light z-20">
