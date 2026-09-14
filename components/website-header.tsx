@@ -48,7 +48,7 @@ export function WebsiteHeader({ onGetStartedClick }: WebsiteHeaderProps) {
 
   return (
     <>
-      <header className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between relative z-40">
+      <header className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4 md:py-5 flex items-center justify-between relative z-40">
         {/* Brand Logo: Mailify */}
         <Link
           href="/?view=landing"
@@ -58,7 +58,7 @@ export function WebsiteHeader({ onGetStartedClick }: WebsiteHeaderProps) {
           <img
             src="/images/mailify-logo-white.png"
             alt="Mailify"
-            className="h-8 sm:h-9 md:h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-[0_2px_14px_rgba(0,0,0,0.8)]"
+            className="h-7 sm:h-8 md:h-9 lg:h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-[0_2px_14px_rgba(0,0,0,0.8)]"
           />
         </Link>
 

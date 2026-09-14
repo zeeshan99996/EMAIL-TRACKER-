@@ -151,8 +151,8 @@ export default function MizuLanding() {
       {/* ========================================================================= */}
       {/* HD BLUE AND BLACK GRADIENT HERO MASTER SHOWCASE (FEATURING #53E2FE) */}
       {/* ========================================================================= */}
-      <div className="min-h-screen w-full bg-gradient-to-b from-[#020512] via-[#021029]/95 to-[#04336c]/80 p-2 sm:p-4 md:p-6 lg:p-8 flex items-center justify-center">
-        <div className="w-full max-w-[1440px] mx-auto rounded-[24px] sm:rounded-[38px] md:rounded-[46px] overflow-hidden border-2 border-[#53E2FE]/70 shadow-[0_20px_100px_rgba(83,226,254,0.4),0_0_60px_rgba(83,226,254,0.3)] relative hero-hd-blue-black-gradient text-white">
+      <div className="min-h-screen w-full bg-gradient-to-b from-[#020512] via-[#021029]/95 to-[#04336c]/80 p-2.5 sm:p-4 md:p-5 lg:p-6 xl:p-8 flex flex-col items-center justify-center">
+        <div className="my-auto w-full max-w-[1380px] rounded-2xl sm:rounded-3xl md:rounded-[36px] lg:rounded-[42px] overflow-hidden border-2 border-[#53E2FE] shadow-[0_0_35px_rgba(83,226,254,0.45),0_0_70px_rgba(83,226,254,0.25),0_25px_80px_rgba(2,16,41,0.8)] relative hero-hd-blue-black-gradient text-white flex flex-col justify-between">
           {/* ========================================================================= */}
           {/* BACKGROUND GLOW AURAS, VERTICAL LINES & SINE WAVES (VIBRANT #53E2FE GLOW) */}
           {/* ========================================================================= */}
@@ -210,7 +210,7 @@ export default function MizuLanding() {
         </svg>
 
         {/* Intersecting Undulating Laser Sine Waves in Glowing #53E2FE */}
-        <div className="absolute bottom-0 left-0 right-0 h-48 sm:h-60 pointer-events-none -z-10 overflow-hidden">
+        <div className="absolute bottom-0 left-0 right-0 h-32 sm:h-44 md:h-52 lg:h-60 pointer-events-none -z-10 overflow-hidden">
           <svg
             className="w-full h-full"
             viewBox="0 0 1440 240"
@@ -271,15 +271,15 @@ export default function MizuLanding() {
         {/* ========================================================================= */}
         {/* HERO MAIN CONTENT SECTION */}
         {/* ========================================================================= */}
-        <section className="relative min-h-[calc(100vh-100px)] flex flex-col justify-center items-center pt-8 pb-14 sm:pt-12 sm:pb-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
+        <section className="relative flex-1 flex flex-col justify-center items-center py-4 sm:py-6 md:py-8 lg:py-6 px-3 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center w-full">
           
           {/* Big Headline (User Requested) */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-normal text-white tracking-tight text-center max-w-4xl mx-auto leading-tight">
-            Send <span className="text-[#53E2FE] opacity-80 font-light mx-1.5 sm:mx-2">•</span> Verify <span className="text-[#53E2FE] opacity-80 font-light mx-1.5 sm:mx-2">•</span> Warmup <span className="text-[#53E2FE] opacity-80 font-light mx-1.5 sm:mx-2">•</span> <span className="font-semibold text-white">Track</span>
+          <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-[52px] xl:text-6xl font-normal text-white tracking-tight text-center max-w-4xl mx-auto leading-snug sm:leading-tight">
+            Send <span className="text-[#53E2FE] opacity-80 font-light mx-1 sm:mx-1.5 md:mx-2">•</span> Verify <span className="text-[#53E2FE] opacity-80 font-light mx-1 sm:mx-1.5 md:mx-2">•</span> Warmup <span className="text-[#53E2FE] opacity-80 font-light mx-1 sm:mx-1.5 md:mx-2">•</span> <span className="font-semibold text-white">Track</span>
           </h1>
 
           {/* Subheadline (User Requested) */}
-          <p className="text-white text-sm sm:text-base md:text-lg font-light text-center max-w-3xl mx-auto mt-3 sm:mt-4 mb-4 sm:mb-6 leading-relaxed drop-shadow-sm">
+          <p className="text-white/90 text-xs sm:text-sm md:text-base lg:text-lg font-light text-center max-w-2xl sm:max-w-3xl mx-auto mt-2 sm:mt-3 md:mt-4 mb-2 sm:mb-4 lg:mb-5 leading-relaxed drop-shadow-sm">
             One powerful platform to send emails, track engagement, verify addresses, and warm up your inbox.
           </p>
 

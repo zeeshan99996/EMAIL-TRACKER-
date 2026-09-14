@@ -34,9 +34,9 @@ export function HeroIntegrationsBeam() {
   const pulseRightIndices = [1, 3, 6, 9, 11];
 
   return (
-    <div className="w-full max-w-4xl mx-auto relative mt-8 sm:mt-16 md:mt-22 mb-4 sm:mb-6 h-[240px] sm:h-[290px] md:h-[330px] select-none flex items-center justify-center">
+    <div className="w-full max-w-4xl mx-auto relative mt-3 sm:mt-5 md:mt-7 lg:mt-8 mb-2 sm:mb-3 md:mb-4 h-[180px] sm:h-[220px] md:h-[260px] lg:h-[290px] select-none flex items-center justify-center">
       {/* Ambient Central Cyan Glow */}
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-64 sm:w-96 h-32 sm:h-48 bg-[#53E2FE]/15 blur-3xl rounded-full pointer-events-none" />
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-48 sm:w-80 md:w-96 h-28 sm:h-40 md:h-48 bg-[#53E2FE]/15 blur-3xl rounded-full pointer-events-none" />
 
       {/* SVG Canvas with Curved Connecting Lines (White) */}
       <svg
@@ -174,10 +174,10 @@ export function HeroIntegrationsBeam() {
       {/* ========================================================================= */}
 
       {/* 1. TOP-LEFT NODE: GMAIL */}
-      <div className="absolute left-[14%] sm:left-[18%] md:left-[19%] top-[16%] sm:top-[18%] -translate-x-1/2 -translate-y-1/2 z-20 group flex flex-col items-center">
-        <div className="w-11 h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-2xl sm:rounded-[20px] bg-white/95 backdrop-blur-md p-2 sm:p-3 shadow-[0_12px_28px_rgba(0,0,0,0.4),0_0_1px_rgba(255,255,255,0.9)] border border-white/80 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_16px_36px_rgba(83,226,254,0.35)] cursor-pointer">
+      <div className="absolute left-[13%] sm:left-[17%] md:left-[19%] top-[18%] sm:top-[18%] -translate-x-1/2 -translate-y-1/2 z-20 group flex flex-col items-center">
+        <div className="w-9 h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-xl sm:rounded-2xl md:rounded-[20px] bg-white/95 backdrop-blur-md p-1.5 sm:p-2.5 md:p-3 shadow-[0_8px_20px_rgba(0,0,0,0.4),0_0_1px_rgba(255,255,255,0.9)] border border-white/80 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_16px_36px_rgba(83,226,254,0.35)] cursor-pointer">
           {/* Gmail Official Color Icon */}
-          <svg viewBox="0 0 48 48" className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" fill="none">
+          <svg viewBox="0 0 48 48" className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-8 lg:h-8" fill="none">
             <path d="M45 16.2L40 18.95L35 23.7V40H42C43.657 40 45 38.657 45 37V16.2Z" fill="#34A853" />
             <path d="M3 16.2L6.614 17.91L13 23.7V40H6C4.343 40 3 38.657 3 37V16.2Z" fill="#4285F4" />
             <polygon points="35 11.2 24 19.45 13 11.2 12 17 13 23.7 24 31.95 35 23.7 36 17" fill="#EA4335" />
@@ -191,10 +191,10 @@ export function HeroIntegrationsBeam() {
       </div>
 
       {/* 2. BOTTOM-LEFT NODE: GOOGLE APPS SCRIPT */}
-      <div className="absolute left-[18%] sm:left-[22%] md:left-[23%] bottom-[16%] sm:bottom-[18%] -translate-x-1/2 translate-y-1/2 z-20 group flex flex-col items-center">
-        <div className="w-11 h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-2xl sm:rounded-[20px] bg-white/95 backdrop-blur-md p-2 sm:p-3 shadow-[0_12px_28px_rgba(0,0,0,0.4),0_0_1px_rgba(255,255,255,0.9)] border border-white/80 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_16px_36px_rgba(83,226,254,0.35)] cursor-pointer">
+      <div className="absolute left-[16%] sm:left-[21%] md:left-[23%] bottom-[18%] sm:bottom-[18%] -translate-x-1/2 translate-y-1/2 z-20 group flex flex-col items-center">
+        <div className="w-9 h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-xl sm:rounded-2xl md:rounded-[20px] bg-white/95 backdrop-blur-md p-1.5 sm:p-2.5 md:p-3 shadow-[0_8px_20px_rgba(0,0,0,0.4),0_0_1px_rgba(255,255,255,0.9)] border border-white/80 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_16px_36px_rgba(83,226,254,0.35)] cursor-pointer">
           {/* Google Apps Script Icon */}
-          <svg viewBox="0 0 48 48" className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" fill="none">
+          <svg viewBox="0 0 48 48" className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-8 lg:h-8" fill="none">
             <rect width="48" height="48" rx="10" fill="#0B57D0" />
             <path d="M18 16L10 24L18 32" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
             <path d="M30 16L38 24L30 32" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -209,23 +209,23 @@ export function HeroIntegrationsBeam() {
       {/* 3. CENTER MAIN HUB: MAILIFY LOGO */}
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30 group flex flex-col items-center">
         {/* Soft Radial Backlight */}
-        <div className="absolute -inset-2.5 sm:-inset-3 bg-gradient-to-r from-[#53E2FE] via-cyan-300 to-[#53E2FE] rounded-[24px] sm:rounded-[28px] blur-md sm:blur-lg opacity-60 group-hover:opacity-100 transition duration-500 animate-pulse pointer-events-none" />
+        <div className="absolute -inset-2 sm:-inset-2.5 md:-inset-3 bg-gradient-to-r from-[#53E2FE] via-cyan-300 to-[#53E2FE] rounded-[20px] sm:rounded-[24px] md:rounded-[28px] blur-md sm:blur-lg opacity-60 group-hover:opacity-100 transition duration-500 animate-pulse pointer-events-none" />
 
         {/* Central Mailify Hub Card */}
-        <div className="relative px-3.5 sm:px-5 py-2.5 sm:py-3.5 min-w-[95px] sm:min-w-[125px] md:min-w-[145px] bg-slate-950/95 rounded-2xl sm:rounded-[24px] border-2 border-[#53E2FE] flex items-center justify-center shadow-[0_0_35px_rgba(83,226,254,0.55),0_20px_40px_rgba(0,0,0,0.85)] backdrop-blur-xl group-hover:scale-105 transition-transform duration-300 cursor-pointer">
+        <div className="relative px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 md:py-3.5 min-w-[80px] sm:min-w-[110px] md:min-w-[130px] lg:min-w-[145px] bg-slate-950/95 rounded-xl sm:rounded-2xl md:rounded-[24px] border-2 border-[#53E2FE] flex items-center justify-center shadow-[0_0_30px_rgba(83,226,254,0.55),0_15px_35px_rgba(0,0,0,0.85)] backdrop-blur-xl group-hover:scale-105 transition-transform duration-300 cursor-pointer">
           <img
             src="/images/mailify-logo-white.png"
             alt="Mailify"
-            className="h-7 sm:h-8 md:h-9 w-auto object-contain drop-shadow-[0_0_12px_rgba(83,226,254,0.7)]"
+            className="h-5 sm:h-7 md:h-8 lg:h-9 w-auto object-contain drop-shadow-[0_0_12px_rgba(83,226,254,0.7)]"
           />
         </div>
       </div>
 
       {/* 4. TOP-RIGHT NODE: GOOGLE SHEETS */}
-      <div className="absolute right-[18%] sm:right-[22%] md:right-[23%] top-[16%] sm:top-[18%] translate-x-1/2 -translate-y-1/2 z-20 group flex flex-col items-center">
-        <div className="w-11 h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-2xl sm:rounded-[20px] bg-white/95 backdrop-blur-md p-2 sm:p-3 shadow-[0_12px_28px_rgba(0,0,0,0.4),0_0_1px_rgba(255,255,255,0.9)] border border-white/80 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_16px_36px_rgba(83,226,254,0.35)] cursor-pointer">
+      <div className="absolute right-[16%] sm:right-[21%] md:right-[23%] top-[18%] sm:top-[18%] translate-x-1/2 -translate-y-1/2 z-20 group flex flex-col items-center">
+        <div className="w-9 h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-xl sm:rounded-2xl md:rounded-[20px] bg-white/95 backdrop-blur-md p-1.5 sm:p-2.5 md:p-3 shadow-[0_8px_20px_rgba(0,0,0,0.4),0_0_1px_rgba(255,255,255,0.9)] border border-white/80 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_16px_36px_rgba(83,226,254,0.35)] cursor-pointer">
           {/* Google Sheets Icon */}
-          <svg viewBox="0 0 48 48" className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" fill="none">
+          <svg viewBox="0 0 48 48" className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-8 lg:h-8" fill="none">
             <path d="M29 4H10C7.79 4 6 5.79 6 8V40C6 42.21 7.79 44 10 44H38C40.21 44 42 42.21 42 40V17L29 4Z" fill="#0F9D58" />
             <path d="M29 4V17H42L29 4Z" fill="#87CEAB" />
             <rect x="13" y="22" width="22" height="16" rx="1.5" fill="#FFFFFF" />
@@ -241,10 +241,10 @@ export function HeroIntegrationsBeam() {
       </div>
 
       {/* 5. BOTTOM-RIGHT NODE: MICROSOFT OUTLOOK */}
-      <div className="absolute right-[14%] sm:right-[18%] md:right-[19%] bottom-[16%] sm:bottom-[18%] translate-x-1/2 translate-y-1/2 z-20 group flex flex-col items-center">
-        <div className="w-11 h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-2xl sm:rounded-[20px] bg-white/95 backdrop-blur-md p-2 sm:p-3 shadow-[0_12px_28px_rgba(0,0,0,0.4),0_0_1px_rgba(255,255,255,0.9)] border border-white/80 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_16px_36px_rgba(83,226,254,0.35)] cursor-pointer">
+      <div className="absolute right-[13%] sm:right-[17%] md:right-[19%] bottom-[18%] sm:bottom-[18%] translate-x-1/2 translate-y-1/2 z-20 group flex flex-col items-center">
+        <div className="w-9 h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-xl sm:rounded-2xl md:rounded-[20px] bg-white/95 backdrop-blur-md p-1.5 sm:p-2.5 md:p-3 shadow-[0_8px_20px_rgba(0,0,0,0.4),0_0_1px_rgba(255,255,255,0.9)] border border-white/80 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_16px_36px_rgba(83,226,254,0.35)] cursor-pointer">
           {/* Microsoft Outlook Icon */}
-          <svg viewBox="0 0 32 32" className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" fill="none">
+          <svg viewBox="0 0 32 32" className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-8 lg:h-8" fill="none">
             <path fill="#0078d4" d="M18 5h10a2 2 0 0 1 2 2v18a2 2 0 0 1-2 2H18z"/>
             <path fill="#28a8ea" d="M18 10l12 6.5L18 23z"/>
             <path fill="#0364b8" d="M18 5l12 7.5v8.5L18 27z"/>
