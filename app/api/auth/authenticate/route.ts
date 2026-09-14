@@ -1,101 +1,167 @@
-import crypto from 'crypto';
 import { setSessionCookie } from '@/lib/auth/session';
 import { logSecurityEvent } from '@/lib/security/audit';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import {
+  registerUser,
+  authenticateUser,
+  findUserByEmail,
+} from '@/lib/db/user_store';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-function getDeterministicUserId(email: string): string {
-  const hash = crypto.createHash('sha256').update(`warmup_user:${email.toLowerCase().trim()}`).digest('hex');
-  // Format as valid UUID
-  return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-4${hash.slice(13, 16)}-8${hash.slice(17, 20)}-${hash.slice(20, 32)}`;
-}
-
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, mode } = await request.json();
+    const { email, password, name, mode = 'login' } = await request.json();
 
     if (!email || !password) {
-      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Email and password are required' },
+        { status: 400 }
+      );
     }
 
     const cleanEmail = email.toLowerCase().trim();
-    const supabase = createServerSupabaseClient();
 
-    // 1. Try Supabase signInWithPassword
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-      email: cleanEmail,
-      password,
-    });
+    // =========================================================================
+    // SIGN UP FLOW
+    // =========================================================================
+    if (mode === 'signup') {
+      // 1. Check if user already exists
+      const existingUser = findUserByEmail(cleanEmail);
+      if (existingUser) {
+        return NextResponse.json(
+          { error: 'An account with this email already exists. Please sign in.' },
+          { status: 400 }
+        );
+      }
 
-    if (!signInError && signInData?.session?.user) {
-      setSessionCookie({ id: signInData.session.user.id, email: cleanEmail });
+      // 2. Persist new user in Database Store
+      let newUser;
+      try {
+        newUser = registerUser({
+          name: name?.trim() || cleanEmail.split('@')[0],
+          email: cleanEmail,
+          password,
+        });
+      } catch (err: any) {
+        return NextResponse.json(
+          { error: err.message || 'Failed to create account' },
+          { status: 400 }
+        );
+      }
+
+      // 3. Optional Supabase auth sync if available
+      try {
+        const supabase = createServerSupabaseClient();
+        await supabase.auth.signUp({
+          email: cleanEmail,
+          password,
+        });
+      } catch {}
+
+      // 4. Set secure session cookie
+      setSessionCookie({ id: newUser.id, email: newUser.email });
+
       logSecurityEvent({
-        event: 'AUTH_LOGIN_SUCCESS',
-        userId: signInData.session.user.id,
+        event: 'ACCOUNT_CREATED',
+        userId: newUser.id,
         path: '/api/auth/authenticate',
-        details: { method: 'supabase_password', email: cleanEmail },
+        details: { method: 'database_store', email: cleanEmail },
       });
+
+      // Initialize default warmup config if needed
+      try {
+        const adminSupabase = createAdminClient();
+        await adminSupabase.from('email_warmup_configs').upsert({
+          user_id: newUser.id,
+          enabled: true,
+          status: 'active',
+          daily_limit: 20,
+          min_delay_minutes: 3,
+          max_delay_minutes: 5,
+          max_messages_per_thread: 4,
+          ai_enabled: true,
+        });
+      } catch {}
+
       return NextResponse.json({
         success: true,
-        user: { id: signInData.session.user.id, email: signInData.session.user.email },
+        user: { id: newUser.id, email: newUser.email, name: newUser.name },
       });
     }
 
-    // 2. Try Supabase signUp
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-      email: cleanEmail,
-      password,
-    });
+    // =========================================================================
+    // LOGIN / SIGN IN FLOW (VERIFY PASSWORD AGAINST DATABASE)
+    // =========================================================================
+    
+    // First, try verifying against our persistent database store
+    const authResult = authenticateUser(cleanEmail, password);
 
-    let userId: string | null = null;
+    if (!authResult.success || !authResult.user) {
+      // Try Supabase signInWithPassword if configured
+      try {
+        const supabase = createServerSupabaseClient();
+        const { data: sbData, error: sbErr } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password,
+        });
 
-    if (signUpData?.user?.id) {
-      userId = signUpData.user.id;
-    } else {
-      // User might already be registered in Supabase
-      userId = getDeterministicUserId(cleanEmail);
+        if (!sbErr && sbData?.session?.user) {
+          setSessionCookie({ id: sbData.session.user.id, email: cleanEmail });
+          logSecurityEvent({
+            event: 'AUTH_LOGIN_SUCCESS',
+            userId: sbData.session.user.id,
+            path: '/api/auth/authenticate',
+            details: { method: 'supabase_auth', email: cleanEmail },
+          });
+          return NextResponse.json({
+            success: true,
+            user: { id: sbData.session.user.id, email: cleanEmail },
+          });
+        }
+      } catch {}
+
+      // If credentials do not match, REJECT LOGIN & DO NOT OPEN DASHBOARD
+      logSecurityEvent({
+        event: 'AUTH_LOGIN_FAILED',
+        userId: 'anonymous',
+        path: '/api/auth/authenticate',
+        details: { email: cleanEmail, reason: authResult.error },
+      });
+
+      return NextResponse.json(
+        { error: authResult.error || 'Incorrect email or password' },
+        { status: 401 }
+      );
     }
 
-    // 3. Establish app session cookie immediately
-    setSessionCookie({ id: userId, email: cleanEmail });
+    const authenticatedUser = authResult.user;
+
+    // Set secure authentication cookie
+    setSessionCookie({ id: authenticatedUser.id, email: authenticatedUser.email });
 
     logSecurityEvent({
       event: 'AUTH_LOGIN_SUCCESS',
-      userId,
+      userId: authenticatedUser.id,
       path: '/api/auth/authenticate',
-      details: { method: 'session_auth', email: cleanEmail },
+      details: { method: 'database_store', email: cleanEmail },
     });
-
-    // Initialize warmup config for this user if not present
-    const adminSupabase = createAdminClient();
-    try {
-      await adminSupabase.from('email_warmup_configs').upsert({
-        user_id: userId,
-        enabled: true,
-        status: 'active',
-        daily_limit: 20,
-        min_delay_minutes: 3,
-        max_delay_minutes: 5,
-        max_messages_per_thread: 4,
-        ai_enabled: true,
-      });
-    } catch (configErr) {
-      // Ignore if RLS or foreign key table constraints require auth.users record
-    }
 
     return NextResponse.json({
       success: true,
-      user: { id: userId, email: cleanEmail },
-      session: {
-        access_token: 'custom_session',
-        user: { id: userId, email: cleanEmail },
+      user: {
+        id: authenticatedUser.id,
+        email: authenticatedUser.email,
+        name: authenticatedUser.name,
       },
     });
   } catch (err: any) {
     console.error('[Auth API] Error:', err);
-    return NextResponse.json({ error: err.message || 'Authentication error' }, { status: 500 });
+    return NextResponse.json(
+      { error: err.message || 'Authentication error' },
+      { status: 500 }
+    );
   }
 }

@@ -9,10 +9,35 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('admin@erhatechnologies.com');
   const [password, setPassword] = useState('password123');
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    router.push('/dashboard');
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const res = await fetch('/api/auth/authenticate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'login', email: email.trim(), password: password.trim() }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        setError(data.error || 'Invalid credentials');
+        setIsLoading(false);
+        return;
+      }
+
+      // Success: open dashboard
+      router.push('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Failed to authenticate');
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -25,6 +50,13 @@ export default function LoginPage() {
           <h1 className="text-xl font-bold text-slate-900">Sign in to EmailTracker</h1>
           <p className="text-xs text-slate-500">Access your multi-tenant analytics dashboard</p>
         </div>
+
+        {error && (
+          <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs font-medium flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
           <div>
@@ -57,10 +89,17 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-lg shadow-sm flex items-center justify-center space-x-1.5 transition-colors"
+            disabled={isLoading}
+            className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-lg shadow-sm flex items-center justify-center space-x-1.5 transition-colors disabled:opacity-60 cursor-pointer"
           >
-            <span>Sign In to Dashboard</span>
-            <ArrowRight className="w-4 h-4" />
+            {isLoading ? (
+              <span>Verifying...</span>
+            ) : (
+              <>
+                <span>Sign In to Dashboard</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </button>
         </form>
 

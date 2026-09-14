@@ -15,14 +15,42 @@ export default function MizuLanding() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
-  const handleAuthSubmit = (e: React.FormEvent) => {
+  const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !password.trim()) return;
+    setAuthError(null);
+    if (!email.trim() || !password.trim()) {
+      setAuthError('Email and password are required');
+      return;
+    }
     setIsSubmitting(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch('/api/auth/authenticate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: authMode,
+          email: email.trim(),
+          password: password.trim(),
+          name: fullName.trim(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        setAuthError(data.error || 'Authentication failed');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Success! Open dashboard
       router.push('/dashboard');
-    }, 600);
+    } catch (err: any) {
+      setAuthError(err.message || 'Something went wrong. Please try again.');
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -319,6 +347,14 @@ export default function MizuLanding() {
               </div>
             </div>
 
+            {/* Error Message Banner */}
+            {authError && (
+              <div className="mb-4 p-3 bg-rose-500/15 border border-rose-500/40 rounded-xl text-rose-300 text-xs font-medium flex items-center gap-2 animate-in fade-in">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0 animate-pulse" />
+                <span>{authError}</span>
+              </div>
+            )}
+
             {/* Form */}
             <form onSubmit={handleAuthSubmit} className="space-y-4">
               {authMode === 'signup' && (
@@ -383,7 +419,7 @@ export default function MizuLanding() {
                 {isSubmitting ? (
                   <>
                     <span className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
-                    <span>Opening Dashboard...</span>
+                    <span>Verifying & Opening Dashboard...</span>
                   </>
                 ) : (
                   <>
@@ -405,7 +441,10 @@ export default function MizuLanding() {
                   Already have an account?{' '}
                   <button
                     type="button"
-                    onClick={() => setAuthMode('login')}
+                    onClick={() => {
+                      setAuthMode('login');
+                      setAuthError(null);
+                    }}
                     className="text-[#53E2FE] hover:underline font-semibold cursor-pointer"
                   >
                     Sign In
@@ -416,7 +455,10 @@ export default function MizuLanding() {
                   Don't have an account?{' '}
                   <button
                     type="button"
-                    onClick={() => setAuthMode('signup')}
+                    onClick={() => {
+                      setAuthMode('signup');
+                      setAuthError(null);
+                    }}
                     className="text-[#53E2FE] hover:underline font-semibold cursor-pointer"
                   >
                     Create Account
