@@ -63,17 +63,17 @@ export function WebsiteHeader({ onGetStartedClick }: WebsiteHeaderProps) {
         </Link>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center space-x-7 lg:space-x-9 text-sm font-medium text-white/90">
+        <nav className="hidden md:flex items-center space-x-7 lg:space-x-9">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
               <Link
                 key={link.name}
                 href={link.href}
-                className={`transition-all duration-200 relative py-1 hover:text-[#53E2FE] ${
+                className={`transition-all duration-200 relative py-1 text-base lg:text-[17px] font-semibold tracking-wide ${
                   isActive
-                    ? 'text-[#53E2FE] font-bold drop-shadow-[0_0_10px_rgba(83,226,254,0.6)]'
-                    : 'text-white/80 hover:text-white'
+                    ? 'text-[#53E2FE] font-bold drop-shadow-[0_0_12px_rgba(83,226,254,0.7)]'
+                    : 'text-white hover:text-[#53E2FE] hover:drop-shadow-[0_0_10px_rgba(83,226,254,0.6)]'
                 }`}
               >
                 {link.name}
@@ -130,7 +130,7 @@ export function WebsiteHeader({ onGetStartedClick }: WebsiteHeaderProps) {
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
         <div className="md:hidden px-6 pt-3 pb-6 space-y-4 bg-[#050c1e]/98 backdrop-blur-2xl border-b border-[#53E2FE]/20 shadow-2xl relative z-50 text-white animate-in slide-in-from-top-2 duration-200">
-          <nav className="flex flex-col space-y-3.5 text-base font-medium">
+          <nav className="flex flex-col space-y-3.5">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
@@ -138,14 +138,14 @@ export function WebsiteHeader({ onGetStartedClick }: WebsiteHeaderProps) {
                   key={link.name}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`py-1 transition-colors flex items-center justify-between ${
+                  className={`py-1.5 transition-colors flex items-center justify-between text-base sm:text-lg font-semibold tracking-wide ${
                     isActive
-                      ? 'text-[#53E2FE] font-bold drop-shadow-[0_0_8px_rgba(83,226,254,0.5)]'
-                      : 'text-white/80 hover:text-white'
+                      ? 'text-[#53E2FE] font-bold drop-shadow-[0_0_10px_rgba(83,226,254,0.6)]'
+                      : 'text-white hover:text-[#53E2FE]'
                   }`}
                 >
                   <span>{link.name}</span>
-                  {isActive && <span className="w-1.5 h-1.5 rounded-full bg-[#53E2FE]" />}
+                  {isActive && <span className="w-1.5 h-1.5 rounded-full bg-[#53E2FE] shadow-[0_0_6px_#53E2FE]" />}
                 </Link>
               );
             })}
