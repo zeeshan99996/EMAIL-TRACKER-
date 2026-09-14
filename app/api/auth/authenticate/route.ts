@@ -25,6 +25,78 @@ export async function POST(request: NextRequest) {
     const cleanEmail = email.toLowerCase().trim();
 
     // =========================================================================
+    // GET STARTED FLOW (SINGLE FORM: STORE DATA, PREVENT DUPLICATES, OPEN DASHBOARD)
+    // =========================================================================
+    if (mode === 'get_started') {
+      const existingUser = findUserByEmail(cleanEmail);
+
+      if (existingUser) {
+        // User already exists -> DO NOT insert duplicate record in database
+        const authResult = authenticateUser(cleanEmail, password);
+
+        if (!authResult.success || !authResult.user) {
+          return NextResponse.json(
+            { error: 'An account with this email already exists. Incorrect password entered.' },
+            { status: 401 }
+          );
+        }
+
+        // Existing user validated successfully -> grant session & open dashboard
+        setSessionCookie({ id: authResult.user.id, email: authResult.user.email });
+
+        logSecurityEvent({
+          event: 'AUTH_LOGIN_SUCCESS',
+          userId: authResult.user.id,
+          path: '/api/auth/authenticate',
+          details: { method: 'get_started_existing_user', email: cleanEmail },
+        });
+
+        return NextResponse.json({
+          success: true,
+          user: { id: authResult.user.id, email: authResult.user.email, name: authResult.user.name },
+          existing: true,
+        });
+      }
+
+      // New User -> Store in database (zero duplicates)
+      let newUser;
+      try {
+        newUser = registerUser({
+          name: name?.trim() || cleanEmail.split('@')[0],
+          email: cleanEmail,
+          password,
+        });
+      } catch (err: any) {
+        return NextResponse.json(
+          { error: err.message || 'Failed to create account' },
+          { status: 400 }
+        );
+      }
+
+      try {
+        const supabase = createServerSupabaseClient();
+        await supabase.auth.signUp({
+          email: cleanEmail,
+          password,
+        });
+      } catch {}
+
+      setSessionCookie({ id: newUser.id, email: newUser.email });
+
+      logSecurityEvent({
+        event: 'ACCOUNT_CREATED',
+        userId: newUser.id,
+        path: '/api/auth/authenticate',
+        details: { method: 'get_started_new_user', email: cleanEmail },
+      });
+
+      return NextResponse.json({
+        success: true,
+        user: { id: newUser.id, email: newUser.email, name: newUser.name },
+      });
+    }
+
+    // =========================================================================
     // SIGN UP FLOW
     // =========================================================================
     if (mode === 'signup') {

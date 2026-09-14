@@ -9,15 +9,14 @@ import { HeroIntegrationsBeam } from './hero-integrations-beam';
 export default function MizuLanding() {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [signupModalOpen, setSignupModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'signup' | 'login'>('signup');
+  const [getStartedModalOpen, setGetStartedModalOpen] = useState(false);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  const handleAuthSubmit = async (e: React.FormEvent) => {
+  const handleGetStartedSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError(null);
     if (!email.trim() || !password.trim()) {
@@ -30,7 +29,7 @@ export default function MizuLanding() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          mode: authMode,
+          mode: 'get_started',
           email: email.trim(),
           password: password.trim(),
           name: fullName.trim(),
@@ -199,27 +198,17 @@ export default function MizuLanding() {
             </a>
           </nav>
 
-          {/* Action Buttons */}
-          <div className="hidden sm:flex items-center space-x-4">
+          {/* Action Button: Single Get Started Button */}
+          <div className="hidden sm:flex items-center">
             <button
               type="button"
               onClick={() => {
-                setAuthMode('login');
-                setSignupModalOpen(true);
-              }}
-              className="text-sm font-medium text-white hover:text-[#53E2FE] transition-colors px-2 py-1 cursor-pointer"
-            >
-              Login
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setAuthMode('signup');
-                setSignupModalOpen(true);
+                setAuthError(null);
+                setGetStartedModalOpen(true);
               }}
               className="px-5 py-2 text-xs sm:text-sm font-semibold text-slate-950 bg-white hover:bg-slate-100 rounded-full shadow-sm hover:shadow transition-all hover:scale-[1.02] active:scale-98 cursor-pointer"
             >
-              Sign up
+              Get Started
             </button>
           </div>
 
@@ -257,23 +246,12 @@ export default function MizuLanding() {
                 type="button"
                 onClick={() => {
                   setMobileMenuOpen(false);
-                  setAuthMode('login');
-                  setSignupModalOpen(true);
-                }}
-                className="w-full text-center py-2.5 text-sm font-medium text-white border border-white/20 rounded-full hover:bg-white/10 cursor-pointer"
-              >
-                Login
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  setAuthMode('signup');
-                  setSignupModalOpen(true);
+                  setAuthError(null);
+                  setGetStartedModalOpen(true);
                 }}
                 className="w-full text-center py-2.5 text-sm font-semibold text-slate-950 bg-white hover:bg-slate-100 rounded-full cursor-pointer"
               >
-                Sign up
+                Get Started
               </button>
             </div>
           </div>
@@ -304,26 +282,24 @@ export default function MizuLanding() {
       </div>
 
       {/* ========================================================================= */}
-      {/* AUTH MODAL (SIGN UP / LOGIN) */}
+      {/* GET STARTED MODAL (SIMPLE LIGHT THEME: NAME, EMAIL, PASSWORD, SUBMIT) */}
       {/* ========================================================================= */}
-      {signupModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
+      {getStartedModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200">
           {/* Backdrop click to close */}
           <div
             className="absolute inset-0"
-            onClick={() => setSignupModalOpen(false)}
+            onClick={() => setGetStartedModalOpen(false)}
           />
 
-          {/* Modal Card */}
-          <div className="relative w-full max-w-md bg-[#080f24] border-2 border-[#53E2FE]/80 rounded-[28px] sm:rounded-[32px] p-6 sm:p-8 shadow-[0_0_50px_rgba(83,226,254,0.35),0_25px_60px_rgba(0,0,0,0.9)] text-left text-white z-10 overflow-hidden">
-            {/* Subtle top cyan light glow */}
-            <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-72 h-32 bg-[#53E2FE]/20 rounded-full blur-2xl pointer-events-none" />
-
+          {/* Clean Light-Theme Modal Card */}
+          <div className="relative w-full max-w-md bg-white border border-slate-200 rounded-[28px] p-6 sm:p-8 shadow-[0_25px_70px_rgba(0,0,0,0.35)] text-left text-slate-900 z-10 animate-in zoom-in-95 duration-150">
+            
             {/* Close Button */}
             <button
               type="button"
-              onClick={() => setSignupModalOpen(false)}
-              className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              onClick={() => setGetStartedModalOpen(false)}
+              className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               aria-label="Close"
             >
               <X className="w-5 h-5" />
@@ -332,81 +308,80 @@ export default function MizuLanding() {
             {/* Header */}
             <div className="flex items-center gap-3.5 mb-6">
               <img
-                src="/images/mailify-logo-white.png"
+                src="/images/mailify-logo-dark.png"
                 alt="Mailify"
-                className="h-8 sm:h-9 w-auto object-contain drop-shadow-[0_0_12px_rgba(83,226,254,0.4)]"
+                className="h-8 sm:h-9 w-auto object-contain"
               />
-              <div className="border-l border-white/20 pl-3">
-                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white">
-                  {authMode === 'signup' ? 'Create Your Account' : 'Welcome Back'}
+              <div className="border-l border-slate-200 pl-3">
+                <h2 className="text-xl font-bold tracking-tight text-slate-900">
+                  Get Started
                 </h2>
-                <p className="text-xs text-slate-300">
-                  {authMode === 'signup'
-                    ? 'Fill details to open your Mailify dashboard'
-                    : 'Sign in to access your Mailify dashboard'}
+                <p className="text-xs text-slate-500">
+                  Enter your details to open your dashboard
                 </p>
               </div>
             </div>
 
             {/* Error Message Banner */}
             {authError && (
-              <div className="mb-4 p-3 bg-rose-500/15 border border-rose-500/40 rounded-xl text-rose-300 text-xs font-medium flex items-center gap-2 animate-in fade-in">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0 animate-pulse" />
+              <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs font-medium flex items-center gap-2 animate-in fade-in">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
                 <span>{authError}</span>
               </div>
             )}
 
-            {/* Form */}
-            <form onSubmit={handleAuthSubmit} className="space-y-4">
-              {authMode === 'signup' && (
-                <div>
-                  <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                    Full Name
-                  </label>
-                  <div className="relative">
-                    <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="text"
-                      required
-                      placeholder="Jane Doe"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#53E2FE] focus:ring-1 focus:ring-[#53E2FE] transition-colors"
-                    />
-                  </div>
-                </div>
-              )}
-
+            {/* Form: Name, Email, Password, Submit */}
+            <form onSubmit={handleGetStartedSubmit} className="space-y-4">
+              {/* Name */}
               <div>
-                <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                  Email Address
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Full Name
                 </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
-                    type="email"
+                    type="text"
                     required
-                    placeholder="jane@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#53E2FE] focus:ring-1 focus:ring-[#53E2FE] transition-colors"
+                    placeholder="e.g. John Doe"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#0284c7] focus:ring-2 focus:ring-[#0284c7]/20 transition-all"
                   />
                 </div>
               </div>
 
+              {/* Email */}
               <div>
-                <label className="block text-xs font-semibold text-slate-200 mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="email"
+                    required
+                    placeholder="e.g. john@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#0284c7] focus:ring-2 focus:ring-[#0284c7]/20 transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Password */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                   Password
                 </label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="password"
                     required
-                    placeholder="••••••••••••"
+                    placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#53E2FE] focus:ring-1 focus:ring-[#53E2FE] transition-colors"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#0284c7] focus:ring-2 focus:ring-[#0284c7]/20 transition-all"
                   />
                 </div>
               </div>
@@ -415,58 +390,21 @@ export default function MizuLanding() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full mt-2 py-3 rounded-xl bg-[#53E2FE] hover:bg-[#38bdf8] text-slate-950 font-bold text-sm shadow-[0_0_20px_rgba(83,226,254,0.4)] transition-all flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-99 cursor-pointer disabled:opacity-70"
+                className="w-full mt-2 py-3 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-99 cursor-pointer disabled:opacity-70"
               >
                 {isSubmitting ? (
                   <>
-                    <span className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
-                    <span>Verifying & Opening Dashboard...</span>
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Opening Dashboard...</span>
                   </>
                 ) : (
                   <>
-                    <span>
-                      {authMode === 'signup'
-                        ? 'Create Account & Open Dashboard'
-                        : 'Sign In & Open Dashboard'}
-                    </span>
+                    <span>Submit & Open Dashboard</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </button>
             </form>
-
-            {/* Mode Toggle Footer */}
-            <div className="mt-6 pt-4 border-t border-slate-800 text-center text-xs text-slate-400">
-              {authMode === 'signup' ? (
-                <span>
-                  Already have an account?{' '}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAuthMode('login');
-                      setAuthError(null);
-                    }}
-                    className="text-[#53E2FE] hover:underline font-semibold cursor-pointer"
-                  >
-                    Sign In
-                  </button>
-                </span>
-              ) : (
-                <span>
-                  Don't have an account?{' '}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAuthMode('signup');
-                      setAuthError(null);
-                    }}
-                    className="text-[#53E2FE] hover:underline font-semibold cursor-pointer"
-                  >
-                    Create Account
-                  </button>
-                </span>
-              )}
-            </div>
           </div>
         </div>
       )}
