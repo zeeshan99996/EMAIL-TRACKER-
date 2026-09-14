@@ -22,13 +22,13 @@ export function ProjectSelector() {
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1.5 bg-[#092956]/98 border border-white/30 rounded-xl shadow-2xl z-50 py-1.5 backdrop-blur-xl">
+        <div className="absolute top-full left-0 right-0 mt-1.5 bg-[#061d3d] border border-white/30 rounded-xl shadow-2xl z-50 py-1.5 backdrop-blur-xl">
           <button
             onClick={() => {
               setSelectedProject(DEMO_PROJECT.name);
               setIsOpen(false);
             }}
-            className="w-full text-left px-3.5 py-2 text-sm text-white hover:bg-white/15 flex items-center space-x-2 font-bold"
+            className="w-full text-left px-3.5 py-2.5 text-sm text-white hover:bg-white/15 flex items-center space-x-2 font-bold"
           >
             <span className="w-2 h-2 rounded-full bg-[#53E2FE]"></span>
             <span className="truncate text-white font-bold">{DEMO_PROJECT.name}</span>
@@ -38,17 +38,17 @@ export function ProjectSelector() {
               setSelectedProject('ERHA Marketing');
               setIsOpen(false);
             }}
-            className="w-full text-left px-3.5 py-2 text-sm text-white/90 hover:bg-white/15 flex items-center space-x-2 font-medium"
+            className="w-full text-left px-3.5 py-2.5 text-sm text-white hover:bg-white/15 flex items-center space-x-2 font-bold"
           >
-            <span className="w-2 h-2 rounded-full bg-slate-300"></span>
-            <span className="truncate text-white/90">ERHA Marketing</span>
+            <span className="w-2 h-2 rounded-full bg-white/70"></span>
+            <span className="truncate text-white font-bold">ERHA Marketing</span>
           </button>
           <div className="border-t border-white/20 my-1"></div>
           <a
             href="/dashboard/projects"
-            className="w-full text-left px-3.5 py-2 text-xs font-black text-[#53E2FE] hover:bg-white/15 flex items-center space-x-1.5"
+            className="w-full text-left px-3.5 py-2.5 text-xs font-black text-[#53E2FE] hover:bg-white/15 flex items-center space-x-1.5"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
             <span>Manage Projects</span>
           </a>
         </div>

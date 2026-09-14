@@ -44,7 +44,7 @@ const trackerNavSections: NavSection[] = [
     items: [
       { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
       { name: 'Tracked Emails', href: '/dashboard/emails', icon: Mail },
-      { name: 'Email Verifier', href: '/dashboard/verifier', icon: ShieldCheck, badge: 'Clean', badgeColor: 'bg-[#53E2FE]/20 text-[#53E2FE]' },
+      { name: 'Email Verifier', href: '/dashboard/verifier', icon: ShieldCheck, badge: 'Clean', badgeColor: 'bg-white/20 text-white font-black border border-white/30' },
       { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     ],
   },
@@ -68,7 +68,7 @@ const warmupNavSections: NavSection[] = [
   {
     title: 'WARMUP & FLEET',
     items: [
-      { name: 'Warmup Overview', href: '/dashboard/warmup', icon: Flame, badge: 'AI', badgeColor: 'bg-amber-500/20 text-amber-300' },
+      { name: 'Warmup Overview', href: '/dashboard/warmup', icon: Flame, badge: 'AI', badgeColor: 'bg-amber-400/25 text-white font-black border border-amber-400/40' },
       { name: 'Connected Mailboxes', href: '/dashboard/warmup/accounts', icon: Inbox },
       { name: 'Targeted Campaigns', href: '/dashboard/warmup/targeted', icon: Target },
     ],
@@ -133,16 +133,16 @@ export function Sidebar({
         />
       )}
 
-      {/* Sidebar Container - Lighter Website Hero Section Gradient */}
+      {/* Sidebar Container - Luminous Hero Section Gradient */}
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-50 w-72 bg-gradient-to-b from-[#082854] via-[#0b3e7a] via-[#0d549c] to-[#0275b8] border-r border-[#53E2FE]/40 flex flex-col justify-between transition-transform duration-300 ease-in-out md:translate-x-0 relative overflow-hidden text-white shadow-[10px_0_40px_rgba(2,16,41,0.5)] ${
+        className={`fixed md:static inset-y-0 left-0 z-50 w-72 bg-gradient-to-b from-[#0a2f64] via-[#0d478e] via-[#0f5ca8] to-[#0275b8] border-r border-[#53E2FE]/40 flex flex-col justify-between transition-transform duration-300 ease-in-out md:translate-x-0 relative overflow-hidden text-white shadow-[10px_0_40px_rgba(2,16,41,0.5)] ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Background Ambient Glows - Lighter & More Radiant */}
         {/* Top-Left Ambient Cyan Bloom */}
         <div
-          className="absolute -top-10 -left-10 w-64 h-64 rounded-full pointer-events-none blur-[50px] opacity-60 z-0"
+          className="absolute -top-10 -left-10 w-64 h-64 rounded-full pointer-events-none blur-[50px] opacity-65 z-0"
           style={{
             background:
               'radial-gradient(ellipse at center, rgba(83,226,254,0.75) 0%, rgba(14,165,233,0.45) 50%, transparent 75%)',
@@ -151,7 +151,7 @@ export function Sidebar({
 
         {/* Mid-Right Vibrant #53E2FE Aurora */}
         <div
-          className="absolute top-[35%] -right-14 w-64 h-64 rounded-full pointer-events-none blur-[55px] opacity-55 z-0"
+          className="absolute top-[35%] -right-14 w-64 h-64 rounded-full pointer-events-none blur-[55px] opacity-60 z-0"
           style={{
             background:
               'radial-gradient(ellipse at center, #53E2FE 0%, rgba(14,165,233,0.55) 45%, rgba(2,132,199,0.3) 70%, transparent 85%)',
@@ -160,7 +160,7 @@ export function Sidebar({
 
         {/* Bottom Horizon Intense White & #53E2FE Core Glow */}
         <div
-          className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-80 h-56 rounded-full pointer-events-none blur-[50px] opacity-65 z-0"
+          className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-80 h-56 rounded-full pointer-events-none blur-[50px] opacity-70 z-0"
           style={{
             background:
               'radial-gradient(ellipse at center, #ffffff 0%, #53E2FE 45%, rgba(4,51,108,0.7) 70%, transparent 95%)',
@@ -169,16 +169,16 @@ export function Sidebar({
 
         {/* Vertical Coordinate Grid Lines (Hero Texture) */}
         <svg
-          className="absolute inset-0 w-full h-full pointer-events-none z-0 opacity-20"
+          className="absolute inset-0 w-full h-full pointer-events-none z-0 opacity-25"
           preserveAspectRatio="none"
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
             <linearGradient id="sidebarGridGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.1" />
-              <stop offset="40%" stopColor="#53E2FE" stopOpacity="0.35" />
-              <stop offset="85%" stopColor="#53E2FE" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.2" />
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.15" />
+              <stop offset="40%" stopColor="#53E2FE" stopOpacity="0.4" />
+              <stop offset="85%" stopColor="#53E2FE" stopOpacity="0.65" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.25" />
             </linearGradient>
           </defs>
           <line x1="25%" y1="0" x2="25%" y2="100%" stroke="url(#sidebarGridGrad)" strokeWidth="1" strokeDasharray="4 6" />
@@ -188,7 +188,7 @@ export function Sidebar({
 
         <div className="flex-1 flex flex-col min-h-0 overflow-y-auto relative z-10">
           {/* Logo Brand Header */}
-          <div className="h-20 px-6 flex items-center justify-between border-b border-white/15 bg-black/10 backdrop-blur-xs">
+          <div className="h-20 px-6 flex items-center justify-between border-b border-white/20 bg-black/15 backdrop-blur-xs">
             <Link
               href="/dashboard"
               className="flex items-center space-x-3 group"
@@ -206,11 +206,11 @@ export function Sidebar({
                   <span className="font-black text-lg tracking-tight text-white group-hover:text-cyan-100 transition-colors">
                     MAILIFY
                   </span>
-                  <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-[#53E2FE] text-slate-950 shadow-xs">
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#53E2FE] text-slate-950 shadow-xs">
                     2.0
                   </span>
                 </div>
-                <span className="text-[11px] font-semibold text-white">
+                <span className="text-xs font-bold text-white tracking-wide">
                   {isWarmupMode ? 'Warmup Fleet' : 'Tracking Engine'}
                 </span>
               </div>
@@ -220,38 +220,38 @@ export function Sidebar({
                 onClick={() => setMobileOpen(false)}
                 className="p-1.5 text-white hover:text-white rounded-lg md:hidden hover:bg-white/15"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5 text-white" />
               </button>
             )}
           </div>
 
           {/* Mode Switcher Pill */}
           <div className="p-3 pb-0 space-y-2">
-            <div className="flex items-center bg-black/25 p-1 rounded-2xl border border-white/20 backdrop-blur-md">
+            <div className="flex items-center bg-black/35 p-1 rounded-2xl border border-white/20 backdrop-blur-md">
               <Link
                 href="/dashboard"
                 onClick={() => setMobileOpen && setMobileOpen(false)}
-                className={`flex-1 flex items-center justify-center py-2 px-2.5 rounded-xl transition-all text-xs ${
+                className={`flex-1 flex items-center justify-center py-2 px-2.5 rounded-xl transition-all text-xs font-black ${
                   !isWarmupMode
-                    ? 'bg-[#53E2FE] text-slate-950 shadow-md shadow-[#53E2FE]/30 font-black'
-                    : 'text-white font-bold hover:bg-white/15'
+                    ? 'bg-gradient-to-r from-blue-600 to-[#0284c7] text-white shadow-md border border-[#53E2FE] shadow-[#53E2FE]/25'
+                    : 'text-white hover:bg-white/15'
                 }`}
               >
-                <Mail className="w-3.5 h-3.5 mr-1.5 shrink-0" />
-                <span className="truncate">Tracker</span>
+                <Mail className={`w-3.5 h-3.5 mr-1.5 shrink-0 ${!isWarmupMode ? 'text-[#53E2FE]' : 'text-white'}`} />
+                <span className="truncate text-white font-bold">Tracker</span>
               </Link>
 
               <Link
                 href="/dashboard/warmup"
                 onClick={() => setMobileOpen && setMobileOpen(false)}
-                className={`flex-1 flex items-center justify-center py-2 px-2.5 rounded-xl transition-all text-xs ${
+                className={`flex-1 flex items-center justify-center py-2 px-2.5 rounded-xl transition-all text-xs font-black ${
                   isWarmupMode
-                    ? 'bg-[#53E2FE] text-slate-950 shadow-md shadow-[#53E2FE]/30 font-black'
-                    : 'text-white font-bold hover:bg-white/15'
+                    ? 'bg-gradient-to-r from-blue-600 to-[#0284c7] text-white shadow-md border border-[#53E2FE] shadow-[#53E2FE]/25'
+                    : 'text-white hover:bg-white/15'
                 }`}
               >
                 <Flame className="w-3.5 h-3.5 mr-1.5 shrink-0 fill-amber-400 text-amber-400" />
-                <span className="truncate">Email Warmup</span>
+                <span className="truncate text-white font-bold">Email Warmup</span>
               </Link>
             </div>
 
@@ -259,11 +259,11 @@ export function Sidebar({
             <Link
               href="/?view=landing"
               onClick={() => setMobileOpen && setMobileOpen(false)}
-              className="w-full flex items-center justify-center py-2 px-3 text-xs font-bold text-white bg-black/20 hover:bg-black/40 rounded-xl transition-all border border-white/20 hover:border-white/40 shadow-xs group backdrop-blur-sm"
+              className="w-full flex items-center justify-center py-2.5 px-3 text-xs font-bold text-white bg-black/30 hover:bg-black/50 rounded-xl transition-all border border-white/25 hover:border-white/50 shadow-sm group backdrop-blur-sm"
               title="Return to Main Website"
             >
-              <span className="text-[#53E2FE] mr-1.5 transition-transform group-hover:-translate-x-0.5">←</span>
-              <span>Back to Website</span>
+              <span className="text-[#53E2FE] mr-1.5 font-bold transition-transform group-hover:-translate-x-1">←</span>
+              <span className="text-white font-bold">Back to Website</span>
             </Link>
           </div>
 
@@ -276,8 +276,9 @@ export function Sidebar({
           <nav className="px-3 py-1 space-y-5">
             {activeSections.map((section) => (
               <div key={section.title}>
-                <div className="px-3 pb-2 text-[11px] font-black uppercase tracking-wider text-white drop-shadow-xs">
-                  {section.title}
+                <div className="px-3 pb-2 text-[11px] font-black uppercase tracking-wider text-white flex items-center space-x-1.5 drop-shadow-xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#53E2FE]"></span>
+                  <span className="text-white font-black">{section.title}</span>
                 </div>
                 <div className="space-y-1">
                   {section.items.map((item) => {
@@ -294,24 +295,24 @@ export function Sidebar({
                         onClick={() => setMobileOpen && setMobileOpen(false)}
                         className={`flex items-center justify-between px-3.5 py-2.5 text-sm rounded-xl transition-all duration-150 ${
                           isActive
-                            ? 'bg-[#53E2FE] text-slate-950 shadow-lg shadow-[#53E2FE]/30 font-extrabold'
-                            : 'text-white font-bold hover:bg-white/15'
+                            ? 'bg-gradient-to-r from-blue-600/95 to-[#0284c7]/95 text-white font-black border border-[#53E2FE] shadow-[0_4px_20px_rgba(83,226,254,0.35)]'
+                            : 'text-white font-bold hover:bg-white/15 border border-transparent'
                         }`}
                       >
                         <div className="flex items-center space-x-3">
                           <Icon className={`w-4 h-4 ${
                             isActive 
-                              ? 'text-slate-950' 
+                              ? 'text-[#53E2FE]' 
                               : 'text-white'
                           }`} />
-                          <span className="text-white">{item.name}</span>
+                          <span className="text-white font-bold">{item.name}</span>
                         </div>
                         {item.badge && (
                           <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
                               isActive
-                                ? 'bg-slate-950/15 text-slate-950 font-black'
-                                : item.badgeColor || 'bg-white/20 text-white'
+                                ? 'bg-[#53E2FE] text-slate-950 font-black'
+                                : item.badgeColor || 'bg-white/20 text-white font-black border border-white/30'
                             }`}
                           >
                             {item.badge}
@@ -328,35 +329,35 @@ export function Sidebar({
 
         {/* Bottom Accent Widget (Website Hero Glass Style) */}
         <div className="relative z-10 p-3">
-          <div className="relative overflow-hidden p-3.5 rounded-2xl bg-gradient-to-r from-white/15 to-[#53E2FE]/25 border border-white/30 backdrop-blur-md shadow-lg shadow-black/20">
+          <div className="relative overflow-hidden p-3.5 rounded-2xl bg-black/30 border border-white/30 backdrop-blur-md shadow-lg shadow-black/20">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-white">Google Apps Script</p>
-                <p className="text-[11px] font-medium text-white mt-0.5">Real-time Gmail tracking</p>
+                <p className="text-xs font-black text-white">Google Apps Script</p>
+                <p className="text-xs font-semibold text-white mt-0.5">Real-time Gmail tracking</p>
               </div>
               <Link
                 href="/dashboard/api-keys"
-                className="w-8 h-8 rounded-full bg-[#53E2FE] text-slate-950 flex items-center justify-center shadow-md shadow-[#53E2FE]/30 hover:scale-105 transition-transform"
+                className="w-8 h-8 rounded-full bg-[#53E2FE] text-slate-950 flex items-center justify-center shadow-md shadow-[#53E2FE]/40 hover:scale-105 transition-transform"
                 title="View Apps Script & API Key"
               >
-                <ArrowUpRight className="w-4 h-4 font-bold stroke-[2.5]" />
+                <ArrowUpRight className="w-4 h-4 font-black stroke-[2.5]" />
               </Link>
             </div>
           </div>
         </div>
 
         {/* Footer User Badge & Sign Out */}
-        <div className="relative z-10 p-3 border-t border-white/15 bg-black/10 backdrop-blur-xs space-y-2">
-          <div className="flex items-center justify-between p-2.5 rounded-xl bg-black/25 border border-white/20 backdrop-blur-md">
+        <div className="relative z-10 p-3 border-t border-white/20 bg-black/20 backdrop-blur-xs space-y-2">
+          <div className="flex items-center justify-between p-2.5 rounded-xl bg-black/35 border border-white/25 backdrop-blur-md">
             <div className="flex items-center space-x-2.5 overflow-hidden">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#53E2FE] to-blue-500 text-slate-950 flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#53E2FE] to-blue-500 text-slate-950 flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
                 {userInfo?.name ? userInfo.name.substring(0, 2).toUpperCase() : 'ET'}
               </div>
               <div className="truncate">
-                <p className="text-xs font-bold text-white truncate">
+                <p className="text-xs font-black text-white truncate">
                   {userInfo?.name || 'ERHA Technologies'}
                 </p>
-                <p className="text-[11px] font-medium text-white/90 truncate">
+                <p className="text-xs font-semibold text-white truncate">
                   {userInfo?.email || 'admin@erha.com'}
                 </p>
               </div>
@@ -367,17 +368,17 @@ export function Sidebar({
               className="p-1.5 text-white hover:text-rose-300 hover:bg-rose-500/20 rounded-lg transition-colors cursor-pointer"
               title="Sign Out"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-4 h-4 text-white" />
             </button>
           </div>
 
           <button
             type="button"
             onClick={handleSignOut}
-            className="w-full flex items-center justify-center space-x-2 py-2 px-3 rounded-xl text-xs font-bold text-white hover:text-white bg-rose-500/30 hover:bg-rose-500/45 border border-rose-400/50 transition-all cursor-pointer shadow-xs"
+            className="w-full flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl text-xs font-bold text-white bg-rose-500/35 hover:bg-rose-500/50 border border-rose-400/60 transition-all cursor-pointer shadow-sm"
           >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>Sign Out</span>
+            <LogOut className="w-3.5 h-3.5 text-white" />
+            <span className="text-white font-bold">Sign Out</span>
           </button>
         </div>
       </aside>
