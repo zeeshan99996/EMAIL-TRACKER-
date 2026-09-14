@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { Menu, X, User, Mail, Lock, ArrowRight } from 'lucide-react';
 import { HeroIntegrationsBeam } from './hero-integrations-beam';
 import { WebsiteHeader } from './website-header';
-import { WebsiteFooter } from './website-footer';
 
 export default function MizuLanding() {
   const router = useRouter();
@@ -292,9 +291,6 @@ export default function MizuLanding() {
         </section>
         </div>
       </div>
-
-      {/* Website Footer */}
-      <WebsiteFooter />
 
       {/* ========================================================================= */}
       {/* GET STARTED MODAL (SIMPLE LIGHT THEME: NAME, EMAIL, PASSWORD, SUBMIT) */}
