@@ -34,7 +34,7 @@ export function HeroIntegrationsBeam() {
   const pulseRightIndices = [1, 3, 6, 9, 11];
 
   return (
-    <div className="w-full max-w-4xl mx-auto relative my-4 sm:my-8 h-[230px] sm:h-[280px] md:h-[320px] select-none flex items-center justify-center">
+    <div className="w-full max-w-4xl mx-auto relative mt-8 sm:mt-16 md:mt-22 mb-4 sm:mb-6 h-[240px] sm:h-[290px] md:h-[330px] select-none flex items-center justify-center">
       {/* Ambient Central Cyan Glow */}
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-64 sm:w-96 h-32 sm:h-48 bg-[#53E2FE]/15 blur-3xl rounded-full pointer-events-none" />
 
@@ -247,12 +247,12 @@ export function HeroIntegrationsBeam() {
       <div className="absolute right-[14%] sm:right-[18%] md:right-[19%] bottom-[16%] sm:bottom-[18%] translate-x-1/2 translate-y-1/2 z-20 group flex flex-col items-center">
         <div className="w-11 h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-2xl sm:rounded-[20px] bg-white/95 backdrop-blur-md p-2 sm:p-3 shadow-[0_12px_28px_rgba(0,0,0,0.4),0_0_1px_rgba(255,255,255,0.9)] border border-white/80 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_16px_36px_rgba(83,226,254,0.35)] cursor-pointer">
           {/* Microsoft Outlook Icon */}
-          <svg viewBox="0 0 48 48" className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" fill="none">
-            <rect x="5" y="10" width="22" height="28" rx="4" fill="#0078D4" />
-            <path d="M27 15H39C40.657 15 42 16.343 42 18V30C42 31.657 40.657 33 39 33H27V15Z" fill="#106EBE" />
-            <path d="M27 15L42 24L27 33V15Z" fill="#28A8EA" />
-            <ellipse cx="16" cy="24" rx="6.5" ry="6.5" fill="none" stroke="#FFFFFF" strokeWidth="2.8" />
-            <text x="16" y="27.5" fill="#FFFFFF" fontSize="11" fontWeight="700" textAnchor="middle" fontFamily="system-ui, -apple-system, sans-serif">O</text>
+          <svg viewBox="0 0 32 32" className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" fill="none">
+            <path fill="#0078d4" d="M18 5h10a2 2 0 0 1 2 2v18a2 2 0 0 1-2 2H18z"/>
+            <path fill="#28a8ea" d="M18 10l12 6.5L18 23z"/>
+            <path fill="#0364b8" d="M18 5l12 7.5v8.5L18 27z"/>
+            <rect x="2" y="7" width="18" height="18" rx="3" fill="#0078d4"/>
+            <circle cx="11" cy="16" r="4.5" fill="none" stroke="#fff" strokeWidth="2.2"/>
           </svg>
         </div>
         <span className="mt-1.5 px-2 py-0.5 rounded-full bg-slate-900/90 backdrop-blur-sm border border-slate-700/60 text-[10px] sm:text-[11px] font-medium text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-sm pointer-events-none">

@@ -323,7 +323,7 @@ export default function MizuLanding() {
           <HeroIntegrationsBeam />
 
           {/* Floating Horizon Badge (Exact match to Reference Image) */}
-          <div className="mt-8 sm:mt-12 flex items-center justify-center gap-2 text-slate-400 text-xs sm:text-sm font-light z-20">
+          <div className="mt-4 sm:mt-6 flex items-center justify-center gap-2 text-slate-400 text-xs sm:text-sm font-light z-20">
             <span className="text-[#53E2FE] text-base leading-none drop-shadow-[0_0_8px_#53E2FE]">•</span>
             <span>Launch app 10x faster</span>
           </div>
