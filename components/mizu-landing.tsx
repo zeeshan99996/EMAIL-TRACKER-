@@ -158,12 +158,13 @@ export default function MizuLanding() {
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans relative overflow-x-hidden selection:bg-sky-100 selection:text-sky-900">
       {/* ========================================================================= */}
-      {/* 2. TOP HERO MASTER SECTION (DARK SPACE BLACK & ELECTRIC BLUE GLOW AS IN REFERENCE) */}
+      {/* 2. HD BLUE AND BLACK GRADIENT HERO MASTER SHOWCASE (MATCHING USER REFERENCE) */}
       {/* ========================================================================= */}
-      <div className="relative bg-[#000208] text-white overflow-hidden border-b border-blue-900/30">
-        {/* ========================================================================= */}
-        {/* BACKGROUND GLOW AURAS, VERTICAL LINES & SINE WAVES (EXACT MATCH TO REFERENCE) */}
-        {/* ========================================================================= */}
+      <div className="w-full bg-gradient-to-b from-[#0e2775] via-[#1a44a5] to-[#0c1f5e] p-2 sm:p-4 md:p-6 lg:p-8">
+        <div className="w-full max-w-[1440px] mx-auto rounded-[28px] sm:rounded-[38px] md:rounded-[46px] overflow-hidden border border-sky-400/40 shadow-[0_30px_100px_rgba(14,35,97,0.55),0_0_60px_rgba(59,130,246,0.35)] relative hero-hd-blue-black-gradient text-white">
+          {/* ========================================================================= */}
+          {/* BACKGROUND GLOW AURAS, VERTICAL LINES & SINE WAVES (HD BLUE-BLACK DEPTH) */}
+          {/* ========================================================================= */}
 
         {/* Left Side Deep Royal Blue Bloom */}
         <div
@@ -696,6 +697,7 @@ export default function MizuLanding() {
           </div>
 
         </section>
+        </div>
       </div>
 
       {/* ========================================================================= */}

@@ -135,3 +135,24 @@ body {
     transform: scale(1.05);
   }
 }
+
+/* ========================================================================= */
+/* HD BLUE AND BLACK GRADIENT HERO BACKGROUND (MATCHING USER REFERENCE) */
+/* ========================================================================= */
+.hero-hd-blue-black-gradient {
+  background-color: #030a21;
+  background-image:
+    /* Horizon bottom center brilliant white/cyan floor glow */
+    radial-gradient(ellipse 92% 62% at 50% 100%, #ffffff 0%, #e0f2fe 22%, #93c5fd 42%, rgba(59, 130, 246, 0.75) 62%, transparent 80%),
+    /* Right side high-reaching electric cobalt/azure curtain */
+    radial-gradient(ellipse 80% 95% at 98% 48%, #38bdf8 0%, #2563eb 32%, #1d4ed8 58%, transparent 85%),
+    /* Left side deep royal blue aurora */
+    radial-gradient(ellipse 75% 85% at 2% 62%, #3b82f6 0%, #2563eb 32%, #1d4ed8 58%, transparent 85%),
+    /* Top-right soft electric blue ambient glow */
+    radial-gradient(ellipse 60% 60% at 85% 15%, rgba(59, 130, 246, 0.55) 0%, transparent 70%),
+    /* Center top black dome for high text contrast */
+    radial-gradient(ellipse 70% 50% at 50% 14%, rgba(3, 7, 18, 0.95) 0%, rgba(3, 7, 18, 0.8) 45%, transparent 92%),
+    /* Base rich linear gradient: dark navy at top to vivid electric royal blue and sky blue at bottom */
+    linear-gradient(180deg, #020617 0%, #05133d 20%, #0d3494 45%, #1d5be2 72%, #60a5fa 95%, #e0f2fe 100%);
+  background-attachment: local;
+}
