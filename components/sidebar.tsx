@@ -133,52 +133,52 @@ export function Sidebar({
         />
       )}
 
-      {/* Sidebar Container - Luminous Hero Section Gradient */}
+      {/* Sidebar Container - Deep Navy & Sapphire Gradient (Bit Darker) */}
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-50 w-72 bg-gradient-to-b from-[#0a2f64] via-[#0d478e] via-[#0f5ca8] to-[#0275b8] border-r border-[#53E2FE]/40 flex flex-col justify-between transition-transform duration-300 ease-in-out md:translate-x-0 relative overflow-hidden text-white shadow-[10px_0_40px_rgba(2,16,41,0.5)] ${
+        className={`fixed md:static inset-y-0 left-0 z-50 w-72 bg-gradient-to-b from-[#051535] via-[#072454] via-[#09387a] to-[#0a4f9b] border-r border-[#53E2FE]/30 flex flex-col justify-between transition-transform duration-300 ease-in-out md:translate-x-0 relative overflow-hidden text-white shadow-[10px_0_40px_rgba(2,16,41,0.6)] ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Background Ambient Glows - Lighter & More Radiant */}
+        {/* Background Ambient Glows - Subtle & Rich */}
         {/* Top-Left Ambient Cyan Bloom */}
         <div
-          className="absolute -top-10 -left-10 w-64 h-64 rounded-full pointer-events-none blur-[50px] opacity-65 z-0"
+          className="absolute -top-10 -left-10 w-60 h-60 rounded-full pointer-events-none blur-[60px] opacity-40 z-0"
           style={{
             background:
-              'radial-gradient(ellipse at center, rgba(83,226,254,0.75) 0%, rgba(14,165,233,0.45) 50%, transparent 75%)',
+              'radial-gradient(ellipse at center, rgba(83,226,254,0.7) 0%, rgba(14,165,233,0.35) 50%, transparent 75%)',
           }}
         />
 
         {/* Mid-Right Vibrant #53E2FE Aurora */}
         <div
-          className="absolute top-[35%] -right-14 w-64 h-64 rounded-full pointer-events-none blur-[55px] opacity-60 z-0"
+          className="absolute top-[35%] -right-14 w-60 h-60 rounded-full pointer-events-none blur-[65px] opacity-35 z-0"
           style={{
             background:
-              'radial-gradient(ellipse at center, #53E2FE 0%, rgba(14,165,233,0.55) 45%, rgba(2,132,199,0.3) 70%, transparent 85%)',
+              'radial-gradient(ellipse at center, #53E2FE 0%, rgba(14,165,233,0.45) 45%, rgba(2,132,199,0.2) 70%, transparent 85%)',
           }}
         />
 
         {/* Bottom Horizon Intense White & #53E2FE Core Glow */}
         <div
-          className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-80 h-56 rounded-full pointer-events-none blur-[50px] opacity-70 z-0"
+          className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-72 h-52 rounded-full pointer-events-none blur-[55px] opacity-45 z-0"
           style={{
             background:
-              'radial-gradient(ellipse at center, #ffffff 0%, #53E2FE 45%, rgba(4,51,108,0.7) 70%, transparent 95%)',
+              'radial-gradient(ellipse at center, #ffffff 0%, #53E2FE 40%, rgba(4,51,108,0.7) 70%, transparent 95%)',
           }}
         />
 
         {/* Vertical Coordinate Grid Lines (Hero Texture) */}
         <svg
-          className="absolute inset-0 w-full h-full pointer-events-none z-0 opacity-25"
+          className="absolute inset-0 w-full h-full pointer-events-none z-0 opacity-15"
           preserveAspectRatio="none"
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
             <linearGradient id="sidebarGridGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.15" />
-              <stop offset="40%" stopColor="#53E2FE" stopOpacity="0.4" />
-              <stop offset="85%" stopColor="#53E2FE" stopOpacity="0.65" />
-              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.25" />
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.1" />
+              <stop offset="40%" stopColor="#53E2FE" stopOpacity="0.3" />
+              <stop offset="85%" stopColor="#53E2FE" stopOpacity="0.5" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.15" />
             </linearGradient>
           </defs>
           <line x1="25%" y1="0" x2="25%" y2="100%" stroke="url(#sidebarGridGrad)" strokeWidth="1" strokeDasharray="4 6" />
