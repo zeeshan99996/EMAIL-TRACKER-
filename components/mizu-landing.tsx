@@ -25,6 +25,15 @@ import {
   Bell,
   ChevronDown,
   Lightbulb,
+  Battery,
+  Wifi,
+  Signal,
+  Headphones,
+  ShoppingCart,
+  Coffee,
+  ArrowUp,
+  CircleDot,
+  Smartphone,
 } from 'lucide-react';
 
 export default function MizuLanding() {
@@ -33,6 +42,65 @@ export default function MizuLanding() {
   const [selectedFlow, setSelectedFlow] = useState<'drive' | 'linkedin' | 'slack'>('drive');
   const [isLiveActive, setIsLiveActive] = useState(true);
   const [zoomScale, setZoomScale] = useState(1);
+
+  // Hero view mode: 'generator' (matches new reference image) or 'mobile' (matches mobile ChatGPT mockup)
+  const [heroViewMode, setHeroViewMode] = useState<'generator' | 'mobile'>('generator');
+  const [selectedPlatform, setSelectedPlatform] = useState<'Android' | 'iOS' | 'Mac OS' | 'Windows'>('iOS');
+  const [generatePrompt, setGeneratePrompt] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedSuccess, setGeneratedSuccess] = useState(false);
+
+  const handleGenerate = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!generatePrompt.trim()) return;
+    setIsGenerating(true);
+    setTimeout(() => {
+      setIsGenerating(false);
+      setGeneratedSuccess(true);
+      setTimeout(() => setGeneratedSuccess(false), 3000);
+    }, 1200);
+  };
+
+  // Mobile ChatGPT showcase state
+  const [mobileChat, setMobileChat] = useState<Array<{ id: number; sender: 'user' | 'assistant'; text: string; time: string }>>([
+    {
+      id: 1,
+      sender: 'user',
+      text: 'Track my business expenses and automatically sync them to Google Sheets.',
+      time: '9:41 AM',
+    },
+    {
+      id: 2,
+      sender: 'assistant',
+      text: "Done! I've categorized 2 new transactions ($54.00) and synced them live to your expense sheet.",
+      time: '9:42 AM',
+    },
+  ]);
+  const [mobileInput, setMobileInput] = useState('');
+  const [isAiTyping, setIsAiTyping] = useState(false);
+
+  const handleMobileSend = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!mobileInput.trim()) return;
+    const userText = mobileInput.trim();
+    const newMsgId = Date.now();
+    setMobileChat((prev) => [...prev, { id: newMsgId, sender: 'user', text: userText, time: 'Just now' }]);
+    setMobileInput('');
+    setIsAiTyping(true);
+
+    setTimeout(() => {
+      setMobileChat((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          sender: 'assistant',
+          text: `Got it! Executing "${userText}" across your workspace with real-time sync.`,
+          time: 'Just now',
+        },
+      ]);
+      setIsAiTyping(false);
+    }, 800);
+  };
 
   // Typewriter effect simulation for placeholder if user hasn't typed
   const defaultPlaceholder = 'Tell Mizu What You Want';
@@ -90,404 +158,545 @@ export default function MizuLanding() {
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans relative overflow-x-hidden selection:bg-sky-100 selection:text-sky-900">
       {/* ========================================================================= */}
-      {/* 2. TOP NAVIGATION BAR */}
+      {/* 2. TOP HERO MASTER SECTION (DARK SPACE BLACK & ELECTRIC BLUE GLOW AS IN REFERENCE) */}
       {/* ========================================================================= */}
-      <header className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between relative z-40">
-        {/* Brand Logo & Name */}
-        <Link href="/" className="flex items-center gap-2 group">
-          {/* Mizu Signature Icon: 3 organic overlapping pill shapes */}
-          <div className="flex items-center space-x-[-3px]">
-            <span className="w-2.5 h-4 bg-slate-900 rounded-full rotate-[-15deg] group-hover:scale-105 transition-transform" />
-            <span className="w-2.5 h-5 bg-slate-900 rounded-full group-hover:scale-110 transition-transform" />
-            <span className="w-2.5 h-4 bg-slate-900 rounded-full rotate-[15deg] group-hover:scale-105 transition-transform" />
-          </div>
-          <span className="text-xl font-bold tracking-tight text-slate-900 ml-1">
-            mizu
-          </span>
-        </Link>
-
-        {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center space-x-7 text-sm font-medium text-slate-600">
-          <a href="#community" className="hover:text-slate-950 transition-colors">
-            Community
-          </a>
-          <a href="#integration" className="hover:text-slate-950 transition-colors">
-            Integration
-          </a>
-          <a href="#resources" className="hover:text-slate-950 transition-colors">
-            Resources
-          </a>
-          <a href="#docs" className="hover:text-slate-950 transition-colors">
-            Docs
-          </a>
-          <a href="#pricing" className="hover:text-slate-950 transition-colors">
-            Pricing
-          </a>
-        </nav>
-
-        {/* Action Buttons */}
-        <div className="hidden sm:flex items-center space-x-4">
-          <Link
-            href="/dashboard"
-            className="text-sm font-medium text-slate-700 hover:text-slate-950 transition-colors px-2 py-1"
-          >
-            Log In
-          </Link>
-          <Link
-            href="/dashboard"
-            className="px-5 py-2 text-xs sm:text-sm font-semibold text-white bg-slate-950 hover:bg-slate-800 rounded-full shadow-sm hover:shadow transition-all hover:scale-[1.02] active:scale-98"
-          >
-            Sign up
-          </Link>
-        </div>
-
-        {/* Mobile Menu Button */}
-        <div className="flex sm:hidden">
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 text-slate-700 hover:text-slate-950 rounded-lg hover:bg-slate-100 transition-colors"
-            aria-label="Toggle Menu"
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
-      </header>
-
-      {/* Mobile Menu Dropdown */}
-      {mobileMenuOpen && (
-        <div className="sm:hidden px-6 pt-3 pb-6 space-y-4 bg-white/95 backdrop-blur-xl border-b border-slate-200 shadow-xl relative z-30">
-          <nav className="flex flex-col space-y-3 text-base font-medium text-slate-700">
-            <a href="#community" onClick={() => setMobileMenuOpen(false)} className="hover:text-slate-950">
-              Community
-            </a>
-            <a href="#integration" onClick={() => setMobileMenuOpen(false)} className="hover:text-slate-950">
-              Integration
-            </a>
-            <a href="#resources" onClick={() => setMobileMenuOpen(false)} className="hover:text-slate-950">
-              Resources
-            </a>
-            <a href="#docs" onClick={() => setMobileMenuOpen(false)} className="hover:text-slate-950">
-              Docs
-            </a>
-            <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="hover:text-slate-950">
-              Pricing
-            </a>
-          </nav>
-          <div className="pt-4 border-t border-slate-200 flex flex-col gap-2.5">
-            <Link
-              href="/dashboard"
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full text-center py-2.5 text-sm font-medium text-slate-700 hover:text-slate-950 border border-slate-300 rounded-full"
-            >
-              Log In
-            </Link>
-            <Link
-              href="/dashboard"
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full text-center py-2.5 text-sm font-semibold text-white bg-slate-950 hover:bg-slate-800 rounded-full"
-            >
-              Sign up
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* 3. FULL HERO SECTION (FULL SCREEN RESPONSIVE EXPERIENCE) */}
-      {/* ========================================================================= */}
-      <section className="relative min-h-[calc(100vh-80px)] flex flex-col justify-center items-center pt-8 pb-16 sm:pt-14 sm:pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center overflow-visible">
+      <div className="relative bg-[#000208] text-white overflow-hidden border-b border-blue-900/30">
         {/* ========================================================================= */}
-        {/* HERO AMBIENT GLOW AURAS & BLUISH SIDE ANIMATION (PERFECTLY CENTERED) */}
+        {/* BACKGROUND GLOW AURAS, VERTICAL LINES & SINE WAVES (EXACT MATCH TO REFERENCE) */}
         {/* ========================================================================= */}
-        {/* Top Left Peach / Coral Glow */}
-        <div className="absolute top-[-5%] left-[-8%] sm:left-[-4%] w-[420px] sm:w-[600px] h-[420px] sm:h-[600px] bg-gradient-to-br from-[#ffd5cc]/80 via-[#fecdd3]/60 to-transparent rounded-full blur-[85px] sm:blur-[105px] pointer-events-none -z-10 animate-coral-bloom" />
 
-        {/* Hero Bluish Side Arc & Luminous Halo Portal (Centered behind Title & Chat Box) */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] h-[720px] sm:w-[940px] sm:h-[940px] lg:w-[1140px] lg:h-[1140px] pointer-events-none -z-10 flex items-center justify-center">
-          {/* Outer Right Bluish Blooming Aura */}
-          <div className="absolute top-[2%] right-[-6%] sm:right-[-2%] w-[380px] sm:w-[520px] lg:w-[660px] h-[480px] sm:h-[640px] lg:h-[780px] bg-gradient-to-bl from-blue-600/50 via-sky-400/60 to-transparent rounded-full blur-[85px] sm:blur-[105px] animate-blue-bloom" />
+        {/* Left Side Deep Royal Blue Bloom */}
+        <div
+          className="absolute -left-[14%] sm:-left-[7%] top-[25%] sm:top-[30%] w-[550px] sm:w-[750px] h-[550px] sm:h-[750px] rounded-full pointer-events-none -z-10 blur-[100px] sm:blur-[140px] opacity-90"
+          style={{
+            background:
+              'radial-gradient(ellipse at center, rgba(37,99,235,0.75) 0%, rgba(29,78,216,0.5) 45%, rgba(30,58,138,0.2) 70%, transparent 85%)',
+          }}
+        />
 
-          {/* Center Circular Portal Base with Pure White Interior */}
-          <div className="absolute inset-8 sm:inset-12 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,1)_48%,rgba(240,249,255,0.75)_65%,rgba(186,230,253,0.32)_80%,transparent_100%)] shadow-[0_0_90px_rgba(56,189,248,0.2)] animate-pulse-slow" />
+        {/* Right Side High-Reaching Electric Azure Bloom */}
+        <div
+          className="absolute -right-[16%] sm:-right-[8%] top-[14%] sm:top-[18%] w-[600px] sm:w-[850px] h-[650px] sm:h-[900px] rounded-full pointer-events-none -z-10 blur-[110px] sm:blur-[150px] opacity-95"
+          style={{
+            background:
+              'radial-gradient(ellipse at center, rgba(59,130,246,0.85) 0%, rgba(37,99,235,0.65) 45%, rgba(29,78,216,0.25) 75%, transparent 85%)',
+          }}
+        />
 
-          {/* Crisp Radiant Bluish Arc SVG (Right Side Orbital Curve) */}
+        {/* Bottom Center Horizon Intense White-Cyan Core Glow */}
+        <div
+          className="absolute -bottom-[22%] sm:-bottom-[30%] left-1/2 -translate-x-1/2 w-[850px] sm:w-[1300px] lg:w-[1600px] h-[450px] sm:h-[650px] rounded-[100%] pointer-events-none -z-10 blur-[90px] sm:blur-[120px]"
+          style={{
+            background:
+              'radial-gradient(ellipse 75% 55% at 50% 100%, rgba(255,255,255,0.98) 0%, rgba(224,242,254,0.9) 20%, rgba(147,197,253,0.75) 38%, rgba(59,130,246,0.55) 58%, rgba(29,78,216,0.25) 80%, transparent 100%)',
+          }}
+        />
+
+        {/* Vertical Coordinate Grid Columns (16 Lines Fading Out to Top) */}
+        <svg
+          className="absolute inset-0 w-full h-full pointer-events-none -z-10"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <linearGradient id="verticalGridMaskGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0" />
+              <stop offset="35%" stopColor="#ffffff" stopOpacity="0.02" />
+              <stop offset="60%" stopColor="#ffffff" stopOpacity="0.12" />
+              <stop offset="85%" stopColor="#ffffff" stopOpacity="0.26" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.05" />
+            </linearGradient>
+            <mask id="verticalGridMask">
+              <rect width="100%" height="100%" fill="url(#verticalGridMaskGrad)" />
+            </mask>
+          </defs>
+          <g mask="url(#verticalGridMask)" stroke="#93c5fd" strokeWidth="1" strokeOpacity="0.45">
+            {[...Array(17)].map((_, i) => (
+              <line key={i} x1={`${(i / 16) * 100}%`} y1="0" x2={`${(i / 16) * 100}%`} y2="100%" />
+            ))}
+          </g>
+        </svg>
+
+        {/* Intersecting Undulating Laser Sine Waves (Bottom Horizon) */}
+        <div className="absolute bottom-0 left-0 right-0 h-44 sm:h-56 pointer-events-none -z-10 overflow-hidden">
           <svg
-            className="w-full h-full overflow-visible"
-            viewBox="0 0 1000 1000"
+            className="w-full h-full"
+            viewBox="0 0 1440 240"
             fill="none"
+            preserveAspectRatio="none"
             xmlns="http://www.w3.org/2000/svg"
           >
             <defs>
-              {/* Electric Blue Gradient */}
-              <linearGradient id="blueArcGradient" x1="60%" y1="0%" x2="100%" y2="85%">
-                <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.4" />
-                <stop offset="35%" stopColor="#38bdf8" stopOpacity="0.95" />
-                <stop offset="70%" stopColor="#2563eb" stopOpacity="0.95" />
-                <stop offset="100%" stopColor="#1d4ed8" stopOpacity="0.3" />
+              <linearGradient id="waveCyanGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.1" />
+                <stop offset="25%" stopColor="#60a5fa" stopOpacity="0.5" />
+                <stop offset="65%" stopColor="#38bdf8" stopOpacity="0.65" />
+                <stop offset="100%" stopColor="#93c5fd" stopOpacity="0.2" />
               </linearGradient>
-
-              {/* Glowing Core Particle Gradient */}
-              <linearGradient id="blueCoreShimmer" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#e0f2fe" />
-                <stop offset="50%" stopColor="#38bdf8" />
-                <stop offset="100%" stopColor="#60a5fa" />
+              <linearGradient id="waveBlueGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#2563eb" stopOpacity="0.1" />
+                <stop offset="40%" stopColor="#38bdf8" stopOpacity="0.5" />
+                <stop offset="75%" stopColor="#60a5fa" stopOpacity="0.6" />
+                <stop offset="100%" stopColor="#2563eb" stopOpacity="0.15" />
               </linearGradient>
-
-              {/* Peach / Coral Top-Left Arc Gradient */}
-              <linearGradient id="coralArcGradient" x1="40%" y1="0%" x2="0%" y2="60%">
-                <stop offset="0%" stopColor="#fecdd3" stopOpacity="0.8" />
-                <stop offset="60%" stopColor="#fda4af" stopOpacity="0.6" />
-                <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.1" />
+              <linearGradient id="waveSubtleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#bae6fd" stopOpacity="0.05" />
+                <stop offset="50%" stopColor="#e0f2fe" stopOpacity="0.4" />
+                <stop offset="100%" stopColor="#bae6fd" stopOpacity="0.05" />
               </linearGradient>
-
-              {/* Gaussian Blur for Arc Bloom */}
-              <filter id="arcGlow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="22" result="blur" />
-                <feMerge>
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
             </defs>
-
-            {/* Left Coral Arc Subtle Halo */}
+            {/* Primary Sine Wave */}
             <path
-              d="M 500 70 A 430 430 0 0 0 110 520"
-              stroke="url(#coralArcGradient)"
-              strokeWidth="50"
-              strokeLinecap="round"
-              opacity="0.6"
-              className="animate-coral-bloom"
+              d="M 0 140 C 220 70, 420 180, 680 120 C 940 60, 1180 170, 1440 100"
+              stroke="url(#waveCyanGrad)"
+              strokeWidth="1.75"
+              fill="none"
             />
-
-            {/* Right Bluish Arc - Outer Soft Bloom Stroke */}
+            {/* Counter Intersecting Sine Wave */}
             <path
-              d="M 580 85 A 430 430 0 0 1 850 750"
-              stroke="url(#blueArcGradient)"
-              strokeWidth="70"
-              strokeLinecap="round"
-              filter="url(#arcGlow)"
-              className="animate-blue-arc-pulse"
+              d="M 0 110 C 260 170, 520 80, 780 160 C 1040 220, 1260 110, 1440 150"
+              stroke="url(#waveBlueGrad)"
+              strokeWidth="1.5"
+              fill="none"
             />
-
-            {/* Right Bluish Arc - High-Density Electric Core Stroke */}
+            {/* Gentle Harmonic Wave */}
             <path
-              d="M 620 95 A 430 430 0 0 1 820 720"
-              stroke="url(#blueCoreShimmer)"
-              strokeWidth="24"
-              strokeLinecap="round"
-              opacity="0.9"
-              className="animate-blue-arc-flow"
+              d="M 0 160 C 320 110, 600 190, 900 130 C 1140 85, 1320 150, 1440 120"
+              stroke="url(#waveSubtleGrad)"
+              strokeWidth="1"
+              fill="none"
             />
           </svg>
         </div>
 
-        {/* Headline: Turn your ideas into interfaces */}
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-normal text-slate-900 tracking-tight text-center mb-6 sm:mb-8">
-          Turn your <span className="font-bold text-slate-950">ideas</span> into <span className="font-bold text-slate-950">interfaces</span>
-        </h1>
+        {/* ========================================================================= */}
+        {/* TOP NAVIGATION BAR (DARK LUXURY THEME TO MATCH REFERENCE IMAGE) */}
+        {/* ========================================================================= */}
+        <header className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between relative z-40">
+          {/* Brand Logo with Glowing Circular Ring as in Reference */}
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-7 h-7 rounded-full border-2 border-white/80 flex items-center justify-center shadow-[0_0_12px_rgba(255,255,255,0.4)] group-hover:border-white transition-all">
+              <div className="w-2 h-2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
+            </div>
+            <span className="text-xl font-bold tracking-tight text-white ml-0.5">
+              mizu
+            </span>
+          </Link>
 
-        {/* ========================================================================= */}
-        {/* ========================================================================= */}
-        {/* 4. HERO CHAT INPUT CARD (FRAMER-STYLE WHITE CARD WITH 3D ROBOT MASCOT) */}
-        {/* ========================================================================= */}
-        <div className="mt-8 sm:mt-12 w-full max-w-xl sm:max-w-2xl mx-auto z-10 px-2 sm:px-0 relative">
-          {/* 3D Cute Robot Mascot sitting on top edge of the card */}
-          <div className="absolute -top-16 sm:-top-20 right-6 sm:right-10 pointer-events-none z-20 select-none">
-            <svg
-              width="100"
-              height="95"
-              viewBox="0 0 100 95"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-20 h-20 sm:w-24 sm:h-24 drop-shadow-[0_12px_20px_rgba(0,0,0,0.12)] transition-transform hover:scale-105"
+          {/* Desktop Navigation Links */}
+          <nav className="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-300">
+            <a href="#features" className="hover:text-white transition-colors">
+              Features
+            </a>
+            <a href="#platforms" className="hover:text-white transition-colors">
+              Platforms
+            </a>
+            <a href="#insights" className="hover:text-white transition-colors">
+              Insights
+            </a>
+            <a href="#pricing" className="hover:text-white transition-colors">
+              Pricing
+            </a>
+          </nav>
+
+          {/* Action Buttons */}
+          <div className="hidden sm:flex items-center space-x-4">
+            <Link
+              href="/dashboard"
+              className="text-sm font-medium text-slate-300 hover:text-white transition-colors px-2 py-1"
             >
-              <defs>
-                {/* Robot Body Gloss Gradient */}
-                <linearGradient id="robotHeadGrad" x1="20%" y1="0%" x2="80%" y2="100%">
-                  <stop offset="0%" stopColor="#ffffff" />
-                  <stop offset="50%" stopColor="#f8fafc" />
-                  <stop offset="100%" stopColor="#e2e8f0" />
-                </linearGradient>
-
-                {/* Visor Screen Gradient */}
-                <linearGradient id="robotVisorGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#0f172a" />
-                  <stop offset="100%" stopColor="#020617" />
-                </linearGradient>
-
-                {/* Glowing Green Eye Filter */}
-                <filter id="robotEyeGlow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feGaussianBlur stdDeviation="3" result="blur" />
-                  <feMerge>
-                    <feMergeNode in="blur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
-
-              {/* Antenna */}
-              <rect x="47" y="2" width="6" height="5" rx="2.5" fill="#cbd5e1" />
-              <circle cx="50" cy="2" r="3" fill="#94a3b8" />
-
-              {/* Robot Rounded Head */}
-              <rect
-                x="10"
-                y="7"
-                width="80"
-                height="54"
-                rx="22"
-                fill="url(#robotHeadGrad)"
-                stroke="#cbd5e1"
-                strokeWidth="1.5"
-              />
-
-              {/* Visor Screen */}
-              <rect
-                x="20"
-                y="15"
-                width="60"
-                height="38"
-                rx="14"
-                fill="url(#robotVisorGrad)"
-              />
-
-              {/* Camera Sensor Dot */}
-              <circle cx="50" cy="20" r="1.8" fill="#64748b" />
-
-              {/* Left Glowing Green Eye */}
-              <rect
-                x="33"
-                y="27"
-                width="9"
-                height="13"
-                rx="3.5"
-                fill="#4ade80"
-                filter="url(#robotEyeGlow)"
-              />
-
-              {/* Right Glowing Green Eye */}
-              <rect
-                x="58"
-                y="27"
-                width="9"
-                height="13"
-                rx="3.5"
-                fill="#4ade80"
-                filter="url(#robotEyeGlow)"
-              />
-
-              {/* Neck Joint */}
-              <rect x="45" y="61" width="10" height="6" rx="2.5" fill="#cbd5e1" />
-
-              {/* Torso resting behind card rim */}
-              <ellipse cx="50" cy="71" rx="18" ry="7" fill="#e2e8f0" />
-
-              {/* Left Leg (sitting & hanging over card rim) */}
-              <rect
-                x="34"
-                y="68"
-                width="10"
-                height="20"
-                rx="5"
-                fill="#f1f5f9"
-                stroke="#cbd5e1"
-                strokeWidth="1"
-              />
-
-              {/* Right Leg (sitting & hanging over card rim) */}
-              <rect
-                x="56"
-                y="68"
-                width="10"
-                height="20"
-                rx="5"
-                fill="#f1f5f9"
-                stroke="#cbd5e1"
-                strokeWidth="1"
-              />
-            </svg>
+              Login
+            </Link>
+            <Link
+              href="/dashboard"
+              className="px-5 py-2 text-xs sm:text-sm font-semibold text-slate-950 bg-white hover:bg-slate-100 rounded-full shadow-sm hover:shadow transition-all hover:scale-[1.02] active:scale-98"
+            >
+              Sign up
+            </Link>
           </div>
 
-          {/* White Card Surface */}
-          <div className="bg-white rounded-[26px] p-5 sm:p-6 border border-slate-200/90 shadow-[0_20px_50px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)] text-left relative transition-all hover:shadow-[0_25px_60px_rgba(0,0,0,0.09)]">
-            {/* Input field area */}
-            <div className="flex items-start justify-between min-h-[46px]">
-              <div className="flex items-center text-slate-800 text-sm sm:text-base w-full">
-                <span className="text-blue-500 mr-1.5 animate-cursor-blink font-light text-lg">|</span>
-                <input
-                  type="text"
-                  value={promptText}
-                  onChange={(e) => setPromptText(e.target.value)}
-                  placeholder={typedPlaceholder || "What do you want to design?"}
-                  className="bg-transparent border-none outline-none text-slate-800 placeholder-slate-400 text-sm sm:text-base w-full font-normal"
-                />
-              </div>
-            </div>
+          {/* Mobile Menu Button */}
+          <div className="flex sm:hidden">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 text-slate-300 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+              aria-label="Toggle Menu"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+        </header>
 
-            {/* Bottom Controls Bar */}
-            <div className="mt-4 pt-3.5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
-              {/* Left Group */}
-              <div className="flex items-center gap-2 flex-wrap">
-                {/* Paperclip Button */}
-                <button
-                  type="button"
-                  aria-label="Attachment"
-                  className="w-8 h-8 rounded-full border border-slate-200/90 hover:border-slate-300 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-600 transition-colors shadow-2xs"
-                >
-                  <Paperclip className="w-3.5 h-3.5" />
-                </button>
-
-                {/* Design Style Pill Dropdown */}
-                <button
-                  type="button"
-                  className="px-3.5 py-1.5 rounded-full border border-slate-200/90 hover:border-slate-300 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 flex items-center gap-1.5 transition-colors shadow-2xs"
-                >
-                  <span>Design Style</span>
-                  <ChevronDown className="w-3 h-3 text-slate-400" />
-                </button>
-
-                {/* Ideas Pill with light blue badge */}
-                <button
-                  type="button"
-                  onClick={() => setPromptText("Back up my files to Google Drive every Friday")}
-                  className="px-3.5 py-1.5 rounded-full border border-blue-200/70 bg-blue-50/90 hover:bg-blue-100/80 text-blue-600 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
-                >
-                  <Lightbulb className="w-3.5 h-3.5 text-blue-600" />
-                  <span>Ideas</span>
-                </button>
-              </div>
-
-              {/* Right Group */}
-              <div className="flex items-center gap-2.5 ml-auto">
-                {/* Framer / Mizu AI Dropdown */}
-                <button
-                  type="button"
-                  className="text-xs font-medium text-slate-700 hover:text-slate-900 flex items-center gap-1 transition-colors px-1 py-1"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-slate-900" />
-                  <span>Framer AI</span>
-                  <ChevronDown className="w-3 h-3 text-slate-400" />
-                </button>
-
-                {/* Black Pill Action Button with Audio Soundwave Bars */}
-                <Link
-                  href="/dashboard"
-                  aria-label="Voice & Send"
-                  className="bg-slate-950 hover:bg-slate-800 text-white px-3.5 py-1.5 rounded-full flex items-center justify-center gap-1 shadow-sm transition-all hover:scale-[1.03] active:scale-98"
-                >
-                  <span className="flex items-center gap-[2px] h-4">
-                    <span className="w-[2px] h-2 bg-white rounded-full animate-pulse" />
-                    <span className="w-[2px] h-3.5 bg-white rounded-full animate-pulse" />
-                    <span className="w-[2px] h-2.5 bg-white rounded-full animate-pulse" />
-                    <span className="w-[2px] h-3 bg-white rounded-full animate-pulse" />
-                  </span>
-                </Link>
-              </div>
+        {/* Mobile Menu Dropdown */}
+        {mobileMenuOpen && (
+          <div className="sm:hidden px-6 pt-3 pb-6 space-y-4 bg-[#080d1a]/95 backdrop-blur-xl border-b border-blue-900/40 shadow-2xl relative z-30 text-white">
+            <nav className="flex flex-col space-y-3 text-base font-medium text-slate-200">
+              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="hover:text-white">
+                Features
+              </a>
+              <a href="#platforms" onClick={() => setMobileMenuOpen(false)} className="hover:text-white">
+                Platforms
+              </a>
+              <a href="#insights" onClick={() => setMobileMenuOpen(false)} className="hover:text-white">
+                Insights
+              </a>
+              <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="hover:text-white">
+                Pricing
+              </a>
+            </nav>
+            <div className="pt-4 border-t border-white/10 flex flex-col gap-2.5">
+              <Link
+                href="/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full text-center py-2.5 text-sm font-medium text-white border border-white/20 rounded-full hover:bg-white/10"
+              >
+                Login
+              </Link>
+              <Link
+                href="/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full text-center py-2.5 text-sm font-semibold text-slate-950 bg-white hover:bg-slate-100 rounded-full"
+              >
+                Sign up
+              </Link>
             </div>
           </div>
-        </div>
-      </section>
+        )}
+
+        {/* ========================================================================= */}
+        {/* HERO MAIN CONTENT SECTION */}
+        {/* ========================================================================= */}
+        <section className="relative min-h-[calc(100vh-100px)] flex flex-col justify-center items-center pt-8 pb-14 sm:pt-12 sm:pb-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
+          
+          {/* Mode Switcher Pill (App Generator or Mobile Chat Showcase) */}
+          <div className="flex items-center justify-center gap-2 mb-6 sm:mb-8 z-20">
+            <div className="inline-flex items-center p-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-medium">
+              <button
+                type="button"
+                onClick={() => setHeroViewMode('generator')}
+                className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+                  heroViewMode === 'generator'
+                    ? 'bg-white text-slate-950 font-semibold shadow-sm'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                <Zap className="w-3.5 h-3.5" />
+                <span>App Generator</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setHeroViewMode('mobile')}
+                className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+                  heroViewMode === 'mobile'
+                    ? 'bg-white text-slate-950 font-semibold shadow-sm'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>Mobile Chat (ChatGPT)</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Big Headline (Exact to Reference Image) */}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-normal text-white tracking-tight text-center max-w-4xl mx-auto leading-tight">
+            Build Apps <span className="font-semibold text-white">People Love</span>
+          </h1>
+
+          {/* Subtitle (Exact to Reference Image) */}
+          <p className="text-slate-300/90 text-sm sm:text-base font-light text-center max-w-2xl mx-auto mt-3 sm:mt-4 mb-8 sm:mb-10 leading-relaxed">
+            From ideas to Apps, generate, design and ship native platform apps with an ai-powered workflow built for creators.
+          </p>
+
+          {/* ========================================================================= */}
+          {/* VIEW MODE 1: FROSTED GLASS APP GENERATOR CARD (FROM REFERENCE IMAGE) */}
+          {/* ========================================================================= */}
+          {heroViewMode === 'generator' && (
+            <div className="w-full max-w-2xl mx-auto relative z-20">
+              <form
+                onSubmit={handleGenerate}
+                className="bg-white/85 sm:bg-white/90 backdrop-blur-2xl rounded-[28px] sm:rounded-[32px] p-6 sm:p-7 border border-white/70 shadow-[0_25px_60px_rgba(0,0,0,0.35)] text-left transition-all hover:shadow-[0_30px_70px_rgba(0,0,0,0.4)]"
+              >
+                {/* Input prompt area */}
+                <div className="min-h-[52px] flex items-start">
+                  <input
+                    type="text"
+                    value={generatePrompt}
+                    onChange={(e) => setGeneratePrompt(e.target.value)}
+                    placeholder="Type something to generate"
+                    className="w-full bg-transparent text-slate-800 placeholder-slate-400 text-sm sm:text-base font-normal outline-none"
+                  />
+                </div>
+
+                {/* Bottom Platform Pills & Generate Button */}
+                <div className="mt-5 pt-4 border-t border-slate-200/70 flex flex-wrap items-center justify-between gap-3">
+                  {/* Platform Pills */}
+                  <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                    {(['Android', 'iOS', 'Mac OS', 'Windows'] as const).map((platform) => (
+                      <button
+                        key={platform}
+                        type="button"
+                        onClick={() => setSelectedPlatform(platform)}
+                        className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                          selectedPlatform === platform
+                            ? 'bg-slate-900 text-white shadow-xs'
+                            : 'bg-slate-100/90 hover:bg-slate-200 text-slate-700'
+                        }`}
+                      >
+                        {platform}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Generate Button */}
+                  <button
+                    type="submit"
+                    disabled={isGenerating}
+                    className="px-6 py-2 rounded-full bg-slate-950 hover:bg-slate-800 text-white text-xs sm:text-sm font-medium shadow-md transition-all hover:scale-[1.02] active:scale-98 ml-auto flex items-center gap-1.5 cursor-pointer disabled:opacity-75"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>Generating...</span>
+                      </>
+                    ) : generatedSuccess ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Generated!</span>
+                      </>
+                    ) : (
+                      <span>Generate</span>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* VIEW MODE 2: IPHONE CHATGPT MOBILE SHOWCASE */}
+          {/* ========================================================================= */}
+          {heroViewMode === 'mobile' && (
+            <div className="w-full flex justify-center z-20 px-3 sm:px-0 relative">
+              {/* iPhone 16 Pro Style Hardware Chassis */}
+              <div className="w-full max-w-[340px] sm:max-w-[375px] h-[640px] sm:h-[680px] bg-white rounded-[46px] sm:rounded-[50px] border-[8px] sm:border-[10px] border-slate-950 shadow-[0_25px_80px_rgba(0,0,0,0.4),0_10px_30px_rgba(0,0,0,0.25)] ring-1 ring-slate-900/20 flex flex-col relative overflow-hidden transition-all duration-300">
+                {/* Top iOS Status Bar with Dynamic Island */}
+                <div className="bg-white/95 backdrop-blur-md pt-3 px-5 pb-2 flex items-center justify-between z-30 shrink-0 border-b border-slate-100/50">
+                  <span className="text-[11px] font-semibold text-slate-800 tracking-tight">9:41</span>
+                  
+                  {/* Dynamic Island Notch */}
+                  <div className="w-20 h-4.5 bg-black rounded-full flex items-center justify-end px-2 mx-auto">
+                    <div className="w-1.5 h-1.5 rounded-full bg-slate-900 border border-slate-700/80" />
+                  </div>
+
+                  {/* Status Icons */}
+                  <div className="flex items-center gap-1.5 text-slate-800">
+                    <Signal className="w-3 h-3 stroke-[2.2]" />
+                    <Wifi className="w-3 h-3 stroke-[2.2]" />
+                    <Battery className="w-4 h-4 stroke-[2.2]" />
+                  </div>
+                </div>
+
+                {/* Inner Phone Content (Scrollable Area) */}
+                <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar bg-gradient-to-b from-sky-50/70 via-white to-white text-slate-900">
+                  {/* Profile Bar & Actions */}
+                  <div className="px-5 pt-3 pb-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 p-[2px] shadow-sm">
+                        <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-xs font-bold text-sky-700">
+                          IM
+                        </div>
+                      </div>
+                      <div className="text-left">
+                        <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Personal</div>
+                        <div className="text-xs font-bold text-slate-800">$8,690.00</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        aria-label="Notifications"
+                        className="w-8 h-8 rounded-full bg-white/80 hover:bg-white shadow-2xs border border-slate-200/70 flex items-center justify-center text-slate-600 transition-colors"
+                      >
+                        <Bell className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Options"
+                        className="w-8 h-8 rounded-full bg-white/80 hover:bg-white shadow-2xs border border-slate-200/70 flex items-center justify-center text-slate-600 transition-colors"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-sky-500" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Big Greeting: Hello, Imran */}
+                  <div className="px-5 pt-1.5 pb-2 text-left">
+                    <h2 className="text-xl sm:text-2xl font-light text-slate-700 tracking-tight">
+                      Hello, <span className="font-bold text-slate-900">Imran</span>
+                    </h2>
+                  </div>
+
+                  {/* Floating Auto-Categorized Cards */}
+                  <div className="mx-4 my-1 p-3 rounded-2xl bg-gradient-to-r from-sky-500/90 to-blue-600/95 text-white shadow-md shadow-sky-500/20 space-y-2 text-left backdrop-blur-xs">
+                    {/* Item 1: Grocery Store */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center text-white shrink-0">
+                          <ShoppingCart className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <div className="text-xs font-semibold leading-tight">Grocery Store</div>
+                          <div className="text-[10px] text-sky-100 opacity-90">-$49.50 • Auto-categorized</div>
+                        </div>
+                      </div>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white font-medium">
+                        Food
+                      </span>
+                    </div>
+
+                    <div className="h-px bg-white/15 w-full" />
+
+                    {/* Item 2: Coffee Shop */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center text-white shrink-0">
+                          <Coffee className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <div className="text-xs font-semibold leading-tight">Coffee Shop</div>
+                          <div className="text-[10px] text-sky-100 opacity-90">-$4.50 • Auto-categorized</div>
+                        </div>
+                      </div>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white font-medium">
+                        Cafe
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Chat Stream */}
+                  <div className="flex-1 px-4 py-3 space-y-3 text-left">
+                    <div className="text-center my-1">
+                      <span className="text-[10px] uppercase font-semibold text-slate-400 bg-slate-100/90 px-2.5 py-0.5 rounded-full">
+                        Today with Mizu AI
+                      </span>
+                    </div>
+
+                    {mobileChat.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start items-start gap-2'}`}
+                      >
+                        {msg.sender === 'assistant' && (
+                          <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-white shrink-0 shadow-2xs mt-0.5">
+                            <Sparkles className="w-3 h-3" />
+                          </div>
+                        )}
+                        <div
+                          className={`max-w-[85%] text-xs leading-relaxed px-3.5 py-2.5 rounded-2xl ${
+                            msg.sender === 'user'
+                              ? 'bg-slate-900 text-white rounded-tr-xs shadow-xs font-normal'
+                              : 'bg-white text-slate-800 rounded-tl-xs shadow-2xs border border-slate-100'
+                          }`}
+                        >
+                          {msg.text}
+                          {msg.time && (
+                            <div
+                              className={`text-[9px] mt-1 text-right ${
+                                msg.sender === 'user' ? 'text-slate-400' : 'text-slate-400'
+                              }`}
+                            >
+                              {msg.time}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+
+                    {isAiTyping && (
+                      <div className="flex items-start gap-2">
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-white shrink-0 shadow-2xs mt-0.5">
+                          <Sparkles className="w-3 h-3" />
+                        </div>
+                        <div className="bg-white border border-slate-100 rounded-2xl rounded-tl-xs px-3 py-2 flex items-center gap-1 shadow-2xs">
+                          <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-bounce" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-bounce [animation-delay:0.15s]" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-bounce [animation-delay:0.3s]" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* ChatGPT iOS Mobile Style Bottom Input Bar */}
+                <form
+                  onSubmit={handleMobileSend}
+                  className="p-2.5 bg-white border-t border-slate-100/90 flex flex-col gap-1.5 shrink-0"
+                >
+                  <div className="flex items-center gap-2">
+                    {/* Plus (+) Button */}
+                    <button
+                      type="button"
+                      aria-label="Add attachment"
+                      className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center shrink-0 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+
+                    {/* Pill Input Container */}
+                    <div className="flex-1 bg-slate-100/90 rounded-full px-3.5 py-1.5 flex items-center gap-2 border border-slate-200/50 focus-within:border-sky-400 focus-within:bg-white transition-all">
+                      <input
+                        type="text"
+                        value={mobileInput}
+                        onChange={(e) => setMobileInput(e.target.value)}
+                        placeholder="Message Mizu..."
+                        className="bg-transparent text-xs text-slate-800 placeholder-slate-400 outline-none w-full font-normal"
+                      />
+                      <button
+                        type="button"
+                        aria-label="Voice input"
+                        className="text-slate-400 hover:text-slate-600 transition-colors shrink-0"
+                      >
+                        <Mic className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {/* Right Action Button (Send Arrow if text, Headphones if empty) */}
+                    {mobileInput.trim() ? (
+                      <button
+                        type="submit"
+                        aria-label="Send message"
+                        className="w-8 h-8 rounded-full bg-slate-950 hover:bg-slate-800 text-white flex items-center justify-center shrink-0 shadow-2xs transition-transform active:scale-95 cursor-pointer"
+                      >
+                        <ArrowUp className="w-4 h-4 stroke-[2.5]" />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        aria-label="Voice conversation"
+                        className="w-8 h-8 rounded-full bg-slate-950 hover:bg-slate-800 text-white flex items-center justify-center shrink-0 shadow-2xs transition-transform active:scale-95 cursor-pointer"
+                      >
+                        <Headphones className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* iPhone Home Indicator Line */}
+                  <div className="w-28 h-1 bg-slate-300/80 rounded-full mx-auto mt-1 mb-0.5" />
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Floating Horizon Badge (Exact match to Reference Image) */}
+          <div className="mt-8 sm:mt-12 flex items-center justify-center gap-2 text-slate-400 text-xs sm:text-sm font-light z-20">
+            <span className="text-sky-400 text-base leading-none">•</span>
+            <span>Launch app 10x faster</span>
+          </div>
+
+        </section>
+      </div>
 
       {/* ========================================================================= */}
       {/* 5. INTERACTIVE WORKFLOW FLOW VISUALIZER (MOVED DOWN WITH GENEROUS SPACING) */}
