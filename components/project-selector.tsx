@@ -12,7 +12,7 @@ export function ProjectSelector() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-3.5 py-2.5 text-sm font-semibold text-slate-200 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 rounded-xl transition-colors shadow-xs"
+        className="w-full flex items-center justify-between px-3.5 py-2.5 text-sm font-semibold text-slate-200 bg-[#020c24]/75 hover:bg-[#020c24]/95 border border-blue-900/40 hover:border-[#53E2FE]/30 rounded-xl transition-colors shadow-xs backdrop-blur-md"
       >
         <div className="flex items-center space-x-2.5 truncate">
           <FolderGit2 className="w-4 h-4 text-[#53E2FE] shrink-0" />
@@ -22,13 +22,13 @@ export function ProjectSelector() {
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1.5 bg-[#161922] border border-slate-800 rounded-xl shadow-2xl z-50 py-1.5 backdrop-blur-md">
+        <div className="absolute top-full left-0 right-0 mt-1.5 bg-[#020c24]/95 border border-[#53E2FE]/25 rounded-xl shadow-2xl z-50 py-1.5 backdrop-blur-xl">
           <button
             onClick={() => {
               setSelectedProject(DEMO_PROJECT.name);
               setIsOpen(false);
             }}
-            className="w-full text-left px-3.5 py-2 text-sm text-slate-200 hover:bg-slate-800/80 flex items-center space-x-2"
+            className="w-full text-left px-3.5 py-2 text-sm text-slate-200 hover:bg-white/[0.08] flex items-center space-x-2"
           >
             <span className="w-2 h-2 rounded-full bg-[#53E2FE]"></span>
             <span className="truncate font-semibold text-white">{DEMO_PROJECT.name}</span>
@@ -38,15 +38,15 @@ export function ProjectSelector() {
               setSelectedProject('ERHA Marketing');
               setIsOpen(false);
             }}
-            className="w-full text-left px-3.5 py-2 text-sm text-slate-300 hover:bg-slate-800/80 flex items-center space-x-2"
+            className="w-full text-left px-3.5 py-2 text-sm text-slate-300 hover:bg-white/[0.08] flex items-center space-x-2"
           >
             <span className="w-2 h-2 rounded-full bg-slate-500"></span>
             <span className="truncate">ERHA Marketing</span>
           </button>
-          <div className="border-t border-slate-800 my-1"></div>
+          <div className="border-t border-[#53E2FE]/15 my-1"></div>
           <a
             href="/dashboard/projects"
-            className="w-full text-left px-3.5 py-2 text-xs font-bold text-[#53E2FE] hover:bg-slate-800/80 flex items-center space-x-1.5"
+            className="w-full text-left px-3.5 py-2 text-xs font-bold text-[#53E2FE] hover:bg-white/[0.08] flex items-center space-x-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Manage Projects</span>
