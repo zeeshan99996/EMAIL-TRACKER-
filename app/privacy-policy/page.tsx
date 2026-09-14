@@ -60,7 +60,7 @@ export default function PrivacyPolicyPage() {
           </div>
 
           <div className="rounded-2xl bg-[#071126]/90 border border-slate-800 p-5 space-y-2">
-            <Server className="w-5 h-5 text-[#c6f432]" />
+            <Server className="w-5 h-5 text-[#53E2FE]" />
             <h3 className="font-bold text-white text-sm">Google API Compliance</h3>
             <p className="text-xs text-slate-300 leading-relaxed">
               Strict adherence to Google API Services User Data Policy, ensuring Limited Use requirements are fully honored.

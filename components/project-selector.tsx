@@ -15,7 +15,7 @@ export function ProjectSelector() {
         className="w-full flex items-center justify-between px-3.5 py-2.5 text-sm font-semibold text-slate-200 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 rounded-xl transition-colors shadow-xs"
       >
         <div className="flex items-center space-x-2.5 truncate">
-          <FolderGit2 className="w-4 h-4 text-[#c6f432] shrink-0" />
+          <FolderGit2 className="w-4 h-4 text-[#53E2FE] shrink-0" />
           <span className="truncate">{selectedProject}</span>
         </div>
         <ChevronDown className="w-4 h-4 text-slate-400 shrink-0 ml-1" />
@@ -30,7 +30,7 @@ export function ProjectSelector() {
             }}
             className="w-full text-left px-3.5 py-2 text-sm text-slate-200 hover:bg-slate-800/80 flex items-center space-x-2"
           >
-            <span className="w-2 h-2 rounded-full bg-[#c6f432]"></span>
+            <span className="w-2 h-2 rounded-full bg-[#53E2FE]"></span>
             <span className="truncate font-semibold text-white">{DEMO_PROJECT.name}</span>
           </button>
           <button
@@ -46,7 +46,7 @@ export function ProjectSelector() {
           <div className="border-t border-slate-800 my-1"></div>
           <a
             href="/dashboard/projects"
-            className="w-full text-left px-3.5 py-2 text-xs font-bold text-[#c6f432] hover:bg-slate-800/80 flex items-center space-x-1.5"
+            className="w-full text-left px-3.5 py-2 text-xs font-bold text-[#53E2FE] hover:bg-slate-800/80 flex items-center space-x-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Manage Projects</span>

@@ -97,7 +97,7 @@ export default function AboutPage() {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-lg bg-[#c6f432]/10 text-[#c6f432] flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs">
+                  <div className="w-6 h-6 rounded-lg bg-[#53E2FE]/15 text-[#53E2FE] flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs">
                     ✓
                   </div>
                   <div>
@@ -148,7 +148,7 @@ export default function AboutPage() {
                 </div>
                 <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
                   <p className="text-xs text-slate-400">Warmup Accounts</p>
-                  <p className="text-2xl font-black text-[#c6f432] mt-1">Unlimited</p>
+                  <p className="text-2xl font-black text-[#53E2FE] mt-1">Unlimited</p>
                   <span className="text-[10px] text-slate-400 font-semibold">Fleet connectivity</span>
                 </div>
                 <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
@@ -166,7 +166,7 @@ export default function AboutPage() {
         {/* ========================================================================= */}
         <section className="space-y-12">
           <div className="border-b border-slate-800 pb-5">
-            <span className="text-xs font-bold uppercase tracking-widest text-[#c6f432]">
+            <span className="text-xs font-bold uppercase tracking-widest text-[#53E2FE]">
               The Innovation Powerhouse
             </span>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">

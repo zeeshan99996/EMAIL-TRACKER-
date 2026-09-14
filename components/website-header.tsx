@@ -90,7 +90,7 @@ export function WebsiteHeader({ onGetStartedClick }: WebsiteHeaderProps) {
           {hasUser ? (
             <Link
               href="/dashboard"
-              className="px-5 py-2 text-xs sm:text-sm font-bold text-slate-950 bg-[#c6f432] hover:bg-[#b8e82a] rounded-full shadow-md shadow-[#c6f432]/20 transition-all hover:scale-[1.02] active:scale-98 flex items-center gap-1.5"
+              className="px-5 py-2 text-xs sm:text-sm font-bold text-slate-950 bg-[#53E2FE] hover:bg-[#38bdf8] rounded-full shadow-md shadow-[#53E2FE]/25 transition-all hover:scale-[1.02] active:scale-98 flex items-center gap-1.5"
             >
               <span>Dashboard</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -112,7 +112,7 @@ export function WebsiteHeader({ onGetStartedClick }: WebsiteHeaderProps) {
           {hasUser && (
             <Link
               href="/dashboard"
-              className="px-3 py-1.5 text-xs font-bold text-slate-950 bg-[#c6f432] rounded-full sm:hidden"
+              className="px-3 py-1.5 text-xs font-bold text-slate-950 bg-[#53E2FE] rounded-full sm:hidden"
             >
               Dashboard
             </Link>
@@ -156,7 +156,7 @@ export function WebsiteHeader({ onGetStartedClick }: WebsiteHeaderProps) {
               <Link
                 href="/dashboard"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center py-2.5 text-sm font-bold text-slate-950 bg-[#c6f432] hover:bg-[#b8e82a] rounded-full shadow-md"
+                className="w-full text-center py-2.5 text-sm font-bold text-slate-950 bg-[#53E2FE] hover:bg-[#38bdf8] rounded-full shadow-md"
               >
                 Open Dashboard
               </Link>

@@ -62,7 +62,7 @@ export default function FeaturesPage() {
       title: 'Google Apps Script & REST API',
       desc: 'Deploy tracking directly within Google Sheets and Gmail using our pre-built Apps Script integration. Full REST API and webhooks for seamless CRM pipeline integration.',
       badge: 'Developer First',
-      accent: 'text-[#c6f432] bg-[#c6f432]/10 border-[#c6f432]/30',
+      accent: 'text-[#53E2FE] bg-[#53E2FE]/10 border-[#53E2FE]/30',
     },
   ];
 
@@ -180,7 +180,7 @@ export default function FeaturesPage() {
 
                   <div className="pt-5 mt-4 border-t border-slate-800/80 flex items-center text-xs text-slate-400 group-hover:text-white transition-colors">
                     <span>Included in all accounts</span>
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#c6f432] ml-2" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#53E2FE] ml-2" />
                   </div>
                 </div>
               );
@@ -193,7 +193,7 @@ export default function FeaturesPage() {
         {/* ========================================================================= */}
         <section className="space-y-12">
           <div className="border-b border-slate-800 pb-5">
-            <span className="text-xs font-bold uppercase tracking-widest text-[#c6f432]">
+            <span className="text-xs font-bold uppercase tracking-widest text-[#53E2FE]">
               User Walkthrough
             </span>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">

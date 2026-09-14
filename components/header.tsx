@@ -103,8 +103,8 @@ export function Header({
                   Warmup Active
                 </span>
               ) : (
-                <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-ping" />
+                <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-50 text-sky-800 border border-sky-200/80">
+                  <span className="w-2 h-2 rounded-full bg-[#53E2FE] mr-1.5 animate-ping" />
                   Live Engine
                 </span>
               )}
@@ -130,7 +130,7 @@ export function Header({
           {isWarmupMode ? (
             <Link
               href="/dashboard/warmup/accounts"
-              className="flex items-center space-x-2 px-4 py-2 text-xs font-bold text-slate-950 bg-[#c6f432] hover:bg-[#b8e82a] rounded-xl shadow-sm transition-all"
+              className="flex items-center space-x-2 px-4 py-2 text-xs font-bold text-slate-950 bg-[#53E2FE] hover:bg-[#38bdf8] rounded-xl shadow-sm transition-all"
             >
               <Inbox className="w-4 h-4 text-slate-950" />
               <span className="hidden sm:inline">Connect Mailbox</span>
@@ -141,7 +141,7 @@ export function Header({
               onClick={() => setIsTestModalOpen(true)}
               className="flex items-center space-x-2 px-4 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl shadow-sm transition-colors"
             >
-              <Plus className="w-4 h-4 text-[#c6f432]" />
+              <Plus className="w-4 h-4 text-[#53E2FE]" />
               <span className="hidden sm:inline">Send Test Email</span>
               <span className="sm:hidden">Test</span>
             </button>

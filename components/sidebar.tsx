@@ -44,7 +44,7 @@ const trackerNavSections: NavSection[] = [
     items: [
       { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
       { name: 'Tracked Emails', href: '/dashboard/emails', icon: Mail },
-      { name: 'Email Verifier', href: '/dashboard/verifier', icon: ShieldCheck, badge: 'Clean', badgeColor: 'bg-emerald-500/20 text-emerald-300' },
+      { name: 'Email Verifier', href: '/dashboard/verifier', icon: ShieldCheck, badge: 'Clean', badgeColor: 'bg-[#53E2FE]/20 text-[#53E2FE]' },
       { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     ],
   },
@@ -159,7 +159,7 @@ export function Sidebar({
                   <span className="font-black text-lg tracking-tight text-white group-hover:text-slate-200 transition-colors">
                     MAILIFY
                   </span>
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#c6f432] text-slate-950">
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#53E2FE] text-slate-950">
                     2.0
                   </span>
                 </div>
@@ -186,7 +186,7 @@ export function Sidebar({
                 onClick={() => setMobileOpen && setMobileOpen(false)}
                 className={`flex-1 flex items-center justify-center py-2 px-2.5 rounded-xl font-bold transition-all text-xs ${
                   !isWarmupMode
-                    ? 'bg-[#c6f432] text-slate-950 shadow-sm font-black'
+                    ? 'bg-[#53E2FE] text-slate-950 shadow-sm font-black'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -199,7 +199,7 @@ export function Sidebar({
                 onClick={() => setMobileOpen && setMobileOpen(false)}
                 className={`flex-1 flex items-center justify-center py-2 px-2.5 rounded-xl font-bold transition-all text-xs ${
                   isWarmupMode
-                    ? 'bg-[#c6f432] text-slate-950 shadow-sm font-black'
+                    ? 'bg-[#53E2FE] text-slate-950 shadow-sm font-black'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -215,7 +215,7 @@ export function Sidebar({
               className="w-full flex items-center justify-center py-2 px-3 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 rounded-xl transition-all border border-slate-800 hover:border-slate-700 shadow-xs group"
               title="Return to Main Website"
             >
-              <span className="text-[#c6f432] mr-1.5 transition-transform group-hover:-translate-x-0.5">←</span>
+              <span className="text-[#53E2FE] mr-1.5 transition-transform group-hover:-translate-x-0.5">←</span>
               <span>Back to Website</span>
             </Link>
           </div>
@@ -247,7 +247,7 @@ export function Sidebar({
                         onClick={() => setMobileOpen && setMobileOpen(false)}
                         className={`flex items-center justify-between px-3.5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-150 ${
                           isActive
-                            ? 'bg-[#c6f432] text-slate-950 shadow-md shadow-[#c6f432]/10 font-bold'
+                            ? 'bg-[#53E2FE] text-slate-950 shadow-md shadow-[#53E2FE]/20 font-bold'
                             : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
                         }`}
                       >
@@ -281,7 +281,7 @@ export function Sidebar({
 
         {/* Bottom Accent Widget (like reference image) */}
         <div className="p-3">
-          <div className="relative overflow-hidden p-3.5 rounded-2xl bg-[#c6f432]/10 border border-[#c6f432]/20">
+          <div className="relative overflow-hidden p-3.5 rounded-2xl bg-[#53E2FE]/10 border border-[#53E2FE]/25">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-white">Google Apps Script</p>
@@ -289,7 +289,7 @@ export function Sidebar({
               </div>
               <Link
                 href="/dashboard/api-keys"
-                className="w-8 h-8 rounded-full bg-[#c6f432] text-slate-950 flex items-center justify-center shadow-sm hover:scale-105 transition-transform"
+                className="w-8 h-8 rounded-full bg-[#53E2FE] text-slate-950 flex items-center justify-center shadow-sm hover:scale-105 transition-transform"
                 title="View Apps Script & API Key"
               >
                 <ArrowUpRight className="w-4 h-4 font-bold stroke-[2.5]" />

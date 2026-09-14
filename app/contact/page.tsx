@@ -271,7 +271,7 @@ export default function ContactPage() {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <Clock className="w-4 h-4 text-[#c6f432] shrink-0 mt-0.5" />
+                  <Clock className="w-4 h-4 text-[#53E2FE] shrink-0 mt-0.5" />
                   <div>
                     <p className="text-white font-semibold">Response Time SLA</p>
                     <p className="text-slate-400">Within 2 hours during active business hours</p>
