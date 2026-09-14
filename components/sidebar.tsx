@@ -133,68 +133,21 @@ export function Sidebar({
         />
       )}
 
-      {/* Sidebar Container - Lighter Website Hero Section Gradient */}
+      {/* Sidebar Container - Dark Style with Pure White Text */}
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-50 w-72 bg-gradient-to-b from-[#082854] via-[#0b3e7a] via-[#0d549c] to-[#0275b8] border-r border-[#53E2FE]/40 flex flex-col justify-between transition-transform duration-300 ease-in-out md:translate-x-0 relative overflow-hidden text-white shadow-[10px_0_40px_rgba(2,16,41,0.5)] ${
+        className={`fixed md:static inset-y-0 left-0 z-50 w-72 bg-[#0d131f] border-r border-slate-800/80 flex flex-col justify-between transition-transform duration-300 ease-in-out md:translate-x-0 text-white ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Background Ambient Glows - Lighter & More Radiant */}
-        {/* Top-Left Ambient Cyan Bloom */}
-        <div
-          className="absolute -top-10 -left-10 w-64 h-64 rounded-full pointer-events-none blur-[50px] opacity-60 z-0"
-          style={{
-            background:
-              'radial-gradient(ellipse at center, rgba(83,226,254,0.75) 0%, rgba(14,165,233,0.45) 50%, transparent 75%)',
-          }}
-        />
-
-        {/* Mid-Right Vibrant #53E2FE Aurora */}
-        <div
-          className="absolute top-[35%] -right-14 w-64 h-64 rounded-full pointer-events-none blur-[55px] opacity-55 z-0"
-          style={{
-            background:
-              'radial-gradient(ellipse at center, #53E2FE 0%, rgba(14,165,233,0.55) 45%, rgba(2,132,199,0.3) 70%, transparent 85%)',
-          }}
-        />
-
-        {/* Bottom Horizon Intense White & #53E2FE Core Glow */}
-        <div
-          className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-80 h-56 rounded-full pointer-events-none blur-[50px] opacity-65 z-0"
-          style={{
-            background:
-              'radial-gradient(ellipse at center, #ffffff 0%, #53E2FE 45%, rgba(4,51,108,0.7) 70%, transparent 95%)',
-          }}
-        />
-
-        {/* Vertical Coordinate Grid Lines (Hero Texture) */}
-        <svg
-          className="absolute inset-0 w-full h-full pointer-events-none z-0 opacity-20"
-          preserveAspectRatio="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <defs>
-            <linearGradient id="sidebarGridGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.1" />
-              <stop offset="40%" stopColor="#53E2FE" stopOpacity="0.35" />
-              <stop offset="85%" stopColor="#53E2FE" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.2" />
-            </linearGradient>
-          </defs>
-          <line x1="25%" y1="0" x2="25%" y2="100%" stroke="url(#sidebarGridGrad)" strokeWidth="1" strokeDasharray="4 6" />
-          <line x1="50%" y1="0" x2="50%" y2="100%" stroke="url(#sidebarGridGrad)" strokeWidth="1" strokeDasharray="4 6" />
-          <line x1="75%" y1="0" x2="75%" y2="100%" stroke="url(#sidebarGridGrad)" strokeWidth="1" strokeDasharray="4 6" />
-        </svg>
-
-        <div className="flex-1 flex flex-col min-h-0 overflow-y-auto relative z-10">
+        <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
           {/* Logo Brand Header */}
-          <div className="h-20 px-6 flex items-center justify-between border-b border-white/15 bg-black/10 backdrop-blur-xs">
+          <div className="h-20 px-6 flex items-center justify-between border-b border-slate-800/80">
             <Link
               href="/dashboard"
               className="flex items-center space-x-3 group"
               onClick={() => setMobileOpen && setMobileOpen(false)}
             >
-              <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/30 flex items-center justify-center p-1.5 shadow-md shadow-black/30 group-hover:border-[#53E2FE] transition-all">
+              <div className="w-10 h-10 rounded-2xl bg-slate-900 border border-slate-700/60 flex items-center justify-center p-1.5 shadow-md shadow-black/20 group-hover:border-[#53E2FE]/40 transition-all">
                 <img
                   src="/mailify-logo-white.png"
                   alt="Mailify Logo"
@@ -203,10 +156,10 @@ export function Sidebar({
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center space-x-1.5">
-                  <span className="font-black text-lg tracking-tight text-white group-hover:text-cyan-100 transition-colors">
+                  <span className="font-black text-lg tracking-tight text-white group-hover:text-slate-200 transition-colors">
                     MAILIFY
                   </span>
-                  <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-[#53E2FE] text-slate-950 shadow-xs">
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#53E2FE] text-slate-950">
                     2.0
                   </span>
                 </div>
@@ -218,40 +171,40 @@ export function Sidebar({
             {setMobileOpen && (
               <button
                 onClick={() => setMobileOpen(false)}
-                className="p-1.5 text-white hover:text-white rounded-lg md:hidden hover:bg-white/15"
+                className="p-1.5 text-white hover:text-white rounded-lg md:hidden hover:bg-slate-800"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5 text-white" />
               </button>
             )}
           </div>
 
           {/* Mode Switcher Pill */}
           <div className="p-3 pb-0 space-y-2">
-            <div className="flex items-center bg-black/25 p-1 rounded-2xl border border-white/20 backdrop-blur-md">
+            <div className="flex items-center bg-slate-900/90 p-1 rounded-2xl border border-slate-800">
               <Link
                 href="/dashboard"
                 onClick={() => setMobileOpen && setMobileOpen(false)}
-                className={`flex-1 flex items-center justify-center py-2 px-2.5 rounded-xl transition-all text-xs font-bold ${
+                className={`flex-1 flex items-center justify-center py-2 px-2.5 rounded-xl font-bold transition-all text-xs ${
                   !isWarmupMode
-                    ? 'bg-[#53E2FE] text-white shadow-md shadow-[#53E2FE]/30'
-                    : 'text-white hover:bg-white/15'
+                    ? 'bg-[#53E2FE] text-slate-950 shadow-sm font-black'
+                    : 'text-white font-bold hover:text-white hover:bg-slate-800/80'
                 }`}
               >
-                <Mail className="w-3.5 h-3.5 mr-1.5 shrink-0 text-white" />
-                <span className="truncate text-white font-bold">Tracker</span>
+                <Mail className={`w-3.5 h-3.5 mr-1.5 shrink-0 ${!isWarmupMode ? 'text-slate-950' : 'text-white'}`} />
+                <span className="truncate">Tracker</span>
               </Link>
 
               <Link
                 href="/dashboard/warmup"
                 onClick={() => setMobileOpen && setMobileOpen(false)}
-                className={`flex-1 flex items-center justify-center py-2 px-2.5 rounded-xl transition-all text-xs font-bold ${
+                className={`flex-1 flex items-center justify-center py-2 px-2.5 rounded-xl font-bold transition-all text-xs ${
                   isWarmupMode
-                    ? 'bg-[#53E2FE] text-white shadow-md shadow-[#53E2FE]/30'
-                    : 'text-white hover:bg-white/15'
+                    ? 'bg-[#53E2FE] text-slate-950 shadow-sm font-black'
+                    : 'text-white font-bold hover:text-white hover:bg-slate-800/80'
                 }`}
               >
-                <Flame className="w-3.5 h-3.5 mr-1.5 shrink-0 fill-white text-white" />
-                <span className="truncate text-white font-bold">Email Warmup</span>
+                <Flame className={`w-3.5 h-3.5 mr-1.5 shrink-0 ${isWarmupMode ? 'fill-slate-950 text-slate-950' : 'fill-amber-500 text-amber-500'}`} />
+                <span className="truncate">Email Warmup</span>
               </Link>
             </div>
 
@@ -259,10 +212,10 @@ export function Sidebar({
             <Link
               href="/?view=landing"
               onClick={() => setMobileOpen && setMobileOpen(false)}
-              className="w-full flex items-center justify-center py-2 px-3 text-xs font-bold text-white bg-black/20 hover:bg-black/40 rounded-xl transition-all border border-white/20 hover:border-white/40 shadow-xs group backdrop-blur-sm"
+              className="w-full flex items-center justify-center py-2 px-3 text-xs font-bold text-white hover:text-white bg-slate-900/60 hover:bg-slate-800/80 rounded-xl transition-all border border-slate-800 hover:border-slate-700 shadow-xs group"
               title="Return to Main Website"
             >
-              <span className="text-white mr-1.5 font-bold transition-transform group-hover:-translate-x-0.5">←</span>
+              <span className="text-[#53E2FE] mr-1.5 font-bold transition-transform group-hover:-translate-x-0.5">←</span>
               <span className="text-white font-bold">Back to Website</span>
             </Link>
           </div>
@@ -276,7 +229,7 @@ export function Sidebar({
           <nav className="px-3 py-1 space-y-5">
             {activeSections.map((section) => (
               <div key={section.title}>
-                <div className="px-3 pb-2 text-[11px] font-black uppercase tracking-wider text-white drop-shadow-xs">
+                <div className="px-3 pb-2 text-[11px] font-black uppercase tracking-wider text-white">
                   {section.title}
                 </div>
                 <div className="space-y-1">
@@ -292,19 +245,27 @@ export function Sidebar({
                         key={item.name}
                         href={item.href}
                         onClick={() => setMobileOpen && setMobileOpen(false)}
-                        className={`flex items-center justify-between px-3.5 py-2.5 text-sm rounded-xl transition-all duration-150 ${
+                        className={`flex items-center justify-between px-3.5 py-2.5 text-sm font-bold rounded-xl transition-all duration-150 ${
                           isActive
-                            ? 'bg-[#53E2FE] text-white shadow-lg shadow-[#53E2FE]/30 font-bold'
-                            : 'text-white font-bold hover:bg-white/15'
+                            ? 'bg-[#53E2FE] text-slate-950 shadow-md shadow-[#53E2FE]/20 font-black'
+                            : 'text-white font-bold hover:text-white hover:bg-slate-800/80'
                         }`}
                       >
                         <div className="flex items-center space-x-3">
-                          <Icon className="w-4 h-4 text-white" />
-                          <span className="text-white font-bold">{item.name}</span>
+                          <Icon className={`w-4 h-4 ${
+                            isActive 
+                              ? 'text-slate-950' 
+                              : 'text-white'
+                          }`} />
+                          <span className={isActive ? 'text-slate-950 font-black' : 'text-white font-bold'}>{item.name}</span>
                         </div>
                         {item.badge && (
                           <span
-                            className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white bg-white/20 border border-white/30"
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                              isActive
+                                ? 'bg-slate-950/15 text-slate-950 font-black'
+                                : 'bg-white/20 text-white font-bold'
+                            }`}
                           >
                             {item.badge}
                           </span>
@@ -318,9 +279,9 @@ export function Sidebar({
           </nav>
         </div>
 
-        {/* Bottom Accent Widget (Website Hero Glass Style) */}
-        <div className="relative z-10 p-3">
-          <div className="relative overflow-hidden p-3.5 rounded-2xl bg-gradient-to-r from-white/15 to-[#53E2FE]/25 border border-white/30 backdrop-blur-md shadow-lg shadow-black/20">
+        {/* Bottom Accent Widget (like reference image) */}
+        <div className="p-3">
+          <div className="relative overflow-hidden p-3.5 rounded-2xl bg-[#53E2FE]/10 border border-[#53E2FE]/25">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-white">Google Apps Script</p>
@@ -328,20 +289,20 @@ export function Sidebar({
               </div>
               <Link
                 href="/dashboard/api-keys"
-                className="w-8 h-8 rounded-full bg-[#53E2FE] text-white flex items-center justify-center shadow-md shadow-[#53E2FE]/30 hover:scale-105 transition-transform"
+                className="w-8 h-8 rounded-full bg-[#53E2FE] text-slate-950 flex items-center justify-center shadow-sm hover:scale-105 transition-transform"
                 title="View Apps Script & API Key"
               >
-                <ArrowUpRight className="w-4 h-4 font-bold stroke-[2.5] text-white" />
+                <ArrowUpRight className="w-4 h-4 font-bold stroke-[2.5]" />
               </Link>
             </div>
           </div>
         </div>
 
         {/* Footer User Badge & Sign Out */}
-        <div className="relative z-10 p-3 border-t border-white/15 bg-black/10 backdrop-blur-xs space-y-2">
-          <div className="flex items-center justify-between p-2.5 rounded-xl bg-black/25 border border-white/20 backdrop-blur-md">
+        <div className="p-3 border-t border-slate-800/80 space-y-2">
+          <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/90 border border-slate-800">
             <div className="flex items-center space-x-2.5 overflow-hidden">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#53E2FE] to-blue-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#53E2FE] to-blue-600 text-slate-950 flex items-center justify-center font-bold text-xs shrink-0">
                 {userInfo?.name ? userInfo.name.substring(0, 2).toUpperCase() : 'ET'}
               </div>
               <div className="truncate">
@@ -356,7 +317,7 @@ export function Sidebar({
             <button
               type="button"
               onClick={handleSignOut}
-              className="p-1.5 text-white hover:text-rose-300 hover:bg-rose-500/20 rounded-lg transition-colors cursor-pointer"
+              className="p-1.5 text-white hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
               title="Sign Out"
             >
               <LogOut className="w-4 h-4 text-white" />
@@ -366,10 +327,10 @@ export function Sidebar({
           <button
             type="button"
             onClick={handleSignOut}
-            className="w-full flex items-center justify-center space-x-2 py-2 px-3 rounded-xl text-xs font-bold text-white hover:text-white bg-rose-500/30 hover:bg-rose-500/45 border border-rose-400/50 transition-all cursor-pointer shadow-xs"
+            className="w-full flex items-center justify-center space-x-2 py-2 px-3 rounded-xl text-xs font-bold text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-all cursor-pointer"
           >
-            <LogOut className="w-3.5 h-3.5 text-white" />
-            <span className="text-white">Sign Out</span>
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Sign Out</span>
           </button>
         </div>
       </aside>
