@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Menu, X, User, Mail, Lock, ArrowRight } from 'lucide-react';
 import { HeroIntegrationsBeam } from './hero-integrations-beam';
+import { WebsiteHeader } from './website-header';
+import { WebsiteFooter } from './website-footer';
 
 export default function MizuLanding() {
   const router = useRouter();
@@ -24,6 +26,10 @@ export default function MizuLanding() {
       // If user explicitly navigated back to the website from the dashboard (?view=landing or ?portal=true), allow viewing the website!
       const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
       const isExplicitLandingView = params?.get('view') === 'landing' || params?.get('portal') === 'true';
+
+      if (params?.get('action') === 'get-started') {
+        setGetStartedModalOpen(true);
+      }
 
       if (isExplicitLandingView) {
         setIsRedirecting(false);
@@ -259,88 +265,9 @@ export default function MizuLanding() {
         </div>
 
         {/* ========================================================================= */}
-        {/* TOP NAVIGATION BAR (FEATURING #53E2FE GLOW) */}
+        {/* TOP NAVIGATION BAR (ABOUT, FEATURES, PRIVACY POLICY, CONTACT US) */}
         {/* ========================================================================= */}
-        <header className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between relative z-40">
-          {/* Brand Logo: Mailify */}
-          <Link href="/" className="flex items-center group py-1">
-            <img
-              src="/images/mailify-logo-white.png"
-              alt="Mailify"
-              className="h-8 sm:h-9 md:h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-[0_2px_14px_rgba(0,0,0,0.8)]"
-            />
-          </Link>
-
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-8 text-sm font-medium text-white">
-            <a href="#features" className="hover:text-[#53E2FE] transition-colors">
-              Features
-            </a>
-            <a href="#platforms" className="hover:text-[#53E2FE] transition-colors">
-              Platforms
-            </a>
-            <a href="#insights" className="hover:text-[#53E2FE] transition-colors">
-              Insights
-            </a>
-            <a href="#pricing" className="hover:text-[#53E2FE] transition-colors">
-              Pricing
-            </a>
-          </nav>
-
-          {/* Action Button: Single Get Started Button */}
-          <div className="hidden sm:flex items-center">
-            <button
-              type="button"
-              onClick={handleGetStartedClick}
-              className="px-5 py-2 text-xs sm:text-sm font-semibold text-slate-950 bg-white hover:bg-slate-100 rounded-full shadow-sm hover:shadow transition-all hover:scale-[1.02] active:scale-98 cursor-pointer"
-            >
-              Get Started
-            </button>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <div className="flex sm:hidden">
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-white hover:text-[#53E2FE] rounded-lg hover:bg-white/10 transition-colors"
-              aria-label="Toggle Menu"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
-        </header>
-
-        {/* Mobile Menu Dropdown */}
-        {mobileMenuOpen && (
-          <div className="sm:hidden px-6 pt-3 pb-6 space-y-4 bg-[#080d1a]/95 backdrop-blur-xl border-b border-blue-900/40 shadow-2xl relative z-30 text-white">
-            <nav className="flex flex-col space-y-3 text-base font-medium text-white">
-              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#53E2FE] transition-colors">
-                Features
-              </a>
-              <a href="#platforms" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#53E2FE] transition-colors">
-                Platforms
-              </a>
-              <a href="#insights" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#53E2FE] transition-colors">
-                Insights
-              </a>
-              <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#53E2FE] transition-colors">
-                Pricing
-              </a>
-            </nav>
-            <div className="pt-4 border-t border-white/10 flex flex-col gap-2.5">
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  handleGetStartedClick();
-                }}
-                className="w-full text-center py-2.5 text-sm font-semibold text-slate-950 bg-white hover:bg-slate-100 rounded-full cursor-pointer"
-              >
-                Get Started
-              </button>
-            </div>
-          </div>
-        )}
+        <WebsiteHeader onGetStartedClick={handleGetStartedClick} />
 
         {/* ========================================================================= */}
         {/* HERO MAIN CONTENT SECTION */}
@@ -365,6 +292,9 @@ export default function MizuLanding() {
         </section>
         </div>
       </div>
+
+      {/* Website Footer */}
+      <WebsiteFooter />
 
       {/* ========================================================================= */}
       {/* GET STARTED MODAL (SIMPLE LIGHT THEME: NAME, EMAIL, PASSWORD, SUBMIT) */}
