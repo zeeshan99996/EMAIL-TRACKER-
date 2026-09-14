@@ -216,7 +216,7 @@ export function HeroIntegrationsBeam() {
           <img
             src="/images/mailify-logo-white.png"
             alt="Mailify"
-            className="h-6 sm:h-7 md:h-8 w-auto object-contain drop-shadow-[0_0_10px_rgba(83,226,254,0.8)]"
+            className="h-7 sm:h-8 md:h-9 w-auto object-contain drop-shadow-[0_0_12px_rgba(83,226,254,0.7)]"
           />
         </div>
       </div>

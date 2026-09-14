@@ -58,15 +58,15 @@ export default function MizuLanding() {
       {/* ========================================================================= */}
       {/* HD BLUE AND BLACK GRADIENT HERO MASTER SHOWCASE (FEATURING #53E2FE) */}
       {/* ========================================================================= */}
-      <div className="min-h-screen w-full bg-gradient-to-b from-[#061838] via-[#0284c7]/90 to-[#53E2FE]/80 p-2 sm:p-4 md:p-6 lg:p-8 flex items-center justify-center">
+      <div className="min-h-screen w-full bg-gradient-to-b from-[#020512] via-[#021029]/95 to-[#04336c]/80 p-2 sm:p-4 md:p-6 lg:p-8 flex items-center justify-center">
         <div className="w-full max-w-[1440px] mx-auto rounded-[24px] sm:rounded-[38px] md:rounded-[46px] overflow-hidden border-2 border-[#53E2FE]/70 shadow-[0_20px_100px_rgba(83,226,254,0.4),0_0_60px_rgba(83,226,254,0.3)] relative hero-hd-blue-black-gradient text-white">
           {/* ========================================================================= */}
           {/* BACKGROUND GLOW AURAS, VERTICAL LINES & SINE WAVES (VIBRANT #53E2FE GLOW) */}
           {/* ========================================================================= */}
 
-        {/* Left Side Vibrant #53E2FE Bloom */}
+        {/* Left Side Vibrant #53E2FE Bloom - Positioned below top nav for crystal dark header contrast */}
         <div
-          className="absolute -left-[14%] sm:-left-[7%] top-[20%] sm:top-[25%] w-[580px] sm:w-[780px] h-[580px] sm:h-[780px] rounded-full pointer-events-none -z-10 blur-[90px] sm:blur-[130px] opacity-95"
+          className="absolute -left-[14%] sm:-left-[7%] top-[35%] sm:top-[40%] w-[580px] sm:w-[780px] h-[580px] sm:h-[780px] rounded-full pointer-events-none -z-10 blur-[95px] sm:blur-[135px] opacity-90"
           style={{
             background:
               'radial-gradient(ellipse at center, rgba(83,226,254,0.85) 0%, rgba(14,165,233,0.65) 42%, rgba(2,132,199,0.35) 70%, transparent 85%)',
@@ -179,7 +179,7 @@ export default function MizuLanding() {
             <img
               src="/images/mailify-logo-white.png"
               alt="Mailify"
-              className="h-7 sm:h-8 md:h-9 w-auto object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-[0_0_12px_rgba(83,226,254,0.35)]"
+              className="h-8 sm:h-9 md:h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-[0_2px_14px_rgba(0,0,0,0.8)]"
             />
           </Link>
 

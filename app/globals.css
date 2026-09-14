@@ -140,19 +140,19 @@ body {
 /* HD BLUE AND BLACK GRADIENT HERO BACKGROUND (FEATURING #53E2FE - NOT DARK) */
 /* ========================================================================= */
 .hero-hd-blue-black-gradient {
-  background-color: #031433;
+  background-color: #01040f;
   background-image:
+    /* Deep obsidian top vignette across navbar & top hero for ultra-high contrast */
+    linear-gradient(180deg, rgba(1, 4, 15, 0.96) 0%, rgba(2, 9, 28, 0.88) 22%, rgba(2, 16, 44, 0.45) 45%, transparent 72%),
     /* Horizon bottom center brilliant white & #53E2FE luminous floor glow */
     radial-gradient(ellipse 95% 65% at 50% 100%, #ffffff 0%, #53E2FE 28%, rgba(83, 226, 254, 0.85) 50%, rgba(2, 132, 199, 0.5) 72%, transparent 88%),
     /* Right side high-reaching radiant #53E2FE curtain */
-    radial-gradient(ellipse 80% 95% at 98% 46%, #53E2FE 0%, rgba(83, 226, 254, 0.85) 28%, rgba(14, 165, 233, 0.6) 55%, transparent 82%),
-    /* Left side luminous #53E2FE aurora */
-    radial-gradient(ellipse 75% 85% at 2% 56%, #53E2FE 0%, rgba(83, 226, 254, 0.8) 28%, rgba(2, 132, 199, 0.55) 55%, transparent 82%),
-    /* Top-right vibrant #53E2FE ambient glow */
-    radial-gradient(ellipse 65% 65% at 85% 15%, rgba(83, 226, 254, 0.55) 0%, transparent 72%),
-    /* Center top subtle black dome for crystal-clear text contrast */
-    radial-gradient(ellipse 68% 45% at 50% 12%, rgba(2, 6, 23, 0.92) 0%, rgba(3, 14, 38, 0.72) 42%, transparent 88%),
-    /* Base rich linear gradient: space navy at top transitioning into vibrant electric blue & #53E2FE at bottom */
-    linear-gradient(180deg, #020617 0%, #031b3d 16%, #0284c7 36%, #0ea5e9 56%, #53E2FE 80%, #ffffff 100%);
+    radial-gradient(ellipse 80% 95% at 98% 50%, #53E2FE 0%, rgba(83, 226, 254, 0.85) 28%, rgba(14, 165, 233, 0.6) 55%, transparent 82%),
+    /* Left side luminous #53E2FE aurora positioned below navbar */
+    radial-gradient(ellipse 70% 75% at 2% 65%, #53E2FE 0%, rgba(83, 226, 254, 0.75) 28%, rgba(2, 132, 199, 0.45) 55%, transparent 82%),
+    /* Top-right subtle ambient glow */
+    radial-gradient(ellipse 60% 50% at 85% 18%, rgba(83, 226, 254, 0.3) 0%, transparent 70%),
+    /* Base rich linear gradient: deep midnight black-navy top transitioning into electric blue & #53E2FE at bottom */
+    linear-gradient(180deg, #01040f 0%, #02091c 18%, #03193a 38%, #0284c7 62%, #53E2FE 88%, #ffffff 100%);
   background-attachment: local;
 }
