@@ -21,6 +21,15 @@ export default function MizuLanding() {
   // When a returning user visits the site, landing page DOES NOT open - directly open dashboard!
   useEffect(() => {
     try {
+      // If user explicitly navigated back to the website from the dashboard (?view=landing or ?portal=true), allow viewing the website!
+      const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+      const isExplicitLandingView = params?.get('view') === 'landing' || params?.get('portal') === 'true';
+
+      if (isExplicitLandingView) {
+        setIsRedirecting(false);
+        return;
+      }
+
       const savedUser = localStorage.getItem('mailify_submitted_user');
       const hasCookie =
         document.cookie.includes('warmup_user_session') ||

@@ -1,8 +1,14 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const searchParams = request.nextUrl.searchParams;
+
+  // If user explicitly navigated back to the website from the dashboard, allow it!
+  if (searchParams.get('view') === 'landing' || searchParams.get('portal') === 'true') {
+    return NextResponse.next();
+  }
 
   // Returning user check for landing page ("/")
   if (pathname === '/') {

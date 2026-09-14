@@ -100,6 +100,28 @@ export function Sidebar({
   const pathname = usePathname();
   const isWarmupMode = pathname.startsWith('/dashboard/warmup');
   const activeSections = isWarmupMode ? warmupNavSections : trackerNavSections;
+  const [userInfo, setUserInfo] = React.useState<{ name?: string; email?: string } | null>(null);
+
+  React.useEffect(() => {
+    try {
+      const stored = localStorage.getItem('mailify_submitted_user');
+      if (stored) {
+        setUserInfo(JSON.parse(stored));
+      }
+    } catch {}
+  }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await fetch('/api/auth/signout', { method: 'POST' });
+    } catch {}
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('mailify_submitted_user');
+      document.cookie = 'mailify_has_submitted=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      document.cookie = 'warmup_user_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      window.location.href = '/?view=landing';
+    }
+  };
 
   return (
     <>
@@ -113,54 +135,63 @@ export function Sidebar({
 
       {/* Sidebar Container - Dark charcoal style */}
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-50 w-72 bg-[#161922] text-slate-100 border-r border-slate-800/80 flex flex-col justify-between shrink-0 transform transition-transform duration-200 ease-in-out ${
-          mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        className={`fixed md:static inset-y-0 left-0 z-50 w-72 bg-[#0d131f] border-r border-slate-800/80 flex flex-col justify-between transition-transform duration-300 ease-in-out md:translate-x-0 ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex-1 overflow-y-auto overflow-x-hidden">
-          {/* Brand Header */}
-          <div className="p-4 border-b border-slate-800/80 flex items-center justify-between sticky top-0 bg-[#161922] z-10">
-            <Link href="/" title="Back to Main Hub" className="flex items-center space-x-3 group">
-              <div className="w-9 h-9 rounded-xl bg-[#c6f432] text-slate-950 flex items-center justify-center font-black shadow-md shadow-[#c6f432]/20 transition-transform group-hover:scale-105">
-                {isWarmupMode ? (
-                  <Flame className="w-5 h-5 fill-current text-slate-950" />
-                ) : (
-                  <Zap className="w-5 h-5 fill-current text-slate-950" />
-                )}
+        <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
+          {/* Logo Brand Header */}
+          <div className="h-20 px-6 flex items-center justify-between border-b border-slate-800/80">
+            <Link
+              href="/dashboard"
+              className="flex items-center space-x-3 group"
+              onClick={() => setMobileOpen && setMobileOpen(false)}
+            >
+              <div className="w-10 h-10 rounded-2xl bg-slate-900 border border-slate-700/60 flex items-center justify-center p-1.5 shadow-md shadow-black/20 group-hover:border-[#4CDAFA]/40 transition-all">
+                <img
+                  src="/mailify-logo-white.png"
+                  alt="Mailify Logo"
+                  className="w-full h-full object-contain"
+                />
               </div>
-              <div>
-                <h1 className="font-bold text-white text-base tracking-tight group-hover:text-[#c6f432] transition-colors">
-                  {isWarmupMode ? 'Email Warmup' : 'EmailTracker'}
-                </h1>
-                <p className="text-[11px] text-slate-400 font-medium">
-                  {isWarmupMode ? 'AI Reputation Engine' : 'Live Opens & Clicks'}
-                </p>
+              <div className="flex flex-col">
+                <div className="flex items-center space-x-1.5">
+                  <span className="font-black text-lg tracking-tight text-white group-hover:text-slate-200 transition-colors">
+                    MAILIFY
+                  </span>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#c6f432] text-slate-950">
+                    2.0
+                  </span>
+                </div>
+                <span className="text-[11px] font-medium text-slate-400">
+                  {isWarmupMode ? 'Warmup Fleet' : 'Tracking Engine'}
+                </span>
               </div>
             </Link>
             {setMobileOpen && (
               <button
                 onClick={() => setMobileOpen(false)}
-                className="p-1 text-slate-400 hover:text-white md:hidden"
+                className="p-1.5 text-slate-400 hover:text-white rounded-lg md:hidden hover:bg-slate-800"
               >
                 <X className="w-5 h-5" />
               </button>
             )}
           </div>
 
-          {/* Product Switcher (Email Tracker & Warmup centered & responsive) */}
-          <div className="p-3 pb-1 space-y-2">
-            <div className="bg-slate-100/95 p-1 rounded-2xl flex items-center border border-slate-200/80 text-xs shadow-inner w-full">
+          {/* Mode Switcher Pill */}
+          <div className="p-3 pb-0 space-y-2">
+            <div className="flex items-center bg-slate-900/90 p-1 rounded-2xl border border-slate-800">
               <Link
                 href="/dashboard"
                 onClick={() => setMobileOpen && setMobileOpen(false)}
                 className={`flex-1 flex items-center justify-center py-2 px-2.5 rounded-xl font-bold transition-all text-xs ${
                   !isWarmupMode
-                    ? 'bg-white text-slate-950 shadow-sm border border-slate-200/80 font-black'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-[#c6f432] text-slate-950 shadow-sm font-black'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
-                <Mail className={`w-3.5 h-3.5 mr-1.5 shrink-0 ${!isWarmupMode ? 'text-blue-600' : 'text-slate-500'}`} />
-                <span className="truncate">Email Tracker</span>
+                <Mail className="w-3.5 h-3.5 mr-1.5 shrink-0" />
+                <span className="truncate">Tracker</span>
               </Link>
 
               <Link
@@ -168,8 +199,8 @@ export function Sidebar({
                 onClick={() => setMobileOpen && setMobileOpen(false)}
                 className={`flex-1 flex items-center justify-center py-2 px-2.5 rounded-xl font-bold transition-all text-xs ${
                   isWarmupMode
-                    ? 'bg-white text-slate-950 shadow-sm border border-slate-200/80 font-black'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-[#c6f432] text-slate-950 shadow-sm font-black'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
                 <Flame className="w-3.5 h-3.5 mr-1.5 shrink-0 fill-amber-500 text-amber-500" />
@@ -177,15 +208,15 @@ export function Sidebar({
               </Link>
             </div>
 
-            {/* Portal Hub Button Down of Switcher */}
+            {/* Back to Website / Portal Hub */}
             <Link
-              href="/"
+              href="/?view=landing"
               onClick={() => setMobileOpen && setMobileOpen(false)}
-              className="w-full flex items-center justify-center py-2 px-3 text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800/70 rounded-xl transition-all border border-slate-800/80 hover:border-slate-700 shadow-xs group"
-              title="Return to Main Selection Portal"
+              className="w-full flex items-center justify-center py-2 px-3 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 rounded-xl transition-all border border-slate-800 hover:border-slate-700 shadow-xs group"
+              title="Return to Main Website"
             >
-              <span className="text-slate-400 group-hover:text-[#c6f432] transition-colors mr-1.5">←</span>
-              <span>Back to Selection Portal Hub</span>
+              <span className="text-[#c6f432] mr-1.5 transition-transform group-hover:-translate-x-0.5">←</span>
+              <span>Back to Website</span>
             </Link>
           </div>
 
@@ -267,26 +298,40 @@ export function Sidebar({
           </div>
         </div>
 
-        {/* Footer User Badge */}
-        <div className="p-3 border-t border-slate-800/80">
+        {/* Footer User Badge & Sign Out */}
+        <div className="p-3 border-t border-slate-800/80 space-y-2">
           <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/90 border border-slate-800">
             <div className="flex items-center space-x-2.5 overflow-hidden">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
-                ET
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#4CDAFA] to-blue-600 text-slate-950 flex items-center justify-center font-bold text-xs shrink-0">
+                {userInfo?.name ? userInfo.name.substring(0, 2).toUpperCase() : 'ET'}
               </div>
               <div className="truncate">
-                <p className="text-xs font-bold text-white truncate">ERHA Technologies</p>
-                <p className="text-[11px] text-slate-400 truncate">admin@erha.com</p>
+                <p className="text-xs font-bold text-white truncate">
+                  {userInfo?.name || 'ERHA Technologies'}
+                </p>
+                <p className="text-[11px] text-slate-400 truncate">
+                  {userInfo?.email || 'admin@erha.com'}
+                </p>
               </div>
             </div>
-            <Link
-              href="/auth/login"
-              className="p-1.5 text-slate-400 hover:text-rose-400 transition-colors"
-              title="Logout"
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
+              title="Sign Out"
             >
               <LogOut className="w-4 h-4" />
-            </Link>
+            </button>
           </div>
+
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="w-full flex items-center justify-center space-x-2 py-2 px-3 rounded-xl text-xs font-semibold text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-all cursor-pointer"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Sign Out</span>
+          </button>
         </div>
       </aside>
     </>

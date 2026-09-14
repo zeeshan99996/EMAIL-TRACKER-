@@ -16,3 +16,8 @@ export async function POST() {
     return NextResponse.json({ error: err.message || 'Error signing out' }, { status: 500 });
   }
 }
+
+export async function GET() {
+  return POST();
+}
+
