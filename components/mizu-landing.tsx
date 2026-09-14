@@ -223,17 +223,17 @@ export default function MizuLanding() {
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-300">
-            <a href="#features" className="hover:text-white transition-colors">
+          <nav className="hidden md:flex items-center space-x-8 text-sm font-medium text-white">
+            <a href="#features" className="hover:text-[#53E2FE] transition-colors">
               Features
             </a>
-            <a href="#platforms" className="hover:text-white transition-colors">
+            <a href="#platforms" className="hover:text-[#53E2FE] transition-colors">
               Platforms
             </a>
-            <a href="#insights" className="hover:text-white transition-colors">
+            <a href="#insights" className="hover:text-[#53E2FE] transition-colors">
               Insights
             </a>
-            <a href="#pricing" className="hover:text-white transition-colors">
+            <a href="#pricing" className="hover:text-[#53E2FE] transition-colors">
               Pricing
             </a>
           </nav>
@@ -242,7 +242,7 @@ export default function MizuLanding() {
           <div className="hidden sm:flex items-center space-x-4">
             <Link
               href="/dashboard"
-              className="text-sm font-medium text-slate-300 hover:text-white transition-colors px-2 py-1"
+              className="text-sm font-medium text-white hover:text-[#53E2FE] transition-colors px-2 py-1"
             >
               Login
             </Link>
@@ -258,7 +258,7 @@ export default function MizuLanding() {
           <div className="flex sm:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-slate-300 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+              className="p-2 text-white hover:text-[#53E2FE] rounded-lg hover:bg-white/10 transition-colors"
               aria-label="Toggle Menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -269,17 +269,17 @@ export default function MizuLanding() {
         {/* Mobile Menu Dropdown */}
         {mobileMenuOpen && (
           <div className="sm:hidden px-6 pt-3 pb-6 space-y-4 bg-[#080d1a]/95 backdrop-blur-xl border-b border-blue-900/40 shadow-2xl relative z-30 text-white">
-            <nav className="flex flex-col space-y-3 text-base font-medium text-slate-200">
-              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="hover:text-white">
+            <nav className="flex flex-col space-y-3 text-base font-medium text-white">
+              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#53E2FE] transition-colors">
                 Features
               </a>
-              <a href="#platforms" onClick={() => setMobileMenuOpen(false)} className="hover:text-white">
+              <a href="#platforms" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#53E2FE] transition-colors">
                 Platforms
               </a>
-              <a href="#insights" onClick={() => setMobileMenuOpen(false)} className="hover:text-white">
+              <a href="#insights" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#53E2FE] transition-colors">
                 Insights
               </a>
-              <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="hover:text-white">
+              <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#53E2FE] transition-colors">
                 Pricing
               </a>
             </nav>
@@ -313,7 +313,7 @@ export default function MizuLanding() {
           </h1>
 
           {/* Subheadline (User Requested) */}
-          <p className="text-slate-200/90 text-sm sm:text-base md:text-lg font-light text-center max-w-3xl mx-auto mt-3 sm:mt-4 mb-4 sm:mb-6 leading-relaxed">
+          <p className="text-white text-sm sm:text-base md:text-lg font-light text-center max-w-3xl mx-auto mt-3 sm:mt-4 mb-4 sm:mb-6 leading-relaxed drop-shadow-sm">
             One powerful platform to send emails, track engagement, verify addresses, and warm up your inbox.
           </p>
 
