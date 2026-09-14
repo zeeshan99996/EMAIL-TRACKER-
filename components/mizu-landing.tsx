@@ -35,22 +35,7 @@ export default function MizuLanding() {
   const [isLiveActive, setIsLiveActive] = useState(true);
   const [zoomScale, setZoomScale] = useState(1);
 
-  // App Generator state (matching reference image)
-  const [selectedPlatform, setSelectedPlatform] = useState<'Android' | 'iOS' | 'Mac OS' | 'Windows'>('iOS');
-  const [generatePrompt, setGeneratePrompt] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedSuccess, setGeneratedSuccess] = useState(false);
 
-  const handleGenerate = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!generatePrompt.trim()) return;
-    setIsGenerating(true);
-    setTimeout(() => {
-      setIsGenerating(false);
-      setGeneratedSuccess(true);
-      setTimeout(() => setGeneratedSuccess(false), 3000);
-    }, 1200);
-  };
 
   // Typewriter effect simulation for placeholder if user hasn't typed
   const defaultPlaceholder = 'Tell Mizu What You Want';
@@ -331,68 +316,7 @@ export default function MizuLanding() {
             One powerful platform to send emails, track engagement, verify addresses, and warm up your inbox.
           </p>
 
-          {/* ========================================================================= */}
-          {/* FROSTED GLASS APP GENERATOR CARD (FROM REFERENCE IMAGE) */}
-          {/* ========================================================================= */}
-          <div className="w-full max-w-2xl mx-auto relative z-20">
-            <form
-              onSubmit={handleGenerate}
-              className="bg-white/85 sm:bg-white/90 backdrop-blur-2xl rounded-[28px] sm:rounded-[32px] p-6 sm:p-7 border border-white/70 shadow-[0_25px_60px_rgba(0,0,0,0.35)] text-left transition-all hover:shadow-[0_30px_70px_rgba(0,0,0,0.4)]"
-            >
-              {/* Input prompt area */}
-              <div className="min-h-[52px] flex items-start">
-                <input
-                  type="text"
-                  value={generatePrompt}
-                  onChange={(e) => setGeneratePrompt(e.target.value)}
-                  placeholder="Type something to generate"
-                  className="w-full bg-transparent text-slate-800 placeholder-slate-400 text-sm sm:text-base font-normal outline-none"
-                />
-              </div>
 
-              {/* Bottom Platform Pills & Generate Button */}
-              <div className="mt-5 pt-4 border-t border-slate-200/70 flex flex-wrap items-center justify-between gap-3">
-                {/* Platform Pills */}
-                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                  {(['Android', 'iOS', 'Mac OS', 'Windows'] as const).map((platform) => (
-                    <button
-                      key={platform}
-                      type="button"
-                      onClick={() => setSelectedPlatform(platform)}
-                      className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
-                        selectedPlatform === platform
-                          ? 'bg-slate-900 text-white shadow-xs'
-                          : 'bg-slate-100/90 hover:bg-slate-200 text-slate-700'
-                      }`}
-                    >
-                      {platform}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Generate Button */}
-                <button
-                  type="submit"
-                  disabled={isGenerating}
-                  className="px-6 py-2 rounded-full bg-slate-950 hover:bg-slate-800 text-white text-xs sm:text-sm font-medium shadow-md transition-all hover:scale-[1.02] active:scale-98 ml-auto flex items-center gap-1.5 cursor-pointer disabled:opacity-75"
-                >
-                  {isGenerating ? (
-                    <>
-                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Generating...</span>
-                    </>
-                  ) : generatedSuccess ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Generated!</span>
-                    </>
-                  ) : (
-                    <span>Generate</span>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
 
           {/* Floating Horizon Badge (Exact match to Reference Image) */}
           <div className="mt-8 sm:mt-12 flex items-center justify-center gap-2 text-slate-400 text-xs sm:text-sm font-light z-20">
