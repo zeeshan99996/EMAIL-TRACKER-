@@ -27,6 +27,7 @@ import {
   Lightbulb,
   CircleDot,
 } from 'lucide-react';
+import { HeroIntegrationsBeam } from './hero-integrations-beam';
 
 export default function MizuLanding() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -312,11 +313,14 @@ export default function MizuLanding() {
           </h1>
 
           {/* Subheadline (User Requested) */}
-          <p className="text-slate-200/90 text-sm sm:text-base md:text-lg font-light text-center max-w-3xl mx-auto mt-3 sm:mt-4 mb-8 sm:mb-10 leading-relaxed">
+          <p className="text-slate-200/90 text-sm sm:text-base md:text-lg font-light text-center max-w-3xl mx-auto mt-3 sm:mt-4 mb-4 sm:mb-6 leading-relaxed">
             One powerful platform to send emails, track engagement, verify addresses, and warm up your inbox.
           </p>
 
-
+          {/* ========================================================================= */}
+          {/* HERO INTEGRATIONS BEAM ANIMATION (WHITE CONVERGING LINES, GMAIL, APPS SCRIPT, SHEETS, OUTLOOK, MIZU) */}
+          {/* ========================================================================= */}
+          <HeroIntegrationsBeam />
 
           {/* Floating Horizon Badge (Exact match to Reference Image) */}
           <div className="mt-8 sm:mt-12 flex items-center justify-center gap-2 text-slate-400 text-xs sm:text-sm font-light z-20">
