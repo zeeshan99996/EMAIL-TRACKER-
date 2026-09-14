@@ -12,43 +12,43 @@ export function ProjectSelector() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-3.5 py-2.5 text-sm font-bold text-white bg-black/25 hover:bg-black/40 border border-white/25 hover:border-white/40 rounded-xl transition-colors shadow-xs backdrop-blur-md"
+        className="w-full flex items-center justify-between px-3.5 py-2.5 text-sm font-semibold text-slate-200 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 rounded-xl transition-colors shadow-xs"
       >
         <div className="flex items-center space-x-2.5 truncate">
           <FolderGit2 className="w-4 h-4 text-[#53E2FE] shrink-0" />
-          <span className="truncate text-white font-bold">{selectedProject}</span>
+          <span className="truncate">{selectedProject}</span>
         </div>
-        <ChevronDown className="w-4 h-4 text-white shrink-0 ml-1" />
+        <ChevronDown className="w-4 h-4 text-slate-400 shrink-0 ml-1" />
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1.5 bg-[#061d3d] border border-white/30 rounded-xl shadow-2xl z-50 py-1.5 backdrop-blur-xl">
+        <div className="absolute top-full left-0 right-0 mt-1.5 bg-[#161922] border border-slate-800 rounded-xl shadow-2xl z-50 py-1.5 backdrop-blur-md">
           <button
             onClick={() => {
               setSelectedProject(DEMO_PROJECT.name);
               setIsOpen(false);
             }}
-            className="w-full text-left px-3.5 py-2.5 text-sm text-white hover:bg-white/15 flex items-center space-x-2 font-bold"
+            className="w-full text-left px-3.5 py-2 text-sm text-slate-200 hover:bg-slate-800/80 flex items-center space-x-2"
           >
             <span className="w-2 h-2 rounded-full bg-[#53E2FE]"></span>
-            <span className="truncate text-white font-bold">{DEMO_PROJECT.name}</span>
+            <span className="truncate font-semibold text-white">{DEMO_PROJECT.name}</span>
           </button>
           <button
             onClick={() => {
               setSelectedProject('ERHA Marketing');
               setIsOpen(false);
             }}
-            className="w-full text-left px-3.5 py-2.5 text-sm text-white hover:bg-white/15 flex items-center space-x-2 font-bold"
+            className="w-full text-left px-3.5 py-2 text-sm text-slate-300 hover:bg-slate-800/80 flex items-center space-x-2"
           >
-            <span className="w-2 h-2 rounded-full bg-white/70"></span>
-            <span className="truncate text-white font-bold">ERHA Marketing</span>
+            <span className="w-2 h-2 rounded-full bg-slate-500"></span>
+            <span className="truncate">ERHA Marketing</span>
           </button>
-          <div className="border-t border-white/20 my-1"></div>
+          <div className="border-t border-slate-800 my-1"></div>
           <a
             href="/dashboard/projects"
-            className="w-full text-left px-3.5 py-2.5 text-xs font-black text-[#53E2FE] hover:bg-white/15 flex items-center space-x-1.5"
+            className="w-full text-left px-3.5 py-2 text-xs font-bold text-[#53E2FE] hover:bg-slate-800/80 flex items-center space-x-1.5"
           >
-            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+            <Plus className="w-3.5 h-3.5" />
             <span>Manage Projects</span>
           </a>
         </div>
