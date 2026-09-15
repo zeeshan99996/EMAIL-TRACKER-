@@ -469,91 +469,212 @@ export default function MizuLanding() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative">
               
-              {/* Step 1 */}
-              <div className="flex flex-col p-5 rounded-2xl border border-slate-200/80 bg-[#f8fafc] hover:bg-white hover:border-[#7EE4FA] hover:shadow-lg transition-all duration-300 group">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-[#18506D] text-[#7EE4FA] flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
-                    <DownloadCloud className="w-6 h-6" />
+              {/* Step 1: Connect Chrome Extension */}
+              <div className="flex flex-col justify-between p-5 rounded-2xl border border-slate-200/90 bg-[#f8fafc] hover:bg-white hover:border-[#7EE4FA] hover:shadow-[0_12px_30px_-5px_rgba(126,228,250,0.25)] transition-all duration-300 group">
+                <div>
+                  <div className="flex items-center justify-between mb-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-[#18506D] text-[#7EE4FA] flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                      <DownloadCloud className="w-5 h-5" />
+                    </div>
+                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-md bg-[#7EE4FA]/20 text-[#0e7490] border border-[#7EE4FA]/40">
+                      STEP 01
+                    </span>
                   </div>
-                  <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-[#7EE4FA]/20 text-[#0e7490] border border-[#7EE4FA]/40">
-                    STEP 01
-                  </span>
+
+                  <h3 className="text-base font-bold text-slate-900 mb-1 group-hover:text-[#18506D] transition-colors">
+                    1. Install & Connect
+                  </h3>
+                  <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                    Add the free Chrome extension. Connect your Gmail or Google Workspace account in 1 click. Zero DNS or IMAP configuration.
+                  </p>
+
+                  {/* Visual UI Mockup (Image Representation of Step 1) */}
+                  <div className="rounded-xl border border-slate-200/90 bg-white p-3 shadow-inner mb-4">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2.5">
+                      <div className="flex items-center gap-1.5">
+                        <ChromeIcon className="w-3.5 h-3.5" />
+                        <span className="text-[10px] font-bold text-slate-700">Chrome Store</span>
+                      </div>
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                        <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                        Connected
+                      </span>
+                    </div>
+
+                    <div className="p-2 rounded-lg bg-slate-50 border border-slate-100 flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-[#18506D] text-[#7EE4FA] text-[10px] font-black flex items-center justify-center shrink-0">
+                        c:
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[10px] font-bold text-slate-900 truncate">MailTracker Extension</div>
+                        <div className="text-[9px] text-slate-500 truncate">Synced with Gmail</div>
+                      </div>
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#7EE4FA]/25 text-[#0e7490] border border-[#7EE4FA]/40 shrink-0">
+                        Active
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-base font-bold text-slate-900 mb-2 group-hover:text-[#18506D] transition-colors">
-                  1-Click Extension Setup
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  Install the free Chrome extension in under 30 seconds. Works instantly with personal Gmail and Google Workspace accounts.
-                </p>
-                <div className="mt-4 pt-3 border-t border-slate-200/60 flex items-center gap-1.5 text-xs font-semibold text-[#0e7490]">
+
+                <div className="pt-2 border-t border-slate-200/60 flex items-center gap-1.5 text-xs font-semibold text-[#0e7490]">
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#7EE4FA]" />
-                  <span>Zero DNS setup required</span>
+                  <span>30-second 1-click install</span>
                 </div>
               </div>
 
-              {/* Step 2 */}
-              <div className="flex flex-col p-5 rounded-2xl border border-slate-200/80 bg-[#f8fafc] hover:bg-white hover:border-[#7EE4FA] hover:shadow-lg transition-all duration-300 group">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-[#18506D] text-[#7EE4FA] flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
-                    <Send className="w-6 h-6" />
+              {/* Step 2: Compose Email & Activate Tracker */}
+              <div className="flex flex-col justify-between p-5 rounded-2xl border border-slate-200/90 bg-[#f8fafc] hover:bg-white hover:border-[#7EE4FA] hover:shadow-[0_12px_30px_-5px_rgba(126,228,250,0.25)] transition-all duration-300 group">
+                <div>
+                  <div className="flex items-center justify-between mb-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-[#18506D] text-[#7EE4FA] flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                      <Send className="w-5 h-5" />
+                    </div>
+                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-md bg-[#7EE4FA]/20 text-[#0e7490] border border-[#7EE4FA]/40">
+                      STEP 02
+                    </span>
                   </div>
-                  <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-[#7EE4FA]/20 text-[#0e7490] border border-[#7EE4FA]/40">
-                    STEP 02
-                  </span>
+
+                  <h3 className="text-base font-bold text-slate-900 mb-1 group-hover:text-[#18506D] transition-colors">
+                    2. Compose & Track
+                  </h3>
+                  <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                    Write emails normally in Gmail. MailTracker adds an active tracking toggle to monitor opens, link clicks, and attachments.
+                  </p>
+
+                  {/* Visual UI Mockup (Image Representation of Step 2) */}
+                  <div className="rounded-xl border border-slate-200/90 bg-white p-3 shadow-inner mb-4">
+                    <div className="flex items-center justify-between pb-1.5 border-b border-slate-100 mb-2">
+                      <span className="text-[10px] font-bold text-slate-800">New Message</span>
+                      <span className="text-[9px] text-slate-400">Gmail Draft</span>
+                    </div>
+
+                    <div className="space-y-1 mb-2">
+                      <div className="flex items-center gap-1 text-[10px] text-slate-500 border-b border-slate-100 pb-1">
+                        <span className="text-slate-400">To:</span>
+                        <span className="px-1.5 py-0.2 rounded bg-blue-50 text-blue-700 font-semibold text-[9.5px]">client@acme.com</span>
+                      </div>
+                      <div className="text-[9.5px] text-slate-700 font-medium truncate">
+                        Proposal &amp; Agreement.pdf
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="px-2.5 py-0.5 rounded bg-blue-600 text-white font-bold text-[9.5px]">
+                        Send
+                      </span>
+                      <span className="px-1.5 py-0.5 rounded bg-[#7EE4FA]/20 border border-[#7EE4FA]/50 text-[#0e7490] font-bold text-[9px] flex items-center gap-1">
+                        <CheckCheck className="w-3 h-3 text-[#0284c7]" />
+                        <span>Track: ON</span>
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-base font-bold text-slate-900 mb-2 group-hover:text-[#18506D] transition-colors">
-                  Send with Smart Telemetry
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  Compose emails in Gmail as usual. MailTracker injects lightweight pixel tracking and HTTPS click redirect wraps automatically.
-                </p>
-                <div className="mt-4 pt-3 border-t border-slate-200/60 flex items-center gap-1.5 text-xs font-semibold text-[#0e7490]">
+
+                <div className="pt-2 border-t border-slate-200/60 flex items-center gap-1.5 text-xs font-semibold text-[#0e7490]">
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#7EE4FA]" />
                   <span>100% Invisible to recipients</span>
                 </div>
               </div>
 
-              {/* Step 3 */}
-              <div className="flex flex-col p-5 rounded-2xl border border-slate-200/80 bg-[#f8fafc] hover:bg-white hover:border-[#7EE4FA] hover:shadow-lg transition-all duration-300 group">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-[#18506D] text-[#7EE4FA] flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
-                    <BellRing className="w-6 h-6" />
+              {/* Step 3: See Double Checkmarks & Live Popover Tooltip */}
+              <div className="flex flex-col justify-between p-5 rounded-2xl border border-slate-200/90 bg-[#f8fafc] hover:bg-white hover:border-[#7EE4FA] hover:shadow-[0_12px_30px_-5px_rgba(126,228,250,0.25)] transition-all duration-300 group">
+                <div>
+                  <div className="flex items-center justify-between mb-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-[#18506D] text-[#7EE4FA] flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                      <BellRing className="w-5 h-5" />
+                    </div>
+                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-md bg-[#7EE4FA]/20 text-[#0e7490] border border-[#7EE4FA]/40">
+                      STEP 03
+                    </span>
                   </div>
-                  <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-[#7EE4FA]/20 text-[#0e7490] border border-[#7EE4FA]/40">
-                    STEP 03
-                  </span>
+
+                  <h3 className="text-base font-bold text-slate-900 mb-1 group-hover:text-[#18506D] transition-colors">
+                    3. Live Read Receipts
+                  </h3>
+                  <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                    When the recipient opens your email, the double checks turn blue. See exact open timestamps, device, and link click history.
+                  </p>
+
+                  {/* Visual UI Mockup (Image Representation of Step 3) */}
+                  <div className="rounded-xl border border-slate-200/90 bg-white p-2.5 shadow-inner mb-4">
+                    <div className="flex items-center gap-1.5 p-1 rounded bg-slate-50 border border-slate-100 text-[10px] mb-1.5">
+                      <div className="flex items-center -space-x-1 text-[#0284c7] font-bold shrink-0">
+                        <Check className="w-3 h-3 stroke-[2.5]" />
+                        <Check className="w-3 h-3 stroke-[2.5]" />
+                      </div>
+                      <span className="font-bold text-slate-800 text-[9.5px] truncate">Sarah Jenkins</span>
+                    </div>
+
+                    <div className="rounded-lg bg-[#1c222c] text-white p-2 text-[9px] shadow-sm border border-slate-700/60">
+                      <div className="flex items-center justify-between text-amber-300 font-bold pb-1 border-b border-slate-700/60 mb-1">
+                        <span>Opened 3 times ✍️</span>
+                        <span className="text-emerald-400 font-mono text-[8.5px]">2m ago</span>
+                      </div>
+                      <div className="flex items-center justify-between text-slate-300 text-[8.5px]">
+                        <span>iPhone • San Francisco</span>
+                        <span className="text-[#7EE4FA]">Proposal read</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-base font-bold text-slate-900 mb-2 group-hover:text-[#18506D] transition-colors">
-                  Instant Real-Time Pings
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  Get notified the instant your prospect opens the message or clicks links. Double checkmarks appear immediately in your Gmail view.
-                </p>
-                <div className="mt-4 pt-3 border-t border-slate-200/60 flex items-center gap-1.5 text-xs font-semibold text-[#0e7490]">
+
+                <div className="pt-2 border-t border-slate-200/60 flex items-center gap-1.5 text-xs font-semibold text-[#0e7490]">
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#7EE4FA]" />
-                  <span>Double checkmark receipt</span>
+                  <span>Real-time instant desktop pings</span>
                 </div>
               </div>
 
-              {/* Step 4 */}
-              <div className="flex flex-col p-5 rounded-2xl border border-slate-200/80 bg-[#f8fafc] hover:bg-white hover:border-[#7EE4FA] hover:shadow-lg transition-all duration-300 group">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-[#18506D] text-[#7EE4FA] flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
-                    <Flame className="w-6 h-6" />
+              {/* Step 4: Warmup & Analytics Telemetry */}
+              <div className="flex flex-col justify-between p-5 rounded-2xl border border-slate-200/90 bg-[#f8fafc] hover:bg-white hover:border-[#7EE4FA] hover:shadow-[0_12px_30px_-5px_rgba(126,228,250,0.25)] transition-all duration-300 group">
+                <div>
+                  <div className="flex items-center justify-between mb-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-[#18506D] text-[#7EE4FA] flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                      <Flame className="w-5 h-5" />
+                    </div>
+                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-md bg-[#7EE4FA]/20 text-[#0e7490] border border-[#7EE4FA]/40">
+                      STEP 04
+                    </span>
                   </div>
-                  <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-[#7EE4FA]/20 text-[#0e7490] border border-[#7EE4FA]/40">
-                    STEP 04
-                  </span>
+
+                  <h3 className="text-base font-bold text-slate-900 mb-1 group-hover:text-[#18506D] transition-colors">
+                    4. Stats & Warmup
+                  </h3>
+                  <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                    Monitor campaign health in your dashboard. Autonomous AI warmup protects your sender reputation so emails avoid spam folders.
+                  </p>
+
+                  {/* Visual UI Mockup (Image Representation of Step 4) */}
+                  <div className="rounded-xl border border-slate-200/90 bg-white p-3 shadow-inner mb-4">
+                    <div className="flex items-center justify-between pb-1.5 border-b border-slate-100 mb-2">
+                      <span className="text-[10px] font-bold text-slate-800">Inbox Placement</span>
+                      <span className="text-[9px] font-bold text-emerald-600">99.4% Safe</span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-1 text-center mb-2">
+                      <div className="p-1 rounded bg-slate-50 border border-slate-100">
+                        <div className="text-[8px] text-slate-400">Sent</div>
+                        <div className="font-bold text-slate-800 text-[9.5px]">1,280</div>
+                      </div>
+                      <div className="p-1 rounded bg-[#7EE4FA]/15 border border-[#7EE4FA]/30">
+                        <div className="text-[8px] text-[#0e7490]">Opens</div>
+                        <div className="font-bold text-[#0e7490] text-[9.5px]">84.2%</div>
+                      </div>
+                      <div className="p-1 rounded bg-emerald-50 border border-emerald-100">
+                        <div className="text-[8px] text-emerald-700">Warmup</div>
+                        <div className="font-bold text-emerald-700 text-[9.5px]">0% Spam</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[8.5px] text-slate-500 bg-slate-50 p-1 rounded">
+                      <span>P2P Sender Network</span>
+                      <span className="font-bold text-emerald-600">● Active</span>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-base font-bold text-slate-900 mb-2 group-hover:text-[#18506D] transition-colors">
-                  Warmup & Inbox Placement
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  Protect your sender score with autonomous AI warmup routines. Prevent spam filters and keep cold outreach hitting the primary inbox.
-                </p>
-                <div className="mt-4 pt-3 border-t border-slate-200/60 flex items-center gap-1.5 text-xs font-semibold text-[#0e7490]">
+
+                <div className="pt-2 border-t border-slate-200/60 flex items-center gap-1.5 text-xs font-semibold text-[#0e7490]">
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#7EE4FA]" />
-                  <span>99.4% Inbox placement</span>
+                  <span>99.4% Inbox deliverability</span>
                 </div>
               </div>
 
