@@ -137,16 +137,16 @@ body {
 }
 
 /* ========================================================================= */
-/* BRAND GRADIENTS (#18506D & #8AEDFF) & HERO UTILITIES */
+/* BRAND GRADIENTS (#18506D & #7EE4FA) & LANDING PAGE UTILITIES */
 /* ========================================================================= */
 .text-brand-gradient {
-  background: linear-gradient(135deg, #18506D 0%, #0284c7 48%, #8AEDFF 100%);
+  background: linear-gradient(135deg, #18506D 0%, #0284c7 45%, #7EE4FA 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .text-brand-gradient-alt {
-  background: linear-gradient(90deg, #18506D 15%, #0891b2 55%, #8AEDFF 100%);
+  background: linear-gradient(90deg, #18506D 15%, #0891b2 55%, #7EE4FA 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -155,15 +155,24 @@ body {
   background-color: #18506D;
 }
 
-.bg-brand-secondary {
-  background-color: #8AEDFF;
+.bg-brand-cyan {
+  background-color: #7EE4FA;
 }
 
 .border-brand-primary {
   border-color: #18506D;
 }
 
-.border-brand-secondary {
-  border-color: #8AEDFF;
+.border-brand-cyan {
+  border-color: #7EE4FA;
 }
+
+.shadow-cyan-glow {
+  box-shadow: 0 10px 30px -5px rgba(126, 228, 250, 0.35);
+}
+
+.shadow-cyan-sm {
+  box-shadow: 0 4px 14px 0 rgba(126, 228, 250, 0.25);
+}
+
 

@@ -2,114 +2,112 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Shield, Sparkles, Heart } from 'lucide-react';
+import { ShieldCheck, Sparkles, CheckCircle2 } from 'lucide-react';
+import { MailTrackerLogo } from './website-header';
 
 export function WebsiteFooter() {
   return (
-    <footer className="w-full bg-[#020512] border-t border-[#53E2FE]/20 text-white relative z-20 overflow-hidden">
-      {/* Ambient background glow */}
-      <div
-        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[700px] h-[200px] rounded-full pointer-events-none -z-10 blur-[120px] opacity-25"
-        style={{
-          background: 'radial-gradient(ellipse at center, #53E2FE 0%, rgba(14,165,233,0.4) 50%, transparent 80%)',
-        }}
-      />
-
+    <footer className="w-full bg-[#f1f5f9]/70 border-t border-slate-200/90 text-slate-600 relative z-20 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-12">
-          {/* Col 1: Brand & ERHA Technologies info */}
+          {/* Col 1: Brand & Overview */}
           <div className="md:col-span-2 space-y-4">
             <Link href="/?view=landing" className="inline-block">
-              <img
-                src="/images/mailify-logo-white.png"
-                alt="Mailify"
-                className="h-8 sm:h-9 w-auto object-contain"
-              />
+              <MailTrackerLogo />
             </Link>
-            <p className="text-sm text-slate-400 max-w-md leading-relaxed">
-              Enterprise email tracking, real-time Gmail telemetry, intelligent AI warmup fleet, and inbox deliverability engine. Crafted and maintained with precision by <span className="text-white font-semibold">ERHA Technologies</span>.
+            <p className="text-sm text-slate-600 max-w-md leading-relaxed">
+              Real-time Gmail email tracking, double checkmark telemetry, intelligent inbox deliverability warmup, and address verification engine. Crafted with privacy and security for Gmail and Chrome users worldwide.
             </p>
-            <div className="flex items-center space-x-3 text-xs text-slate-500 pt-2">
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#53E2FE]/10 text-[#53E2FE] border border-[#53E2FE]/20 font-semibold">
-                <Sparkles className="w-3 h-3" />
-                Next-Gen Mail Tech
+            <div className="flex flex-wrap items-center gap-3 text-xs pt-1">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#7EE4FA]/15 text-[#0369a1] border border-[#7EE4FA]/40 font-semibold shadow-sm">
+                <Sparkles className="w-3.5 h-3.5 text-[#0284c7]" />
+                Next-Gen Email Tracking
               </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
-                <Shield className="w-3 h-3" />
-                Enterprise Security
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold shadow-sm">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                GDPR & SOC2 Certified
               </span>
             </div>
           </div>
 
           {/* Col 2: Navigation Links */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#53E2FE] mb-4">
-              Navigation
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[#18506D] mb-4">
+              Product & Features
             </h4>
-            <ul className="space-y-2.5 text-sm text-slate-300">
+            <ul className="space-y-2.5 text-sm text-slate-600">
               <li>
-                <Link href="/about" className="hover:text-[#53E2FE] transition-colors">
-                  About Mailify & ERHA
+                <Link href="/#workflow" className="hover:text-[#18506D] transition-colors flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#7EE4FA]" />
+                  <span>How It Works</span>
                 </Link>
               </li>
               <li>
-                <Link href="/features" className="hover:text-[#53E2FE] transition-colors">
-                  Features & Capabilities
+                <Link href="/#features" className="hover:text-[#18506D] transition-colors flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#7EE4FA]" />
+                  <span>Double Checkmarks</span>
                 </Link>
               </li>
               <li>
-                <Link href="/privacy-policy" className="hover:text-[#53E2FE] transition-colors">
-                  Privacy Policy
+                <Link href="/#features" className="hover:text-[#18506D] transition-colors flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#7EE4FA]" />
+                  <span>Link & Click Telemetry</span>
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-[#53E2FE] transition-colors">
-                  Contact Us
+                <Link href="/#features" className="hover:text-[#18506D] transition-colors flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#7EE4FA]" />
+                  <span>AI Inbox Warmup</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/#testimonials" className="hover:text-[#18506D] transition-colors flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#7EE4FA]" />
+                  <span>Customer Reviews</span>
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Col 3: Platform & Company */}
+          {/* Col 3: Resources & Support */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#53E2FE] mb-4">
-              Company
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[#18506D] mb-4">
+              Resources & Legal
             </h4>
-            <ul className="space-y-2.5 text-sm text-slate-300">
+            <ul className="space-y-2.5 text-sm text-slate-600">
               <li>
-                <span className="text-white font-medium">ERHA Technologies</span>
+                <Link href="/dashboard" className="hover:text-[#18506D] transition-colors">
+                  Web Dashboard
+                </Link>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-[#53E2FE] transition-colors">
+                <Link href="/privacy-policy" className="hover:text-[#18506D] transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="hover:text-[#18506D] transition-colors">
                   Technical Support
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard" className="hover:text-[#53E2FE] transition-colors">
-                  Client Dashboard
+                <Link href="/about" className="hover:text-[#18506D] transition-colors">
+                  About Platform
                 </Link>
-              </li>
-              <li>
-                <a
-                  href="mailto:support@erhatechnologies.com"
-                  className="hover:text-[#53E2FE] transition-colors"
-                >
-                  support@erhatechnologies.com
-                </a>
               </li>
             </ul>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 pt-8 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-          <p>© {new Date().getFullYear()} Mailify. An ERHA Technologies Innovation. All rights reserved.</p>
+        <div className="mt-12 pt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+          <p>© {new Date().getFullYear()} MailTracker. All rights reserved. Zero email content stored.</p>
           <div className="flex items-center space-x-6">
-            <Link href="/privacy-policy" className="hover:text-[#53E2FE] transition-colors">
+            <Link href="/privacy-policy" className="hover:text-[#18506D] transition-colors">
               Privacy Policy
             </Link>
-            <Link href="/contact" className="hover:text-[#53E2FE] transition-colors">
-              Get in Touch
+            <Link href="/contact" className="hover:text-[#18506D] transition-colors">
+              Contact Support
             </Link>
           </div>
         </div>
@@ -117,3 +115,4 @@ export function WebsiteFooter() {
     </footer>
   );
 }
+
