@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/header';
+import { WorkflowStepper } from '@/components/workflow-stepper';
 import {
   Mail,
   Eye,
@@ -124,6 +125,9 @@ export default function DashboardPage() {
     <div className="space-y-7 pb-8">
       {/* Top Header with title & search bar */}
       <Header title="Email Tracker Dashboard" />
+
+      {/* 4-Step Email Automation Workflow Banner (Warmup -> Verify -> Send -> Track) */}
+      <WorkflowStepper />
 
       {/* TOP SECTION: 3 Metric Cards + Dark Warmup Banner (Matches "New Courses" & "Go Premium" in reference) */}
       <div className="space-y-3.5">

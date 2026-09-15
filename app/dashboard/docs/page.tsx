@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/header';
 import {
   BookOpen,
@@ -19,14 +19,25 @@ import {
   Sparkles,
 } from 'lucide-react';
 
-const APPS_SCRIPT_CODE = `/**
+export default function DocsPage() {
+  const [copiedScript, setCopiedScript] = useState(false);
+  const [copiedCurl, setCopiedCurl] = useState(false);
+  const [apiOrigin, setApiOrigin] = useState('https://email-tracker-teal-phi.vercel.app');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setApiOrigin(window.location.origin);
+    }
+  }, []);
+
+  const appsScriptCode = `/**
  * Email Tracking Platform — Google Apps Script Integration
  * Paste this script into your Google Apps Script editor (script.google.com).
  */
 function sendTrackedEmail() {
   // 1. Configure API Key & Platform Endpoint
   const API_KEY = "YOUR_API_KEY_HERE"; // Replace with your generated key from API Keys page
-  const API_URL = "http://localhost:3000/api/v1/emails"; // Replace with your production domain in Vercel
+  const API_URL = "${apiOrigin}/api/v1/emails";
 
   // 2. Build Tracked Email Payload
   const payload = {
@@ -38,13 +49,8 @@ function sendTrackedEmail() {
         <h2>Hello Client,</h2>
         <p>Thank you for speaking with us today. Here is our detailed project proposal.</p>
         <p>
-          <a href="https://erhatechnologies.com/services" style="color: #2563eb; font-weight: bold;">
+          <a href="https://example.com" style="color: #2563eb; font-weight: bold;">
             Explore Our Services
-          </a>
-        </p>
-        <p>
-          <a href="https://erhatechnologies.com/contact" style="color: #2563eb; font-weight: bold;">
-            Contact Us & Schedule Call
           </a>
         </p>
       </div>
@@ -86,24 +92,20 @@ function sendTrackedEmail() {
   }
 }`;
 
-export default function DocsPage() {
-  const [copiedScript, setCopiedScript] = useState(false);
-  const [copiedCurl, setCopiedCurl] = useState(false);
-
   const handleCopyScript = () => {
-    navigator.clipboard.writeText(APPS_SCRIPT_CODE);
+    navigator.clipboard.writeText(appsScriptCode);
     setCopiedScript(true);
     setTimeout(() => setCopiedScript(false), 2000);
   };
 
-  const curlExample = `curl -X POST http://localhost:3000/api/v1/emails \\
+  const curlExample = `curl -X POST ${apiOrigin}/api/v1/emails \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
     "to": "client@example.com",
     "recipientName": "Client",
     "subject": "Website Proposal",
-    "html": "<p>Hello! Check our <a href=\\"https://erhatechnologies.com/services\\">Services</a></p>"
+    "html": "<p>Hello! Check our <a href=\\"https://example.com\\">Services</a></p>"
   }'`;
 
   return (
@@ -200,8 +202,8 @@ export default function DocsPage() {
           </button>
         </div>
 
-        <div className="bg-slate-900 text-slate-100 p-4 rounded-xl font-mono text-xs overflow-x-auto relative">
-          <pre>{APPS_SCRIPT_CODE}</pre>
+        <div className="bg-slate-950 text-slate-100 p-4 rounded-xl font-mono text-xs overflow-x-auto relative border border-slate-800">
+          <pre>{appsScriptCode}</pre>
         </div>
 
         <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-2 text-xs text-slate-700">
