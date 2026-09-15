@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, ArrowRight } from 'lucide-react';
+import { Menu, X, ArrowRight, Workflow, Sparkles, Star, CreditCard, ChevronRight } from 'lucide-react';
 
 export function ChromeIcon({ className = 'w-4 h-4' }: { className?: string }) {
   return (
@@ -56,6 +56,7 @@ export function WebsiteHeader({ onGetStartedClick }: WebsiteHeaderProps) {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hasUser, setHasUser] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>('');
 
   useEffect(() => {
     try {
@@ -68,6 +69,33 @@ export function WebsiteHeader({ onGetStartedClick }: WebsiteHeaderProps) {
       }
     } catch {}
   }, []);
+
+  // Track active section on scroll for smooth indication
+  useEffect(() => {
+    const handleScroll = () => {
+      const sectionIds = ['workflow', 'features', 'testimonials', 'pricing'];
+      const scrollPosition = window.scrollY + 160;
+
+      for (let i = sectionIds.length - 1; i >= 0; i--) {
+        const id = sectionIds[i];
+        const elem = document.getElementById(id);
+        if (elem) {
+          const top = elem.offsetTop;
+          if (scrollPosition >= top) {
+            setActiveSection(id);
+            return;
+          }
+        }
+      }
+      if (window.scrollY < 200) {
+        setActiveSection('');
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [pathname]);
 
   const handleActionClick = () => {
     if (hasUser) {
@@ -82,16 +110,29 @@ export function WebsiteHeader({ onGetStartedClick }: WebsiteHeaderProps) {
   };
 
   const navLinks = [
-    { name: 'Workflow', href: '/#workflow' },
-    { name: 'Features', href: '/#features' },
-    { name: 'Testimonials', href: '/#testimonials' },
-    { name: 'Pricing', href: '/#pricing' },
+    { name: 'Workflow', href: '/#workflow', id: 'workflow', icon: Workflow },
+    { name: 'Features', href: '/#features', id: 'features', icon: Sparkles },
+    { name: 'Testimonials', href: '/#testimonials', id: 'testimonials', icon: Star },
+    { name: 'Pricing', href: '/#pricing', id: 'pricing', icon: CreditCard },
   ];
+
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string, id: string) => {
+    const isHomePage = pathname === '/' || pathname === '' || pathname.includes('view=landing');
+    if (isHomePage) {
+      e.preventDefault();
+      const targetElement = document.getElementById(id);
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: 'smooth' });
+        window.history.pushState(null, '', href);
+        setActiveSection(id);
+      }
+    }
+  };
 
   return (
     <>
       <header className="sticky top-0 z-40 w-full bg-[#f8fafc]/90 backdrop-blur-md border-b border-slate-200/80 transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-4.5 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4 flex items-center justify-between">
           {/* Brand Logo: mailtracker */}
           <Link
             href="/?view=landing"
@@ -101,22 +142,28 @@ export function WebsiteHeader({ onGetStartedClick }: WebsiteHeaderProps) {
             <MailTrackerLogo />
           </Link>
 
-          {/* Desktop Navigation Links & CTA */}
-          <div className="hidden md:flex items-center space-x-8 lg:space-x-10">
-            <nav className="flex items-center space-x-7 lg:space-x-8">
+          {/* Desktop Navigation Links (Responsive spacing & active indicators) */}
+          <div className="hidden md:flex items-center space-x-6 lg:space-x-10">
+            <nav className="flex items-center space-x-5 lg:space-x-8">
               {navLinks.map((link) => {
-                const isActive = pathname === link.href;
+                const isActive = activeSection === link.id;
                 return (
                   <Link
                     key={link.name}
                     href={link.href}
-                    className={`transition-all duration-150 text-[14px] lg:text-[15px] font-medium ${
+                    onClick={(e) => handleLinkClick(e, link.href, link.id)}
+                    className={`relative py-1 transition-all duration-150 text-[14px] lg:text-[15px] font-medium group ${
                       isActive
-                        ? 'text-[#18506D] font-semibold'
+                        ? 'text-[#18506D] font-bold'
                         : 'text-slate-600 hover:text-[#18506D]'
                     }`}
                   >
-                    {link.name}
+                    <span>{link.name}</span>
+                    {isActive ? (
+                      <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-[#18506D] to-[#7EE4FA] rounded-full animate-in fade-in duration-200" />
+                    ) : (
+                      <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[#7EE4FA] rounded-full transition-all duration-200 group-hover:w-full" />
+                    )}
                   </Link>
                 );
               })}
@@ -127,7 +174,7 @@ export function WebsiteHeader({ onGetStartedClick }: WebsiteHeaderProps) {
               {hasUser ? (
                 <Link
                   href="/dashboard"
-                  className="px-5 py-2.5 text-xs sm:text-sm font-semibold text-white bg-[#18506D] hover:bg-[#133e54] rounded-xl shadow-sm hover:shadow-md transition-all hover:scale-[1.02] active:scale-98 flex items-center gap-2"
+                  className="px-4.5 lg:px-5 py-2 lg:py-2.5 text-xs sm:text-sm font-semibold text-white bg-[#18506D] hover:bg-[#133e54] rounded-xl shadow-sm hover:shadow-md transition-all hover:scale-[1.02] active:scale-98 flex items-center gap-2"
                 >
                   <span>Dashboard</span>
                   <ArrowRight className="w-4 h-4" />
@@ -136,7 +183,7 @@ export function WebsiteHeader({ onGetStartedClick }: WebsiteHeaderProps) {
                 <button
                   type="button"
                   onClick={handleActionClick}
-                  className="px-5 py-2.5 text-xs sm:text-sm font-semibold text-white bg-[#18506D] hover:bg-[#133e54] rounded-xl shadow-sm hover:shadow-md hover:ring-2 hover:ring-[#7EE4FA]/40 transition-all hover:scale-[1.02] active:scale-98 cursor-pointer flex items-center gap-2"
+                  className="px-4.5 lg:px-5 py-2 lg:py-2.5 text-xs sm:text-sm font-semibold text-white bg-[#18506D] hover:bg-[#133e54] rounded-xl shadow-sm hover:shadow-md hover:ring-2 hover:ring-[#7EE4FA]/40 transition-all hover:scale-[1.02] active:scale-98 cursor-pointer flex items-center gap-2"
                 >
                   <ChromeIcon className="w-4 h-4 shrink-0" />
                   <span>Install for Chrome</span>
@@ -145,12 +192,12 @@ export function WebsiteHeader({ onGetStartedClick }: WebsiteHeaderProps) {
             </div>
           </div>
 
-          {/* Mobile Menu Toggle Button */}
-          <div className="flex md:hidden items-center space-x-2.5">
+          {/* Mobile Menu Toggle Button & Action */}
+          <div className="flex md:hidden items-center space-x-2">
             {hasUser ? (
               <Link
                 href="/dashboard"
-                className="px-3.5 py-1.5 text-xs font-semibold text-white bg-[#18506D] rounded-lg"
+                className="px-3 py-1.5 text-xs font-semibold text-white bg-[#18506D] rounded-lg shadow-sm"
               >
                 Dashboard
               </Link>
@@ -158,7 +205,7 @@ export function WebsiteHeader({ onGetStartedClick }: WebsiteHeaderProps) {
               <button
                 type="button"
                 onClick={handleActionClick}
-                className="px-3 py-1.5 text-xs font-semibold text-white bg-[#18506D] rounded-lg flex items-center gap-1.5 cursor-pointer"
+                className="px-3 py-1.5 text-xs font-semibold text-white bg-[#18506D] rounded-lg flex items-center gap-1.5 cursor-pointer shadow-sm"
               >
                 <ChromeIcon className="w-3.5 h-3.5" />
                 <span>Install</span>
@@ -166,53 +213,80 @@ export function WebsiteHeader({ onGetStartedClick }: WebsiteHeaderProps) {
             )}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-slate-700 hover:text-[#18506D] rounded-lg hover:bg-slate-200/60 transition-colors focus:outline-none"
-              aria-label="Toggle Menu"
+              className="p-2 text-slate-700 hover:text-[#18506D] rounded-lg hover:bg-slate-200/60 transition-colors focus:outline-none focus:ring-2 focus:ring-[#7EE4FA]/50"
+              aria-label="Toggle Navigation Menu"
+              aria-expanded={mobileMenuOpen}
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileMenuOpen ? <X className="w-5 h-5 text-[#18506D]" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
       </header>
 
-      {/* Mobile Menu Dropdown */}
+      {/* Mobile Navigation Dropdown Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden px-6 pt-3 pb-6 space-y-4 bg-[#f8fafc] border-b border-slate-200 shadow-xl relative z-50 text-slate-900 animate-in slide-in-from-top-2 duration-150">
-          <nav className="flex flex-col space-y-3">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="py-2 transition-colors text-base font-medium text-slate-700 hover:text-[#18506D]"
-              >
-                {link.name}
-              </Link>
-            ))}
-          </nav>
+        <div className="md:hidden fixed top-[57px] inset-x-0 bottom-0 z-40 bg-slate-900/20 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-[#f8fafc] border-b border-slate-200 shadow-2xl p-5 space-y-4 animate-in slide-in-from-top-3 duration-200 max-h-[calc(100vh-65px)] overflow-y-auto">
+            <nav className="grid grid-cols-1 gap-1.5">
+              {navLinks.map((link) => {
+                const Icon = link.icon;
+                const isActive = activeSection === link.id;
+                return (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    onClick={(e) => {
+                      setMobileMenuOpen(false);
+                      handleLinkClick(e, link.href, link.id);
+                    }}
+                    className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[15px] font-medium transition-all ${
+                      isActive
+                        ? 'bg-[#7EE4FA]/15 text-[#18506D] font-bold border border-[#7EE4FA]/40 shadow-sm'
+                        : 'text-slate-700 hover:bg-slate-100 hover:text-[#18506D]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                          isActive
+                            ? 'bg-[#18506D] text-[#7EE4FA]'
+                            : 'bg-slate-100 text-slate-600'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <span>{link.name}</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                  </Link>
+                );
+              })}
+            </nav>
 
-          <div className="pt-3 border-t border-slate-200/80 flex flex-col gap-2.5">
-            {hasUser ? (
-              <Link
-                href="/dashboard"
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center py-2.5 text-sm font-semibold text-white bg-[#18506D] hover:bg-[#133e54] rounded-xl shadow-sm"
-              >
-                Open Dashboard
-              </Link>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  handleActionClick();
-                }}
-                className="w-full text-center py-2.5 text-sm font-semibold text-white bg-[#18506D] hover:bg-[#133e54] rounded-xl cursor-pointer shadow-sm flex items-center justify-center gap-2"
-              >
-                <ChromeIcon className="w-4 h-4" />
-                <span>Install for Chrome</span>
-              </button>
-            )}
+            <div className="pt-3 border-t border-slate-200/80 flex flex-col gap-2">
+              {hasUser ? (
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full text-center py-3 text-sm font-semibold text-white bg-[#18506D] hover:bg-[#133e54] rounded-xl shadow-md flex items-center justify-center gap-2"
+                >
+                  <span>Open Dashboard</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleActionClick();
+                  }}
+                  className="w-full text-center py-3 text-sm font-semibold text-white bg-[#18506D] hover:bg-[#133e54] rounded-xl cursor-pointer shadow-md flex items-center justify-center gap-2"
+                >
+                  <ChromeIcon className="w-4 h-4" />
+                  <span>Install MailTracker for Chrome</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

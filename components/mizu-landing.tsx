@@ -29,6 +29,7 @@ import {
   Quote,
   CheckCircle2,
   ChevronRight,
+  CreditCard,
 } from 'lucide-react';
 import { WebsiteHeader, ChromeIcon, MailTrackerLogo } from './website-header';
 import { WebsiteFooter } from './website-footer';
@@ -55,6 +56,21 @@ export default function MizuLanding() {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+
+  // Handle URL hash smooth scroll on initial mount or change
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const id = window.location.hash.replace('#', '');
+      const timer = setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   // When a returning user visits the site, landing page DOES NOT open - directly open dashboard!
   useEffect(() => {
@@ -451,7 +467,7 @@ export default function MizuLanding() {
       {/* ========================================================================= */}
       {/* SECTION 2: SOFTWARE WORKFLOW (HOW IT WORKS CARD) */}
       {/* ========================================================================= */}
-      <section id="workflow" className="py-16 sm:py-24 relative">
+      <section id="workflow" className="scroll-mt-24 sm:scroll-mt-28 py-16 sm:py-24 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Section Heading */}
@@ -703,7 +719,7 @@ export default function MizuLanding() {
       {/* ========================================================================= */}
       {/* SECTION 3: KEY FEATURES SECTION */}
       {/* ========================================================================= */}
-      <section id="features" className="py-16 sm:py-24 bg-[#f1f5f9]/40 relative border-y border-slate-200/70">
+      <section id="features" className="scroll-mt-24 sm:scroll-mt-28 py-16 sm:py-24 bg-[#f1f5f9]/40 relative border-y border-slate-200/70">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Section Heading */}
@@ -811,7 +827,7 @@ export default function MizuLanding() {
       {/* ========================================================================= */}
       {/* SECTION 4: CLIENT TESTIMONIALS SECTION */}
       {/* ========================================================================= */}
-      <section id="testimonials" className="py-16 sm:py-24 relative">
+      <section id="testimonials" className="scroll-mt-24 sm:scroll-mt-28 py-16 sm:py-24 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Section Heading */}
@@ -959,7 +975,258 @@ export default function MizuLanding() {
       </section>
 
       {/* ========================================================================= */}
-      {/* SECTION 5: CALL TO ACTION (PRE-FOOTER BANNER) */}
+      {/* SECTION 5: PRICING SECTION */}
+      {/* ========================================================================= */}
+      <section id="pricing" className="scroll-mt-24 sm:scroll-mt-28 py-16 sm:py-24 bg-[#f1f5f9]/40 relative border-t border-slate-200/70">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          {/* Section Heading */}
+          <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#7EE4FA]/20 text-[#0e7490] border border-[#7EE4FA]/40 text-xs font-semibold mb-3">
+              <CreditCard className="w-3.5 h-3.5 text-[#0284c7]" />
+              <span>FLEXIBLE & TRANSPARENT PRICING</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight">
+              Simple Pricing, Built for{' '}
+              <span className="bg-gradient-to-r from-[#18506D] via-[#0284c7] to-[#7EE4FA] bg-clip-text text-transparent">
+                High Performers
+              </span>
+            </h2>
+            <p className="mt-4 text-base sm:text-lg text-slate-600 leading-relaxed">
+              Start 100% free with core Gmail tracking. Upgrade anytime as your sending volume and deliverability requirements scale.
+            </p>
+
+            {/* Monthly / Annual Billing Toggle */}
+            <div className="mt-8 inline-flex items-center p-1 rounded-xl bg-slate-200/80 border border-slate-300/70 shadow-inner">
+              <button
+                type="button"
+                onClick={() => setBillingCycle('monthly')}
+                className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                  billingCycle === 'monthly'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Monthly Billing
+              </button>
+              <button
+                type="button"
+                onClick={() => setBillingCycle('yearly')}
+                className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  billingCycle === 'yearly'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <span>Annual Billing</span>
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#7EE4FA]/30 text-[#0e7490] border border-[#7EE4FA]/50">
+                  SAVE 20%
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {/* Pricing 3-Card Grid with Crisp Borders */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch max-w-6xl mx-auto">
+            
+            {/* 1. Free / Starter Plan */}
+            <div className="rounded-3xl border border-slate-200/90 bg-white p-7 sm:p-8 flex flex-col justify-between shadow-sm hover:border-[#7EE4FA] hover:shadow-lg transition-all duration-300">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-slate-900">Starter Free</h3>
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                    Forever Free
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed mb-6">
+                  Essential Gmail email tracking for solo professionals and consultants.
+                </p>
+
+                <div className="flex items-baseline gap-1 mb-6 pb-6 border-b border-slate-100">
+                  <span className="text-4xl font-extrabold text-slate-900">$0</span>
+                  <span className="text-xs text-slate-500 font-medium">/ month forever</span>
+                </div>
+
+                <ul className="space-y-3 text-xs sm:text-[13px] text-slate-600 mb-8">
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span><strong>Unlimited</strong> Gmail email tracking</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Native blue double checkmarks (<span className="text-[#0284c7] font-bold">✓✓</span>)</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Real-time desktop open notifications</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Chrome Web Store 1-click extension</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>24-hour activity log</span>
+                  </li>
+                </ul>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleGetStartedClick}
+                className="w-full py-3.5 px-4 rounded-xl text-xs sm:text-sm font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 hover:text-slate-900 border border-slate-200 transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <ChromeIcon className="w-4 h-4" />
+                <span>Install Free Extension</span>
+              </button>
+            </div>
+
+            {/* 2. Pro / Growth Plan (Featured & Recommended) */}
+            <div className="rounded-3xl border-2 border-[#7EE4FA] bg-white p-7 sm:p-8 flex flex-col justify-between shadow-xl shadow-[#7EE4FA]/15 relative hover:border-[#5cdbf7] hover:shadow-2xl transition-all duration-300">
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                <span className="px-3.5 py-1 rounded-full bg-[#18506D] text-[#7EE4FA] text-xs font-extrabold uppercase tracking-wider shadow-md flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3 text-[#7EE4FA]" />
+                  <span>MOST POPULAR</span>
+                </span>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-4 pt-1">
+                  <h3 className="text-lg font-bold text-slate-900">Pro Unlimited</h3>
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#7EE4FA]/20 text-[#0e7490] border border-[#7EE4FA]/40">
+                    Full Power
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed mb-6">
+                  For sales reps, founders, and recruiters who need link tracking and deliverability warmup.
+                </p>
+
+                <div className="flex items-baseline gap-1 mb-6 pb-6 border-b border-slate-100">
+                  <span className="text-4xl font-extrabold text-slate-900">
+                    {billingCycle === 'yearly' ? '$7.99' : '$9.99'}
+                  </span>
+                  <span className="text-xs text-slate-500 font-medium">/ month</span>
+                </div>
+
+                <ul className="space-y-3 text-xs sm:text-[13px] text-slate-700 mb-8">
+                  <li className="flex items-center gap-2.5 font-medium text-slate-900">
+                    <CheckCircle2 className="w-4 h-4 text-[#0e7490] shrink-0" />
+                    <span><strong>Everything in Starter Free</strong>, plus:</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Link & PDF proposal attachment tracking</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span><strong>Autonomous AI Warmup:</strong> 50 safe emails/day</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Real-time recipient address verifier (bounces shield)</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Device (iPhone/Laptop) & Geolocation telemetry</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Unlimited lifetime activity history</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Priority 24/7 technical support</span>
+                  </li>
+                </ul>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleGetStartedClick}
+                className="w-full py-3.5 px-4 rounded-xl text-xs sm:text-sm font-bold text-white bg-[#18506D] hover:bg-[#133e54] shadow-md hover:shadow-lg hover:ring-2 hover:ring-[#7EE4FA]/40 transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>Start 14-Day Free Trial</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* 3. Team / Enterprise Plan */}
+            <div className="rounded-3xl border border-slate-200/90 bg-white p-7 sm:p-8 flex flex-col justify-between shadow-sm hover:border-[#7EE4FA] hover:shadow-lg transition-all duration-300">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-slate-900">Scale & Teams</h3>
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                    High Volume
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed mb-6">
+                  For outbound sales agencies, scaling growth teams, and enterprise fleets.
+                </p>
+
+                <div className="flex items-baseline gap-1 mb-6 pb-6 border-b border-slate-100">
+                  <span className="text-4xl font-extrabold text-slate-900">
+                    {billingCycle === 'yearly' ? '$24' : '$29'}
+                  </span>
+                  <span className="text-xs text-slate-500 font-medium">/ month</span>
+                </div>
+
+                <ul className="space-y-3 text-xs sm:text-[13px] text-slate-600 mb-8">
+                  <li className="flex items-center gap-2.5 font-medium text-slate-900">
+                    <CheckCircle2 className="w-4 h-4 text-[#0e7490] shrink-0" />
+                    <span><strong>Everything in Pro Unlimited</strong>, plus:</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Unlimited AI Warmup accounts & mailboxes</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Centralized team workspace & user seats</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Custom tracking domain (CNAME 100% white label)</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Dedicated deliverability manager</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>REST API & Webhook web telemetry access</span>
+                  </li>
+                </ul>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleGetStartedClick}
+                className="w-full py-3.5 px-4 rounded-xl text-xs sm:text-sm font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 hover:text-slate-900 border border-slate-200 transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>Get Enterprise Plan</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+
+          </div>
+
+          {/* Pricing Guarantee Banner */}
+          <div className="mt-12 text-center text-xs text-slate-500 max-w-xl mx-auto flex flex-wrap items-center justify-center gap-6">
+            <span className="flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span>14-day money-back guarantee</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Check className="w-4 h-4 text-[#0284c7]" />
+              <span>Cancel anytime in 1 click</span>
+            </span>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* SECTION 6: CALL TO ACTION (PRE-FOOTER BANNER) */}
       {/* ========================================================================= */}
       <section className="py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

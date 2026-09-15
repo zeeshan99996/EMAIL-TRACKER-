@@ -2,10 +2,28 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ShieldCheck, Sparkles, CheckCircle2 } from 'lucide-react';
 import { MailTrackerLogo } from './website-header';
 
 export function WebsiteFooter() {
+  const pathname = usePathname();
+
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith('/#')) {
+      const isHomePage = pathname === '/' || pathname === '' || pathname.includes('view=landing');
+      if (isHomePage) {
+        e.preventDefault();
+        const id = href.replace('/#', '');
+        const elem = document.getElementById(id);
+        if (elem) {
+          elem.scrollIntoView({ behavior: 'smooth' });
+          window.history.pushState(null, '', href);
+        }
+      }
+    }
+  };
+
   return (
     <footer className="w-full bg-[#f1f5f9]/70 border-t border-slate-200/90 text-slate-600 relative z-20 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
@@ -37,33 +55,63 @@ export function WebsiteFooter() {
             </h4>
             <ul className="space-y-2.5 text-sm text-slate-600">
               <li>
-                <Link href="/#workflow" className="hover:text-[#18506D] transition-colors flex items-center gap-1.5">
+                <Link
+                  href="/#workflow"
+                  onClick={(e) => handleLinkClick(e, '/#workflow')}
+                  className="hover:text-[#18506D] transition-colors flex items-center gap-1.5"
+                >
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#7EE4FA]" />
                   <span>How It Works</span>
                 </Link>
               </li>
               <li>
-                <Link href="/#features" className="hover:text-[#18506D] transition-colors flex items-center gap-1.5">
+                <Link
+                  href="/#features"
+                  onClick={(e) => handleLinkClick(e, '/#features')}
+                  className="hover:text-[#18506D] transition-colors flex items-center gap-1.5"
+                >
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#7EE4FA]" />
                   <span>Double Checkmarks</span>
                 </Link>
               </li>
               <li>
-                <Link href="/#features" className="hover:text-[#18506D] transition-colors flex items-center gap-1.5">
+                <Link
+                  href="/#features"
+                  onClick={(e) => handleLinkClick(e, '/#features')}
+                  className="hover:text-[#18506D] transition-colors flex items-center gap-1.5"
+                >
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#7EE4FA]" />
                   <span>Link & Click Telemetry</span>
                 </Link>
               </li>
               <li>
-                <Link href="/#features" className="hover:text-[#18506D] transition-colors flex items-center gap-1.5">
+                <Link
+                  href="/#features"
+                  onClick={(e) => handleLinkClick(e, '/#features')}
+                  className="hover:text-[#18506D] transition-colors flex items-center gap-1.5"
+                >
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#7EE4FA]" />
                   <span>AI Inbox Warmup</span>
                 </Link>
               </li>
               <li>
-                <Link href="/#testimonials" className="hover:text-[#18506D] transition-colors flex items-center gap-1.5">
+                <Link
+                  href="/#testimonials"
+                  onClick={(e) => handleLinkClick(e, '/#testimonials')}
+                  className="hover:text-[#18506D] transition-colors flex items-center gap-1.5"
+                >
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#7EE4FA]" />
                   <span>Customer Reviews</span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/#pricing"
+                  onClick={(e) => handleLinkClick(e, '/#pricing')}
+                  className="hover:text-[#18506D] transition-colors flex items-center gap-1.5"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#7EE4FA]" />
+                  <span>Pricing Plans</span>
                 </Link>
               </li>
             </ul>
