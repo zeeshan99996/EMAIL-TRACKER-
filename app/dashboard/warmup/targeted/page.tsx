@@ -319,17 +319,37 @@ export default function TargetedWarmupPage() {
               </label>
               <p className="text-xs text-slate-500 mb-3">These accounts will receive and reply to the target account&apos;s emails.</p>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {accounts.filter(a => a.id !== targetId).map(acc => (
-                  <label key={acc.id} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${selectedPeers[acc.id] ? 'bg-purple-50 border-purple-200' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
-                    <input type="checkbox" checked={selectedPeers[acc.id] || false} onChange={() => handleTogglePeer(acc.id)} className="w-4 h-4 text-purple-600 rounded" />
-                    <div className="flex flex-col">
-                      <span className="text-sm font-semibold text-slate-700">{acc.email}</span>
-                      <span className="text-[10px] text-slate-400">{acc.status}</span>
-                    </div>
-                  </label>
-                ))}
-              </div>
+              {accounts.filter(a => a.id !== targetId).length === 0 ? (
+                <div className="p-4 rounded-xl border border-dashed border-purple-200 bg-purple-50/60 text-slate-700 text-xs space-y-2">
+                  <div className="flex items-center gap-2 font-bold text-purple-900">
+                    <Users className="w-4 h-4 text-purple-600" />
+                    <span>At least 2 connected accounts are required</span>
+                  </div>
+                  <p className="text-slate-600 leading-relaxed">
+                    Targeted Warmup requires at least one <strong>Peer Account</strong> to exchange emails with your Target account (<code>{accounts.find(a => a.id === targetId)?.email || 'selected target'}</code>). Currently, you only have 1 connected email.
+                  </p>
+                  <div className="pt-1">
+                    <Link
+                      href="/dashboard/warmup/accounts"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs shadow-xs transition-all"
+                    >
+                      <span>+ Connect a Second Email Account</span>
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {accounts.filter(a => a.id !== targetId).map(acc => (
+                    <label key={acc.id} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${selectedPeers[acc.id] ? 'bg-purple-50 border-purple-200' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
+                      <input type="checkbox" checked={selectedPeers[acc.id] || false} onChange={() => handleTogglePeer(acc.id)} className="w-4 h-4 text-purple-600 rounded" />
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold text-slate-700">{acc.email}</span>
+                        <span className="text-[10px] text-slate-400">{acc.status}</span>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
@@ -348,8 +368,8 @@ export default function TargetedWarmupPage() {
             <div className="flex justify-end pt-4">
               <button
                 onClick={() => handleSaveAndStart(false)}
-                disabled={submitting}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold shadow-md transition-all disabled:opacity-50"
+                disabled={submitting || accounts.filter(a => a.id !== targetId).length === 0}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-white" />}
                 Start Targeted Warmup
