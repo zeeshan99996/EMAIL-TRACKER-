@@ -17,6 +17,15 @@ export default function DashboardLayout({
     } catch (e) {
       // ignore
     }
+
+    // Silent background heartbeat: trigger due warmup jobs every 2 minutes when tab is visible
+    const heartbeatTimer = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        fetch('/api/warmup/worker', { method: 'POST' }).catch(() => {});
+      }
+    }, 120000);
+
+    return () => clearInterval(heartbeatTimer);
   }, []);
 
   return (

@@ -14,15 +14,21 @@ async function verifyWorkerAuth(request: NextRequest): Promise<{ authorized: boo
   const cronSecret = process.env.CRON_SECRET;
   const authHeader = request.headers.get('authorization');
   const cronHeader = request.headers.get('x-cron-secret');
+  const userAgent = request.headers.get('user-agent') || '';
 
-  // Check Bearer CRON_SECRET or x-cron-secret header
+  // 1. Check Bearer CRON_SECRET or x-cron-secret header
   if (cronSecret) {
     if (authHeader === `Bearer ${cronSecret}` || cronHeader === cronSecret) {
       return { authorized: true, authType: 'cron_secret' };
     }
   }
 
-  // Check if authenticated user session exists (for dashboard developer quick-run)
+  // 2. Check if request came from Vercel's automated cron service
+  if (userAgent.includes('vercel-cron') || request.headers.has('x-vercel-cron')) {
+    return { authorized: true, authType: 'vercel_cron' };
+  }
+
+  // 3. Check if authenticated user session exists (for dashboard quick-run & heartbeat)
   try {
     const supabase = createServerSupabaseClient();
     const {
@@ -33,6 +39,11 @@ async function verifyWorkerAuth(request: NextRequest): Promise<{ authorized: boo
     }
   } catch (err) {
     // ignore
+  }
+
+  // 4. If CRON_SECRET is not set, allow execution so worker can run out of the box
+  if (!cronSecret) {
+    return { authorized: true, authType: 'default_open' };
   }
 
   return { authorized: false, authType: 'none' };

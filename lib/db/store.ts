@@ -15,7 +15,7 @@ import {
   TargetedWarmupEvent,
   TargetedWarmupStat,
 } from '@/lib/warmup/types';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createAdminClient, isDemoMode } from '@/lib/supabase/admin';
 
 export interface DatabaseSchema {
   email_accounts: EmailAccount[];
@@ -179,6 +179,10 @@ export function ensureDbFile(): DatabaseSchema {
 }
 
 export async function syncDbToSupabase(data: DatabaseSchema): Promise<void> {
+  if (isDemoMode) {
+    return;
+  }
+
   try {
     const supabase = createAdminClient();
     const payload = JSON.stringify(data);
@@ -198,13 +202,24 @@ export async function syncDbToSupabase(data: DatabaseSchema): Promise<void> {
 }
 
 export async function loadDbFromSupabase(): Promise<DatabaseSchema> {
+  if (isDemoMode) {
+    return ensureDbFile();
+  }
+
   try {
     const supabase = createAdminClient();
-    const { data, error } = await supabase
+    // Fast 2-second timeout protection so it never hangs if remote connection is lagging
+    const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
+      setTimeout(() => reject(new Error('Supabase load timeout')), 2000)
+    );
+
+    const queryPromise = supabase
       .from('projects')
       .select('description')
       .eq('id', 'sys_warmup_store')
       .single();
+
+    const { data, error } = (await Promise.race([queryPromise, timeoutPromise])) as any;
 
     if (!error && data?.description) {
       const parsed = JSON.parse(data.description) as DatabaseSchema;
@@ -233,7 +248,7 @@ export async function loadDbFromSupabase(): Promise<DatabaseSchema> {
       }
     }
   } catch (err) {
-    console.warn('[LocalDB] Could not load from Supabase:', err);
+    // Falls through to ensureDbFile() without blocking
   }
 
   return ensureDbFile();

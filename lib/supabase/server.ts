@@ -39,13 +39,24 @@ export function createServerSupabaseClient() {
 
   const originalGetSession = supabase.auth.getSession.bind(supabase.auth);
   supabase.auth.getSession = async () => {
-    try {
-      const res = await originalGetSession();
-      if (res.data?.session?.user) {
-        return res;
+    const isMockOrDemo =
+      process.env.DEMO_MODE === 'true' ||
+      !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      supabaseUrl.includes('mock') ||
+      supabaseKey.includes('mock');
+
+    if (!isMockOrDemo) {
+      try {
+        const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
+          setTimeout(() => reject(new Error('Auth timeout')), 2000)
+        );
+        const res = (await Promise.race([originalGetSession(), timeoutPromise])) as any;
+        if (res.data?.session?.user) {
+          return res;
+        }
+      } catch {
+        // ignore
       }
-    } catch {
-      // ignore
     }
 
     // App signed cookie check or default user
