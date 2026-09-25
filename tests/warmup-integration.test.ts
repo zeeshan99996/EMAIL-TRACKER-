@@ -1,10 +1,34 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { localDb } from '@/lib/db/store';
-import { decryptToken } from '@/lib/crypto/encryption';
+import { decryptToken, encryptToken } from '@/lib/crypto/encryption';
 import { generateUniqueStarterEmail, generateContextualWarmupReply } from '@/lib/ai/gemini';
 import { verifyEmailAddress } from '@/lib/verification/email-verifier';
 
 describe('Gmail Warmup & Verifier Integration', () => {
+  beforeAll(() => {
+    const accounts = localDb.getAccounts();
+    if (accounts.length === 0) {
+      localDb.upsertAccount({
+        user_id: 'usr_demo_01',
+        email: 'boomboom33204@gmail.com',
+        provider: 'gmail_app_password',
+        access_token: encryptToken('abcd1234efgh5678'),
+      });
+      localDb.upsertAccount({
+        user_id: 'usr_demo_01',
+        email: 'erhatechnologiesai@gmail.com',
+        provider: 'gmail_app_password',
+        access_token: encryptToken('efgh5678ijkl1234'),
+      });
+      localDb.upsertAccount({
+        user_id: 'usr_demo_01',
+        email: 'muhammadzeeshan0477@gmail.com',
+        provider: 'gmail_app_password',
+        access_token: encryptToken('ijkl1234mnop5678'),
+      });
+    }
+  });
+
   it('should load connected email accounts from warmup_store.json', () => {
     const accounts = localDb.getAccounts();
     expect(accounts.length).toBeGreaterThan(0);
