@@ -8,7 +8,13 @@ export interface GenerateReplyParams {
   senderEmail: string;
 }
 
-const DEFAULT_MODELS = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-flash-latest'];
+const DEFAULT_MODELS = [
+  'gemini-1.5-flash',
+  'gemini-2.0-flash',
+  'gemini-1.5-flash-latest',
+  'gemini-flash-latest',
+  'gemini-3.6-flash',
+];
 
 function getGeminiClient(): GoogleGenerativeAI | null {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -144,7 +150,7 @@ export async function generateUniqueStarterEmail({
   const topic = selectedTopicObj.topic;
 
   if (genAI) {
-    const configuredModel = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
+    const configuredModel = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
     const modelsToTry = [configuredModel, ...DEFAULT_MODELS.filter((m) => m !== configuredModel)];
 
     const systemInstruction = `
@@ -232,7 +238,7 @@ export async function generateContextualWarmupReply({
     .join('\n\n');
 
   if (genAI) {
-    const configuredModel = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
+    const configuredModel = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
     const modelsToTry = [configuredModel, ...DEFAULT_MODELS.filter((m) => m !== configuredModel)];
 
     const systemInstruction = `
