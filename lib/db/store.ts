@@ -16,7 +16,7 @@ import {
   TargetedWarmupStat,
 } from '@/lib/warmup/types';
 import { createAdminClient, isDemoMode } from '@/lib/supabase/admin';
-import initialSeedData from '@/data/warmup_store.json';
+import { initialSeedData } from './seed_data';
 
 let supabaseReachable = true;
 let lastSupabaseCheck = 0;
