@@ -16,6 +16,10 @@ import {
   TargetedWarmupStat,
 } from '@/lib/warmup/types';
 import { createAdminClient, isDemoMode } from '@/lib/supabase/admin';
+import initialSeedData from '@/data/warmup_store.json';
+
+let supabaseReachable = true;
+let lastSupabaseCheck = 0;
 
 export interface DatabaseSchema {
   email_accounts: EmailAccount[];
@@ -109,19 +113,21 @@ export function ensureDbFile(): DatabaseSchema {
     try {
       const raw = fs.readFileSync(dbFile, 'utf8');
       const parsed = JSON.parse(raw) as DatabaseSchema;
-      parsed.email_accounts = parsed.email_accounts || [];
-      parsed.email_warmup_configs = parsed.email_warmup_configs || [];
-      parsed.email_warmup_accounts = parsed.email_warmup_accounts || [];
-      parsed.email_warmup_jobs = parsed.email_warmup_jobs || [];
-      parsed.email_warmup_events = parsed.email_warmup_events || [];
-      parsed.email_warmup_stats = parsed.email_warmup_stats || [];
-      parsed.targeted_warmup_campaigns = parsed.targeted_warmup_campaigns || [];
-      parsed.targeted_warmup_peers = parsed.targeted_warmup_peers || [];
-      parsed.targeted_warmup_jobs = parsed.targeted_warmup_jobs || [];
-      parsed.targeted_warmup_events = parsed.targeted_warmup_events || [];
-      parsed.targeted_warmup_stats = parsed.targeted_warmup_stats || [];
-      cachedDb = parsed;
-      return cachedDb;
+      if (parsed && Array.isArray(parsed.email_accounts) && parsed.email_accounts.length > 0) {
+        parsed.email_accounts = parsed.email_accounts || [];
+        parsed.email_warmup_configs = parsed.email_warmup_configs || [];
+        parsed.email_warmup_accounts = parsed.email_warmup_accounts || [];
+        parsed.email_warmup_jobs = parsed.email_warmup_jobs || [];
+        parsed.email_warmup_events = parsed.email_warmup_events || [];
+        parsed.email_warmup_stats = parsed.email_warmup_stats || [];
+        parsed.targeted_warmup_campaigns = parsed.targeted_warmup_campaigns || [];
+        parsed.targeted_warmup_peers = parsed.targeted_warmup_peers || [];
+        parsed.targeted_warmup_jobs = parsed.targeted_warmup_jobs || [];
+        parsed.targeted_warmup_events = parsed.targeted_warmup_events || [];
+        parsed.targeted_warmup_stats = parsed.targeted_warmup_stats || [];
+        cachedDb = parsed;
+        return cachedDb;
+      }
     } catch (err) {
       console.warn('[LocalDB] Error reading dbFile:', err);
     }
@@ -132,54 +138,59 @@ export function ensureDbFile(): DatabaseSchema {
     try {
       const rawSeed = fs.readFileSync(seedDbFile, 'utf8');
       const parsedSeed = JSON.parse(rawSeed) as DatabaseSchema;
-      parsedSeed.email_accounts = parsedSeed.email_accounts || [];
-      parsedSeed.email_warmup_configs = parsedSeed.email_warmup_configs || [];
-      parsedSeed.email_warmup_accounts = parsedSeed.email_warmup_accounts || [];
-      parsedSeed.email_warmup_jobs = parsedSeed.email_warmup_jobs || [];
-      parsedSeed.email_warmup_events = parsedSeed.email_warmup_events || [];
-      parsedSeed.email_warmup_stats = parsedSeed.email_warmup_stats || [];
-      parsedSeed.targeted_warmup_campaigns = parsedSeed.targeted_warmup_campaigns || [];
-      parsedSeed.targeted_warmup_peers = parsedSeed.targeted_warmup_peers || [];
-      parsedSeed.targeted_warmup_jobs = parsedSeed.targeted_warmup_jobs || [];
-      parsedSeed.targeted_warmup_events = parsedSeed.targeted_warmup_events || [];
-      parsedSeed.targeted_warmup_stats = parsedSeed.targeted_warmup_stats || [];
-      cachedDb = parsedSeed;
+      if (parsedSeed && Array.isArray(parsedSeed.email_accounts) && parsedSeed.email_accounts.length > 0) {
+        parsedSeed.email_accounts = parsedSeed.email_accounts || [];
+        parsedSeed.email_warmup_configs = parsedSeed.email_warmup_configs || [];
+        parsedSeed.email_warmup_accounts = parsedSeed.email_warmup_accounts || [];
+        parsedSeed.email_warmup_jobs = parsedSeed.email_warmup_jobs || [];
+        parsedSeed.email_warmup_events = parsedSeed.email_warmup_events || [];
+        parsedSeed.email_warmup_stats = parsedSeed.email_warmup_stats || [];
+        parsedSeed.targeted_warmup_campaigns = parsedSeed.targeted_warmup_campaigns || [];
+        parsedSeed.targeted_warmup_peers = parsedSeed.targeted_warmup_peers || [];
+        parsedSeed.targeted_warmup_jobs = parsedSeed.targeted_warmup_jobs || [];
+        parsedSeed.targeted_warmup_events = parsedSeed.targeted_warmup_events || [];
+        parsedSeed.targeted_warmup_stats = parsedSeed.targeted_warmup_stats || [];
+        cachedDb = parsedSeed;
 
-      try {
-        fs.writeFileSync(dbFile, JSON.stringify(parsedSeed, null, 2), 'utf8');
-      } catch {}
+        try {
+          fs.writeFileSync(dbFile, JSON.stringify(parsedSeed, null, 2), 'utf8');
+        } catch {}
 
-      return cachedDb;
+        return cachedDb;
+      }
     } catch (err) {
       console.warn('[LocalDB] Error reading seedDbFile:', err);
     }
   }
 
-  // 3. Fallback to clean initial schema
-  const initial: DatabaseSchema = {
-    email_accounts: [],
-    email_warmup_configs: [],
-    email_warmup_accounts: [],
-    email_warmup_jobs: [],
-    email_warmup_events: [],
-    email_warmup_stats: [],
-    targeted_warmup_campaigns: [],
-    targeted_warmup_peers: [],
-    targeted_warmup_jobs: [],
-    targeted_warmup_events: [],
-    targeted_warmup_stats: [],
-  };
+  // 3. Guaranteed bundled seed fallback (bundled directly into the application chunk, always present on Vercel)
+  const seedClone = JSON.parse(JSON.stringify(initialSeedData)) as DatabaseSchema;
+  seedClone.email_accounts = seedClone.email_accounts || [];
+  seedClone.email_warmup_configs = seedClone.email_warmup_configs || [];
+  seedClone.email_warmup_accounts = seedClone.email_warmup_accounts || [];
+  seedClone.email_warmup_jobs = seedClone.email_warmup_jobs || [];
+  seedClone.email_warmup_events = seedClone.email_warmup_events || [];
+  seedClone.email_warmup_stats = seedClone.email_warmup_stats || [];
+  seedClone.targeted_warmup_campaigns = seedClone.targeted_warmup_campaigns || [];
+  seedClone.targeted_warmup_peers = seedClone.targeted_warmup_peers || [];
+  seedClone.targeted_warmup_jobs = seedClone.targeted_warmup_jobs || [];
+  seedClone.targeted_warmup_events = seedClone.targeted_warmup_events || [];
+  seedClone.targeted_warmup_stats = seedClone.targeted_warmup_stats || [];
+
+  cachedDb = seedClone;
 
   try {
-    fs.writeFileSync(dbFile, JSON.stringify(initial, null, 2), 'utf8');
+    fs.writeFileSync(dbFile, JSON.stringify(seedClone, null, 2), 'utf8');
   } catch {}
 
-  cachedDb = initial;
   return cachedDb;
 }
 
 export async function syncDbToSupabase(data: DatabaseSchema): Promise<void> {
   if (isDemoMode) {
+    return;
+  }
+  if (!supabaseReachable && Date.now() - lastSupabaseCheck < 60000) {
     return;
   }
 
@@ -195,8 +206,14 @@ export async function syncDbToSupabase(data: DatabaseSchema): Promise<void> {
     });
     if (error) {
       console.warn('[LocalDB] Supabase cloud upsert warning:', error.message);
+      supabaseReachable = false;
+      lastSupabaseCheck = Date.now();
+    } else {
+      supabaseReachable = true;
     }
   } catch (err: any) {
+    supabaseReachable = false;
+    lastSupabaseCheck = Date.now();
     console.warn('[LocalDB] Supabase cloud sync warning:', err.message);
   }
 }
@@ -205,12 +222,15 @@ export async function loadDbFromSupabase(): Promise<DatabaseSchema> {
   if (isDemoMode) {
     return ensureDbFile();
   }
+  if (!supabaseReachable && Date.now() - lastSupabaseCheck < 60000) {
+    return ensureDbFile();
+  }
 
   try {
     const supabase = createAdminClient();
-    // Fast 2-second timeout protection so it never hangs if remote connection is lagging
+    // Fast 1.5-second timeout protection so it never hangs if remote connection is lagging
     const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
-      setTimeout(() => reject(new Error('Supabase load timeout')), 2000)
+      setTimeout(() => reject(new Error('Supabase load timeout')), 1500)
     );
 
     const queryPromise = supabase
@@ -222,6 +242,7 @@ export async function loadDbFromSupabase(): Promise<DatabaseSchema> {
     const { data, error } = (await Promise.race([queryPromise, timeoutPromise])) as any;
 
     if (!error && data?.description) {
+      supabaseReachable = true;
       const parsed = JSON.parse(data.description) as DatabaseSchema;
       if (parsed) {
         parsed.email_accounts = parsed.email_accounts || [];
@@ -246,8 +267,13 @@ export async function loadDbFromSupabase(): Promise<DatabaseSchema> {
 
         return cachedDb;
       }
+    } else {
+      supabaseReachable = false;
+      lastSupabaseCheck = Date.now();
     }
   } catch (err) {
+    supabaseReachable = false;
+    lastSupabaseCheck = Date.now();
     // Falls through to ensureDbFile() without blocking
   }
 
@@ -299,18 +325,30 @@ export const localDb = {
     const db = ensureDbFile();
     const accounts = db.email_accounts.filter((a) => a.status !== 'disconnected');
     if (userId) {
-      const userAccounts = accounts.filter((a) => a.user_id === userId);
-      if (userAccounts.length === 0 && accounts.length > 0) {
-        for (const a of accounts) {
+      let modified = false;
+      for (const a of accounts) {
+        if (!a.user_id || a.user_id === 'usr_demo_01') {
           a.user_id = userId;
+          modified = true;
         }
-        for (const w of db.email_warmup_accounts) {
-          w.user_id = userId;
-        }
-        saveDb(db);
-        return accounts;
       }
-      return userAccounts;
+      for (const w of db.email_warmup_accounts) {
+        if (!w.user_id || w.user_id === 'usr_demo_01') {
+          w.user_id = userId;
+          modified = true;
+        }
+      }
+      for (const c of db.email_warmup_configs) {
+        if (!c.user_id || c.user_id === 'usr_demo_01') {
+          c.user_id = userId;
+          modified = true;
+        }
+      }
+      if (modified) {
+        saveDb(db);
+      }
+      const userAccounts = accounts.filter((a) => a.user_id === userId);
+      return userAccounts.length > 0 ? userAccounts : accounts;
     }
     return accounts;
   },
@@ -461,15 +499,18 @@ export const localDb = {
     );
 
     if (userId) {
-      const userList = list.filter((w) => w.user_id === userId);
-      if (userList.length === 0 && list.length > 0) {
-        for (const w of list) {
+      let modified = false;
+      for (const w of list) {
+        if (!w.user_id || w.user_id === 'usr_demo_01') {
           w.user_id = userId;
+          modified = true;
         }
-        saveDb(db);
-      } else {
-        list = userList;
       }
+      if (modified) {
+        saveDb(db);
+      }
+      const userList = list.filter((w) => w.user_id === userId);
+      list = userList.length > 0 ? userList : list;
     }
     return list.map((w) => ({
       ...w,

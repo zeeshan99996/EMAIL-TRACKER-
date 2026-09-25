@@ -16,7 +16,18 @@ export const targetedLocalDb = {
     const db = ensureDbFile();
     const campaigns = db.targeted_warmup_campaigns || [];
     if (!userId) return campaigns;
-    return campaigns.filter(c => c.user_id === userId);
+    let modified = false;
+    for (const c of campaigns) {
+      if (!c.user_id || c.user_id === 'usr_demo_01') {
+        c.user_id = userId;
+        modified = true;
+      }
+    }
+    if (modified) {
+      saveDb(db);
+    }
+    const userCampaigns = campaigns.filter(c => c.user_id === userId);
+    return userCampaigns.length > 0 ? userCampaigns : campaigns;
   },
 
   getCampaignByTargetAccountId(accountId: string): TargetedWarmupCampaign | undefined {

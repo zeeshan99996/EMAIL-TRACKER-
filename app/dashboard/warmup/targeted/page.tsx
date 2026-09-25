@@ -23,22 +23,31 @@ export default function TargetedWarmupPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [accRes, campRes] = await Promise.all([
-        fetch('/api/email-accounts'),
-        fetch('/api/warmup/targeted')
-      ]);
-      const accData = await accRes.json();
-      const campData = await campRes.json();
+      const accPromise = fetch('/api/email-accounts')
+        .then(r => r.ok ? r.json() : { accounts: [] })
+        .catch(() => ({ accounts: [] }));
+      const campPromise = fetch('/api/warmup/targeted')
+        .then(r => r.ok ? r.json() : { campaigns: [] })
+        .catch(() => ({ campaigns: [] }));
+
+      const [accData, campData] = await Promise.all([accPromise, campPromise]);
       
       const accs = accData.accounts || [];
+      const camps = campData.campaigns || [];
+      
       setAccounts(accs);
-      setCampaigns(campData.campaigns || []);
+      setCampaigns(camps);
 
-      if (accs.length > 0 && !targetId) {
-        setTargetId(accs[0].id);
+      if (accs.length > 0) {
+        setTargetId(prev => {
+          if (prev && accs.some((a: any) => a.id === prev)) {
+            return prev;
+          }
+          return accs[0].id;
+        });
       }
     } catch (err: any) {
-      setError(err.message);
+      console.error('Failed to load targeted warmup data:', err);
     } finally {
       setLoading(false);
     }
@@ -298,18 +307,33 @@ export default function TargetedWarmupPage() {
           <div className="p-6 space-y-8">
             <div>
               <label className="block text-sm font-bold text-slate-900 mb-2">1. Select Target Account</label>
-              <select 
-                value={targetId} 
-                onChange={(e) => {
-                  setTargetId(e.target.value);
-                  setSelectedPeers({});
-                }}
-                className="w-full md:w-1/2 rounded-lg border border-slate-300 p-2.5 text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-purple-500 outline-none transition-all"
-              >
-                {accounts.map(acc => (
-                  <option key={acc.id} value={acc.id}>{acc.email} ({acc.provider})</option>
-                ))}
-              </select>
+              {accounts.length === 0 ? (
+                <div className="p-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 text-xs flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>No connected email accounts found. Please connect your mailboxes first.</span>
+                  </div>
+                  <Link
+                    href="/dashboard/warmup/accounts"
+                    className="font-bold underline text-amber-900 hover:text-amber-700 ml-3 shrink-0"
+                  >
+                    + Connect Mailbox
+                  </Link>
+                </div>
+              ) : (
+                <select 
+                  value={targetId || (accounts[0]?.id || '')} 
+                  onChange={(e) => {
+                    setTargetId(e.target.value);
+                    setSelectedPeers({});
+                  }}
+                  className="w-full md:w-1/2 rounded-lg border border-slate-300 p-2.5 text-sm bg-white focus:bg-white focus:ring-2 focus:ring-purple-500 outline-none transition-all shadow-xs"
+                >
+                  {accounts.map(acc => (
+                    <option key={acc.id} value={acc.id}>{acc.email} ({acc.provider})</option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <div>
@@ -319,14 +343,14 @@ export default function TargetedWarmupPage() {
               </label>
               <p className="text-xs text-slate-500 mb-3">These accounts will receive and reply to the target account&apos;s emails.</p>
               
-              {accounts.filter(a => a.id !== targetId).length === 0 ? (
+              {accounts.length <= 1 || accounts.filter(a => a.id !== (targetId || accounts[0]?.id)).length === 0 ? (
                 <div className="p-4 rounded-xl border border-dashed border-purple-200 bg-purple-50/60 text-slate-700 text-xs space-y-2">
                   <div className="flex items-center gap-2 font-bold text-purple-900">
                     <Users className="w-4 h-4 text-purple-600" />
                     <span>At least 2 connected accounts are required</span>
                   </div>
                   <p className="text-slate-600 leading-relaxed">
-                    Targeted Warmup requires at least one <strong>Peer Account</strong> to exchange emails with your Target account (<code>{accounts.find(a => a.id === targetId)?.email || 'selected target'}</code>). Currently, you only have 1 connected email.
+                    Targeted Warmup requires at least one <strong>Peer Account</strong> to exchange emails with your Target account (<code>{accounts.find(a => a.id === targetId)?.email || accounts[0]?.email || 'selected target'}</code>). Currently, you have {accounts.length} connected email{accounts.length === 1 ? '' : 's'}.
                   </p>
                   <div className="pt-1">
                     <Link
@@ -339,7 +363,7 @@ export default function TargetedWarmupPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {accounts.filter(a => a.id !== targetId).map(acc => (
+                  {accounts.filter(a => a.id !== (targetId || accounts[0]?.id)).map(acc => (
                     <label key={acc.id} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${selectedPeers[acc.id] ? 'bg-purple-50 border-purple-200' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
                       <input type="checkbox" checked={selectedPeers[acc.id] || false} onChange={() => handleTogglePeer(acc.id)} className="w-4 h-4 text-purple-600 rounded" />
                       <div className="flex flex-col">

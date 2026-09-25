@@ -123,7 +123,6 @@ async function runWarmupDiagnostic() {
     const campaign = targetedLocalDb.upsertCampaign({
       user_id: userId,
       target_email_account_id: targetAcc.id,
-      name: 'Diagnostic Targeted Campaign',
       status: 'running',
       enabled: true,
       daily_limit: 5,
@@ -134,7 +133,7 @@ async function runWarmupDiagnostic() {
       campaign_id: campaign.id,
       email_account_id: peerAcc.id,
       enabled: true,
-      status: 'active',
+      status: 'running',
     });
 
     const targetedScheduleRes = await scheduleTargetedWarmupJobsForUser(userId, true);
