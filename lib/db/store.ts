@@ -246,8 +246,18 @@ export async function loadDbFromSupabase(): Promise<DatabaseSchema> {
       const parsed = JSON.parse(data.description) as DatabaseSchema;
       if (parsed) {
         parsed.email_accounts = parsed.email_accounts || [];
+        for (const seedAcc of initialSeedData.email_accounts) {
+          if (!parsed.email_accounts.some(a => a.email.toLowerCase() === seedAcc.email.toLowerCase())) {
+            parsed.email_accounts.push(seedAcc);
+          }
+        }
         parsed.email_warmup_configs = parsed.email_warmup_configs || [];
         parsed.email_warmup_accounts = parsed.email_warmup_accounts || [];
+        for (const seedWarm of initialSeedData.email_warmup_accounts) {
+          if (!parsed.email_warmup_accounts.some(w => w.email_account_id === seedWarm.email_account_id)) {
+            parsed.email_warmup_accounts.push(seedWarm);
+          }
+        }
         parsed.email_warmup_jobs = parsed.email_warmup_jobs || [];
         parsed.email_warmup_events = parsed.email_warmup_events || [];
         parsed.email_warmup_stats = parsed.email_warmup_stats || [];
