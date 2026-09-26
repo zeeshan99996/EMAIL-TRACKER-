@@ -57,7 +57,7 @@ export default function TargetedWarmupPage() {
     setSelectedPeers(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const handleSaveAndStart = async (autoPauseStandard = false) => {
+  const handleSaveAndStart = async (autoPauseStandard = true) => {
     setError(null);
     setSubmitting(true);
     const peerAccountIds = Object.keys(selectedPeers).filter(id => selectedPeers[id]);
@@ -77,7 +77,7 @@ export default function TargetedWarmupPage() {
           targetAccountId: targetId,
           peerAccountIds,
           settings: { dailyLimit, cooldown },
-          autoPauseStandard,
+          autoPauseStandard: autoPauseStandard !== false,
         })
       });
       const saveData = await saveRes.json();
@@ -89,7 +89,7 @@ export default function TargetedWarmupPage() {
       const startRes = await fetch(`/api/warmup/targeted/${campaignId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'start', autoPauseStandard })
+        body: JSON.stringify({ action: 'start', autoPauseStandard: autoPauseStandard !== false })
       });
       const startData = await startRes.json();
       if (!startRes.ok) throw new Error(startData.error);
@@ -197,7 +197,7 @@ export default function TargetedWarmupPage() {
                   <Pause className="w-3.5 h-3.5" /> Pause
                 </button>
               ) : (
-                <button onClick={() => handleSaveAndStart()} disabled={submitting} className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold hover:bg-emerald-100">
+                <button onClick={() => handleSaveAndStart(true)} disabled={submitting} className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold hover:bg-emerald-100">
                   <Play className="w-3.5 h-3.5" /> Resume
                 </button>
               )}
@@ -391,7 +391,7 @@ export default function TargetedWarmupPage() {
 
             <div className="flex justify-end pt-4">
               <button
-                onClick={() => handleSaveAndStart(false)}
+                onClick={() => handleSaveAndStart(true)}
                 disabled={submitting || accounts.filter(a => a.id !== targetId).length === 0}
                 className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >

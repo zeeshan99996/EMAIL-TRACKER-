@@ -28,6 +28,7 @@ export async function POST(
     await loadDbFromSupabase();
 
     const { action, autoPauseStandard } = await request.json(); // start, pause, stop, trigger_cycle
+    const shouldAutoPause = autoPauseStandard !== false;
     const campaignId = params.id;
 
     const campaign = targetedLocalDb.getCampaignById(campaignId);
@@ -42,7 +43,7 @@ export async function POST(
     }
 
     if (action === 'start' || action === 'trigger_cycle') {
-      if (autoPauseStandard) {
+      if (shouldAutoPause) {
         localDb.upsertConfig(session.user.id, { status: 'paused', enabled: false });
         const stdAccounts = localDb.getWarmupAccounts(session.user.id);
         for (const a of stdAccounts) {

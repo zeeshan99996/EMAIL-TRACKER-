@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
     await loadDbFromSupabase();
 
     const { targetAccountId, peerAccountIds, settings, autoPauseStandard } = await request.json();
+    const shouldAutoPause = autoPauseStandard !== false;
 
     if (!targetAccountId || !peerAccountIds || peerAccountIds.length === 0) {
       return NextResponse.json({ error: 'Target account and at least one peer required' }, { status: 400 });
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (autoPauseStandard) {
+    if (shouldAutoPause) {
       localDb.upsertConfig(session.user.id, { status: 'paused', enabled: false });
       const stdAccounts = localDb.getWarmupAccounts(session.user.id);
       for (const a of stdAccounts) {
