@@ -69,7 +69,7 @@ export default function TargetedWarmupPage() {
     }
 
     try {
-      // Step 1: Save Configuration
+      // Save Configuration and Start Campaign Atomically
       const saveRes = await fetch('/api/warmup/targeted', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -78,21 +78,12 @@ export default function TargetedWarmupPage() {
           peerAccountIds,
           settings: { dailyLimit, cooldown },
           autoPauseStandard: autoPauseStandard !== false,
+          startNow: true,
         })
       });
       const saveData = await saveRes.json();
       
       if (!saveRes.ok) throw new Error(saveData.error);
-      const campaignId = saveData.campaignId;
-
-      // Step 2: Start Campaign
-      const startRes = await fetch(`/api/warmup/targeted/${campaignId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'start', autoPauseStandard: autoPauseStandard !== false })
-      });
-      const startData = await startRes.json();
-      if (!startRes.ok) throw new Error(startData.error);
 
       await fetchData();
     } catch (err: any) {

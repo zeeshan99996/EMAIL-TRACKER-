@@ -3,6 +3,8 @@ import { targetedLocalDb } from '@/lib/db/targeted_store';
 import { logSecurityEvent } from '@/lib/security/audit';
 import { sanitizeAccountForClient } from '@/lib/security/redactor';
 import { calculateLevelFromStats, calculateWarmupProgressPercent, WARMUP_LEVELS } from '@/lib/warmup/levels';
+import { scheduleTargetedWarmupJobsForUser } from '@/lib/warmup/targeted_scheduler';
+import { processAllTargetedJobs } from '@/lib/warmup/targeted_worker';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -24,7 +26,7 @@ export async function POST(request: NextRequest) {
     // 0. Ensure latest data from Supabase Cloud Store
     await loadDbFromSupabase();
 
-    const { targetAccountId, peerAccountIds, settings, autoPauseStandard } = await request.json();
+    const { targetAccountId, peerAccountIds, settings, autoPauseStandard, startNow = true } = await request.json();
     const shouldAutoPause = autoPauseStandard !== false;
 
     if (!targetAccountId || !peerAccountIds || peerAccountIds.length === 0) {
@@ -106,17 +108,19 @@ export async function POST(request: NextRequest) {
     }
 
     let campaign = targetedLocalDb.getCampaignByTargetAccountId(targetAccountId);
+    const isStarting = startNow !== false;
     
     campaign = targetedLocalDb.upsertCampaign({
       id: campaign?.id,
       user_id: session.user.id,
       target_email_account_id: targetAccountId,
-      status: 'draft',
-      daily_limit: settings.dailyLimit || 50,
-      min_delay_minutes: settings.minDelay || 5,
-      max_delay_minutes: settings.maxDelay || 15,
-      cooldown_minutes: settings.cooldown || 60,
-      ai_enabled: settings.aiEnabled !== undefined ? settings.aiEnabled : true,
+      status: isStarting ? 'running' : 'draft',
+      daily_limit: settings?.dailyLimit || 50,
+      min_delay_minutes: settings?.minDelay || 5,
+      max_delay_minutes: settings?.maxDelay || 15,
+      cooldown_minutes: settings?.cooldown || 60,
+      ai_enabled: settings?.aiEnabled !== undefined ? settings.aiEnabled : true,
+      started_at: isStarting ? new Date().toISOString() : undefined,
     });
 
     // Reset existing peers to disabled, then enable selected ones
@@ -130,14 +134,20 @@ export async function POST(request: NextRequest) {
         campaign_id: campaign.id,
         email_account_id: peerId,
         enabled: true,
-        status: 'queued'
+        status: isStarting ? 'running' : 'queued',
       });
+    }
+
+    if (isStarting) {
+      await scheduleTargetedWarmupJobsForUser(session.user.id, true);
+      targetedLocalDb.expediteQueuedJobs(campaign.id);
+      processAllTargetedJobs().catch(e => console.error('Targeted instant trigger error', e));
     }
 
     // Synchronously commit to Supabase Cloud Database
     await saveDbAsync(localDb.ensureDbFile());
 
-    return NextResponse.json({ success: true, campaignId: campaign.id });
+    return NextResponse.json({ success: true, campaignId: campaign.id, status: campaign.status });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
