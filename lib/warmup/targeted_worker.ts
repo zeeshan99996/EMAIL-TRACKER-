@@ -40,17 +40,22 @@ export async function processTargetedWarmupJob(jobId: string): Promise<{ success
         recipientEmail: targetEmail,
         rotationIndex: Math.floor(Math.random() * 50),
       });
-      // Pre-send verification
-      const verifyRes = await verifyEmailAddress(targetEmail);
-      if (!verifyRes.valid) {
-        db.insertEvent({
-          campaign_id: campaign.id,
-          source_account_id: job.source_account_id,
-          target_account_id: job.target_account_id,
-          event_type: 'limit_reached',
-          status: 'warning',
-        });
-        return { success: false, message: `Target email verification failed: ${verifyRes.reason}` };
+      // Pre-send verification: connected pool mailboxes are verified authentic
+      const isConnectedPeer = localDb.getAccounts().some(a => a.email.toLowerCase() === targetEmail.toLowerCase());
+      if (!isConnectedPeer) {
+        const verifyRes = await verifyEmailAddress(targetEmail);
+        if (!verifyRes.valid) {
+          db.insertEvent({
+            campaign_id: campaign.id,
+            source_account_id: job.source_account_id,
+            target_account_id: job.target_account_id,
+            event_type: 'limit_reached',
+            status: 'warning',
+            metadata: { error: verifyRes.reason }
+          });
+          db.upsertJob({ id: job.id, campaign_id: campaign.id, status: 'failed', error_message: `Target email verification failed: ${verifyRes.reason}` });
+          return { success: false, message: `Target email verification failed: ${verifyRes.reason}` };
+        }
       }
 
       // Email Tracker integration

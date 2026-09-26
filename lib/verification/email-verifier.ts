@@ -424,8 +424,8 @@ export function isFakeOrDisposableEmail(email: string): { isFake: boolean; reaso
     }
   }
 
-  // 6. Suspicious trailing random digit sequence (5+ trailing digits)
-  if (/\d{5,}$/.test(localPart) && localPart.length > 10) {
+  // 6. Suspicious trailing random digit sequence (8+ trailing digits e.g. keysmashes)
+  if (/\d{8,}$/.test(localPart) && localPart.length > 16) {
     return { isFake: true, reason: 'High-entropy trailing digit sequence detected' };
   }
 
