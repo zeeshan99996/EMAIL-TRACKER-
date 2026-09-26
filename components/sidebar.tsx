@@ -221,9 +221,11 @@ export function Sidebar({
           </div>
 
           {/* Project Selector (shown in tracker mode) */}
-          <div className="px-3 py-3">
-            <ProjectSelector />
-          </div>
+          {!isWarmupMode && (
+            <div className="px-3 py-3">
+              <ProjectSelector />
+            </div>
+          )}
 
           {/* Nav Sections */}
           <nav className="px-3 py-1 space-y-5">
@@ -279,18 +281,22 @@ export function Sidebar({
           </nav>
         </div>
 
-        {/* Bottom Accent Widget (like reference image) */}
+        {/* Bottom Accent Widget */}
         <div className="p-3">
           <div className="relative overflow-hidden p-3.5 rounded-2xl bg-[#53E2FE]/10 border border-[#53E2FE]/25">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-white">Google Apps Script</p>
-                <p className="text-[11px] font-medium text-white mt-0.5">Real-time Gmail tracking</p>
+                <p className="text-xs font-bold text-white">
+                  {isWarmupMode ? 'AI Warmup Fleet' : 'Google Apps Script'}
+                </p>
+                <p className="text-[11px] font-medium text-white mt-0.5">
+                  {isWarmupMode ? 'Automated mailbox ramp-up' : 'Real-time Gmail tracking'}
+                </p>
               </div>
               <Link
-                href="/dashboard/api-keys"
+                href={isWarmupMode ? '/dashboard/warmup/accounts' : '/dashboard/api-keys'}
                 className="w-8 h-8 rounded-full bg-[#53E2FE] text-slate-950 flex items-center justify-center shadow-sm hover:scale-105 transition-transform"
-                title="View Apps Script & API Key"
+                title={isWarmupMode ? 'Manage Mailboxes' : 'View Apps Script & API Key'}
               >
                 <ArrowUpRight className="w-4 h-4 font-bold stroke-[2.5]" />
               </Link>

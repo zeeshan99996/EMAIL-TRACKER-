@@ -82,7 +82,7 @@ export default function WarmupDashboardPage() {
       if (!res.ok || data.error) {
         setFeedback({ message: data.error || `Failed to ${action} warmup`, isError: true });
       } else {
-        setFeedback({ message: `Campaign ${action}ed successfully!`, isError: false });
+        setFeedback({ message: data.message || `Campaign ${action}ed successfully!`, isError: false });
         await fetchData();
       }
     } catch (err: any) {
