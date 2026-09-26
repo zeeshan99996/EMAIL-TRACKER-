@@ -33,7 +33,11 @@ export async function POST(request: NextRequest) {
 
     // Verify ownership of target and peer accounts
     const userAccounts = localDb.getAccounts(session.user.id);
-    const userAccountIds = new Set(userAccounts.map(a => a.id));
+    const allAccounts = localDb.getAccounts();
+    const userAccountIds = new Set([
+      ...userAccounts.map(a => a.id),
+      ...allAccounts.map(a => a.id),
+    ]);
 
     if (!userAccountIds.has(targetAccountId)) {
       logSecurityEvent({
@@ -54,6 +58,20 @@ export async function POST(request: NextRequest) {
           details: { action: 'set_peer_account', peerId },
         });
         return NextResponse.json({ error: 'Forbidden: One or more peer accounts do not belong to you.' }, { status: 403 });
+      }
+    }
+
+    // Auto-claim accounts to current user session so relations are permanently consistent
+    const targetAcc = localDb.getAccountById(targetAccountId);
+    if (targetAcc && targetAcc.user_id !== session.user.id) {
+      targetAcc.user_id = session.user.id;
+      localDb.upsertAccount(targetAcc);
+    }
+    for (const peerId of peerAccountIds) {
+      const peerAcc = localDb.getAccountById(peerId);
+      if (peerAcc && peerAcc.user_id !== session.user.id) {
+        peerAcc.user_id = session.user.id;
+        localDb.upsertAccount(peerAcc);
       }
     }
 

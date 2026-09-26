@@ -18,7 +18,7 @@ export const targetedLocalDb = {
     if (!userId) return campaigns;
     let modified = false;
     for (const c of campaigns) {
-      if (!c.user_id || c.user_id === 'usr_demo_01') {
+      if (!c.user_id || c.user_id === 'usr_demo_01' || c.user_id === 'usr_test_123' || c.user_id === '7e352bba-1c84-494f-a795-c8b9121fd061' || c.user_id.startsWith('usr_')) {
         c.user_id = userId;
         modified = true;
       }

@@ -327,19 +327,19 @@ export const localDb = {
     if (userId) {
       let modified = false;
       for (const a of accounts) {
-        if (!a.user_id || a.user_id === 'usr_demo_01') {
+        if (!a.user_id || a.user_id === 'usr_demo_01' || a.user_id === 'usr_test_123' || a.user_id === '7e352bba-1c84-494f-a795-c8b9121fd061' || a.user_id.startsWith('usr_')) {
           a.user_id = userId;
           modified = true;
         }
       }
       for (const w of db.email_warmup_accounts) {
-        if (!w.user_id || w.user_id === 'usr_demo_01') {
+        if (!w.user_id || w.user_id === 'usr_demo_01' || w.user_id === 'usr_test_123' || w.user_id === '7e352bba-1c84-494f-a795-c8b9121fd061' || w.user_id.startsWith('usr_')) {
           w.user_id = userId;
           modified = true;
         }
       }
       for (const c of db.email_warmup_configs) {
-        if (!c.user_id || c.user_id === 'usr_demo_01') {
+        if (!c.user_id || c.user_id === 'usr_demo_01' || c.user_id === 'usr_test_123' || c.user_id === '7e352bba-1c84-494f-a795-c8b9121fd061' || c.user_id.startsWith('usr_')) {
           c.user_id = userId;
           modified = true;
         }

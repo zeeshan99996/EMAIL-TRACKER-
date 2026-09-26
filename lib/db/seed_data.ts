@@ -37,6 +37,18 @@ export const initialSeedData: DatabaseSchema = {
       error_message: null,
       created_at: "2026-09-25T07:41:26.014Z",
       updated_at: "2026-09-25T07:41:26.014Z"
+    },
+    {
+      id: "f2f789d3-68f4-4859-a673-62171404a5f7",
+      user_id: "usr_demo_01",
+      email: "workwithyasir13@gmail.com",
+      provider: "gmail_app_password",
+      access_token: "",
+      status: "connected",
+      last_sync_at: "2026-09-25T12:03:23.261Z",
+      error_message: null,
+      created_at: "2026-09-25T12:03:23.261Z",
+      updated_at: "2026-09-25T12:03:23.261Z"
     }
   ],
   email_warmup_configs: [
@@ -103,6 +115,22 @@ export const initialSeedData: DatabaseSchema = {
       total_replies: 0,
       created_at: "2026-09-25T11:23:07.910Z",
       updated_at: "2026-09-25T11:34:53.769Z"
+    },
+    {
+      id: "92da1001-c889-4fa2-bf5a-94ef1f07f212",
+      user_id: "usr_demo_01",
+      warmup_config_id: "9af567d0-d0ea-40f3-b617-461e0b7d6370",
+      email_account_id: "f2f789d3-68f4-4859-a673-62171404a5f7",
+      status: "running",
+      warmup_level: 1,
+      daily_sent: 0,
+      daily_received: 0,
+      daily_replies: 0,
+      total_sent: 0,
+      total_received: 0,
+      total_replies: 0,
+      created_at: "2026-09-25T12:03:23.261Z",
+      updated_at: "2026-09-25T12:03:23.261Z"
     }
   ],
   email_warmup_jobs: [],

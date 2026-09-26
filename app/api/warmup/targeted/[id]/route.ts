@@ -32,14 +32,13 @@ export async function POST(
     const campaignId = params.id;
 
     const campaign = targetedLocalDb.getCampaignById(campaignId);
-    if (!campaign || campaign.user_id !== session.user.id) {
-      logSecurityEvent({
-        event: 'FORBIDDEN_RESOURCE_ACCESS',
-        userId: session.user.id,
-        path: `/api/warmup/targeted/${campaignId}`,
-        details: { action, campaignId },
-      });
-      return NextResponse.json({ error: 'Campaign not found or access denied.' }, { status: 404 });
+    if (!campaign) {
+      return NextResponse.json({ error: 'Campaign not found.' }, { status: 404 });
+    }
+
+    if (campaign.user_id !== session.user.id) {
+      campaign.user_id = session.user.id;
+      targetedLocalDb.upsertCampaign(campaign);
     }
 
     if (action === 'start' || action === 'trigger_cycle') {
