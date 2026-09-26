@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Target, Play, Pause, Square, AlertCircle, Loader2, Users, RefreshCw, Zap } from 'lucide-react';
+import { Target, Play, Pause, Square, AlertCircle, Loader2, Users, RefreshCw, Zap, Mail } from 'lucide-react';
 
 export default function TargetedWarmupPage() {
   const [accounts, setAccounts] = useState<any[]>([]);
@@ -104,6 +104,10 @@ export default function TargetedWarmupPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      if (data.executionResults?.some((r: any) => !r.success)) {
+        const failure = data.executionResults.find((r: any) => !r.success);
+        if (failure?.message) setError(failure.message);
+      }
       await fetchData();
     } catch (err: any) {
       setError(err.message);
@@ -206,6 +210,27 @@ export default function TargetedWarmupPage() {
             </div>
           </div>
           
+          {/* Missing App Password Warning */}
+          {activeCampaign.target_account && activeCampaign.target_account.has_credentials === false && (
+            <div className="mb-6 p-4 rounded-xl border border-amber-300 bg-amber-50 text-amber-900 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-start gap-2.5">
+                <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold text-sm block">16-Character Google App Password Required</span>
+                  <span className="text-amber-800">
+                    Mailbox <strong>{activeCampaign.target_account.email}</strong> does not have an active Google App Password. To transmit actual warmup emails to real inboxes, Google requires a 16-character App Password.
+                  </span>
+                </div>
+              </div>
+              <Link
+                href="/dashboard/warmup/accounts"
+                className="shrink-0 px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-xs transition-all"
+              >
+                + Connect App Password
+              </Link>
+            </div>
+          )}
+
           {/* Warmup Progress & Health Overview Banner */}
           <div className="mb-6 p-5 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-100 rounded-2xl">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-3">
@@ -275,23 +300,88 @@ export default function TargetedWarmupPage() {
           </div>
           
           <div className="mt-8">
-            <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2"><RefreshCw className="w-4 h-4 text-slate-400" /> Pending Jobs (Next Cycle)</h3>
+            <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <RefreshCw className="w-4 h-4 text-slate-400" />
+              Campaign Execution Queue & Jobs
+            </h3>
             <div className="space-y-2">
-              {activeCampaign.jobs?.filter((j: any) => j.status === 'queued').length === 0 ? (
-                <div className="text-xs text-slate-500 italic p-3 bg-slate-50 rounded border border-slate-100">No jobs queued. Waiting for cooldown.</div>
+              {(!activeCampaign.jobs || activeCampaign.jobs.length === 0) ? (
+                <div className="text-xs text-slate-500 italic p-3 bg-slate-50 rounded border border-slate-100">
+                  No jobs queued. Click &quot;Run Cycle Now&quot; to execute immediately.
+                </div>
               ) : (
-                activeCampaign.jobs?.filter((j: any) => j.status === 'queued').map((job: any) => (
-                  <div key={job.id} className="text-xs flex items-center justify-between p-3 bg-white border border-slate-200 rounded-lg">
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-slate-700">{job.job_type === 'initial_send' ? 'Target -> Peer' : 'Peer -> Target'}</span>
-                      <span className="text-[10px] text-slate-400">Scheduled: {new Date(job.scheduled_at).toLocaleString()}</span>
+                activeCampaign.jobs.slice(0, 10).map((job: any) => (
+                  <div key={job.id} className={`text-xs flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-white border rounded-xl gap-2 ${job.status === 'failed' ? 'border-rose-200 bg-rose-50/30' : 'border-slate-200'}`}>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-800">
+                          {job.job_type === 'initial_send' ? 'Target -> Peer' : 'Peer -> Target Reply'}
+                        </span>
+                        <span className="text-[10px] text-slate-400">
+                          {job.completed_at ? `Completed: ${new Date(job.completed_at).toLocaleTimeString()}` : `Scheduled: ${new Date(job.scheduled_at).toLocaleTimeString()}`}
+                        </span>
+                      </div>
+                      {job.error_message && (
+                        <p className="text-[11px] text-rose-600 font-medium leading-relaxed">
+                          ⚠️ {job.error_message}
+                        </p>
+                      )}
                     </div>
-                    <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium text-[10px]">QUEUED</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {job.status === 'completed' && (
+                        <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full font-bold text-[10px]">
+                          ✓ SENT
+                        </span>
+                      )}
+                      {job.status === 'queued' && (
+                        <span className="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full font-bold text-[10px]">
+                          QUEUED
+                        </span>
+                      )}
+                      {job.status === 'processing' && (
+                        <span className="bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-0.5 rounded-full font-bold text-[10px] flex items-center gap-1">
+                          <Loader2 className="w-3 h-3 animate-spin" /> SENDING
+                        </span>
+                      )}
+                      {job.status === 'failed' && (
+                        <span className="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-0.5 rounded-full font-bold text-[10px]">
+                          FAILED
+                        </span>
+                      )}
+                    </div>
                   </div>
                 ))
               )}
             </div>
           </div>
+
+          {/* Live Warmup Activity Timeline */}
+          {activeCampaign.events && activeCampaign.events.length > 0 && (
+            <div className="mt-8 pt-6 border-t border-slate-100">
+              <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <Mail className="w-4 h-4 text-purple-600" />
+                Live Warmup Activity & Delivery Log
+              </h3>
+              <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                {activeCampaign.events.slice(0, 15).map((event: any) => (
+                  <div key={event.id} className="text-xs flex items-center justify-between p-2.5 bg-slate-50 border border-slate-100 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${event.status === 'success' ? 'bg-emerald-500' : event.status === 'error' ? 'bg-rose-500' : 'bg-blue-500'}`} />
+                      <span className="font-medium text-slate-700">
+                        {event.event_type === 'message_sent' && 'Warmup email sent to peer'}
+                        {event.event_type === 'response_sent' && 'Peer auto-reply sent back'}
+                        {event.event_type === 'limit_reached' && (event.metadata?.error || 'Execution notice')}
+                        {!['message_sent', 'response_sent', 'limit_reached'].includes(event.event_type) && event.event_type}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-slate-400">
+                      {new Date(event.created_at).toLocaleTimeString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">

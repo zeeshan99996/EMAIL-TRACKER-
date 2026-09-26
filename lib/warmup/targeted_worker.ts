@@ -179,7 +179,7 @@ export async function processTargetedWarmupJob(jobId: string): Promise<{ success
     return { success: true };
   } catch (err: any) {
     console.error(`Targeted Job Failed: ${err.message}`);
-    const attempts = job.attempts + 1;
+    const attempts = (job.attempts || 0) + 1;
     if (attempts >= 3) {
       db.upsertJob({ id: job.id, campaign_id: campaign.id, status: 'failed', error_message: err.message, attempts });
     } else {
@@ -193,16 +193,26 @@ export async function processTargetedWarmupJob(jobId: string): Promise<{ success
         scheduled_at: new Date(Date.now() + 2 * 60 * 1000).toISOString()
       });
     }
+
+    db.insertEvent({
+      campaign_id: campaign.id,
+      source_account_id: job.source_account_id,
+      target_account_id: job.target_account_id,
+      event_type: 'limit_reached',
+      status: 'error',
+      metadata: { error: err.message, job_type: job.job_type, attempts },
+    });
+
     return { success: false, message: err.message };
   }
 }
 
 let isTargetedWorkerRunning = false;
 
-export async function processAllTargetedJobs(forceAll = false) {
+export async function processAllTargetedJobs(forceAll = false): Promise<{ success: boolean; message?: string }[]> {
   if (isTargetedWorkerRunning) {
     console.log('[Targeted Worker] Already running, skipping this tick.');
-    return;
+    return [];
   }
   
   isTargetedWorkerRunning = true;
@@ -213,9 +223,12 @@ export async function processAllTargetedJobs(forceAll = false) {
       db.expediteQueuedJobs();
       jobs = db.getPendingJobs();
     }
+    const results: { success: boolean; message?: string }[] = [];
     for (const job of jobs.slice(0, 3)) {
-      await processTargetedWarmupJob(job.id);
+      const res = await processTargetedWarmupJob(job.id);
+      results.push(res);
     }
+    return results;
   } finally {
     isTargetedWorkerRunning = false;
   }

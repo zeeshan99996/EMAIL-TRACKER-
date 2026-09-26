@@ -221,19 +221,40 @@ export async function sendSmtpEmail({
   references?: string;
   config?: SmtpConfig;
 }): Promise<{ messageId: string }> {
+  if (!appPassword || appPassword.trim() === '') {
+    throw new Error(`Email "${email}" has no App Password configured. Google requires a 16-character App Password to send emails.`);
+  }
+
   const transporter = createSmtpTransporter(email, appPassword, config);
 
-  const info = await transporter.sendMail({
-    from: email,
-    to: toEmail,
-    subject,
-    text: body,
-    html: html || undefined,
-    inReplyTo: inReplyTo || undefined,
-    references: references || undefined,
-  });
+  try {
+    const info = await transporter.sendMail({
+      from: email,
+      to: toEmail,
+      subject,
+      text: body,
+      html: html || undefined,
+      inReplyTo: inReplyTo || undefined,
+      references: references || undefined,
+    });
 
-  return {
-    messageId: info.messageId || `<${Date.now()}@gmail.com>`,
-  };
+    return {
+      messageId: info.messageId || `<${Date.now()}@gmail.com>`,
+    };
+  } catch (err: any) {
+    const msg = (err.message || '').toLowerCase();
+    const isBadCredentials =
+      msg.includes('535') ||
+      msg.includes('badcredentials') ||
+      msg.includes('username and password not accepted') ||
+      err.code === 'EAUTH' ||
+      err.responseCode === 535;
+
+    if (isBadCredentials) {
+      throw new Error(
+        `Gmail SMTP login failed for "${email}" (Invalid App Password). Google requires a 16-character App Password (not your personal Google account password). Please generate a fresh App Password at https://myaccount.google.com/apppasswords and reconnect it in Mailboxes.`
+      );
+    }
+    throw err;
+  }
 }

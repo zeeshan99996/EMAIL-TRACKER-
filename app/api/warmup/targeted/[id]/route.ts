@@ -80,6 +80,8 @@ export async function POST(
       targetedLocalDb.upsertCampaign(campaign);
     }
 
+    let executionResults: any[] = [];
+
     if (action === 'start' || action === 'trigger_cycle') {
       if (shouldAutoPause) {
         localDb.upsertConfig(session.user.id, { status: 'paused', enabled: false });
@@ -99,7 +101,7 @@ export async function POST(
       targetedLocalDb.upsertCampaign({ id: actualCampaignId, user_id: session.user.id, target_email_account_id: campaign.target_email_account_id, status: 'running', started_at: new Date().toISOString() });
       await scheduleTargetedWarmupJobsForUser(session.user.id, true);
       targetedLocalDb.expediteQueuedJobs(actualCampaignId);
-      processAllTargetedJobs().catch(e => console.error('Targeted instant trigger error', e));
+      executionResults = await processAllTargetedJobs();
     } else if (action === 'pause') {
       targetedLocalDb.upsertCampaign({ id: actualCampaignId, user_id: session.user.id, target_email_account_id: campaign.target_email_account_id, status: 'paused', paused_at: new Date().toISOString() });
       targetedLocalDb.cancelPendingJobs(actualCampaignId);
@@ -113,7 +115,12 @@ export async function POST(
     // Synchronously commit to Supabase Cloud Database
     await saveDbAsync(localDb.ensureDbFile());
 
-    return NextResponse.json({ success: true, status: action, campaignId: actualCampaignId });
+    return NextResponse.json({ 
+      success: true, 
+      status: action, 
+      campaignId: actualCampaignId,
+      executionResults,
+    });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

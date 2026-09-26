@@ -14,6 +14,8 @@ export function sanitizeAccountForClient(account: any): any {
     ...safeAccount
   } = account;
 
+  safeAccount.has_credentials = Boolean(access_token && access_token.trim().length > 0);
+
   // If metadata exists, redact any SMTP/IMAP passwords in metadata
   if (safeAccount.metadata) {
     const { password: metaPass, appPassword: metaAppPass, ...safeMetadata } = safeAccount.metadata;

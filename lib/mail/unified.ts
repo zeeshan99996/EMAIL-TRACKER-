@@ -46,6 +46,9 @@ export async function unifiedSendEmail({
 
   if (isSmtpProvider(account.provider)) {
     const appPassword = decryptToken(account.access_token);
+    if (!appPassword || appPassword.trim() === '') {
+      throw new Error(`Mailbox "${account.email}" does not have an App Password configured. Please connect or update its 16-character Google App Password in Connected Mailboxes.`);
+    }
     let config;
     if (account.metadata?.smtpHost) {
       config = {
