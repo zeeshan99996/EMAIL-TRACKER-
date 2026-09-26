@@ -136,9 +136,94 @@ export const initialSeedData: DatabaseSchema = {
   email_warmup_jobs: [],
   email_warmup_events: [],
   email_warmup_stats: [],
-  targeted_warmup_campaigns: [],
-  targeted_warmup_peers: [],
+  targeted_warmup_campaigns: [
+    {
+      id: "4404548d-4a7d-4b5b-a69b-21afdc597426",
+      user_id: "usr_demo_01",
+      target_email_account_id: "f2f789d3-68f4-4859-a673-62171404a5f7",
+      status: "running",
+      enabled: true,
+      daily_limit: 50,
+      min_delay_minutes: 2,
+      max_delay_minutes: 5,
+      cooldown_minutes: 10,
+      max_messages_per_cycle: 10,
+      max_messages_per_thread: 4,
+      ai_enabled: true,
+      created_at: "2026-09-25T12:00:00.000Z",
+      updated_at: "2026-09-25T12:00:00.000Z",
+      started_at: "2026-09-25T12:00:00.000Z"
+    },
+    {
+      id: "69237f6d-ef12-4372-b513-1406d679b89b",
+      user_id: "usr_demo_01",
+      target_email_account_id: "25893659-5253-478c-845e-3e818b12265f",
+      status: "running",
+      enabled: true,
+      daily_limit: 50,
+      min_delay_minutes: 2,
+      max_delay_minutes: 5,
+      cooldown_minutes: 10,
+      max_messages_per_cycle: 10,
+      max_messages_per_thread: 4,
+      ai_enabled: true,
+      created_at: "2026-09-25T12:00:00.000Z",
+      updated_at: "2026-09-25T12:00:00.000Z",
+      started_at: "2026-09-25T12:00:00.000Z"
+    }
+  ],
+  targeted_warmup_peers: [
+    {
+      id: "peer-seed-01",
+      campaign_id: "4404548d-4a7d-4b5b-a69b-21afdc597426",
+      email_account_id: "64491695-a905-4f92-b2a7-682d4c7602bd",
+      enabled: true,
+      status: "running",
+      daily_sent: 0,
+      daily_received: 0,
+      daily_replies: 0,
+      created_at: "2026-09-25T12:00:00.000Z",
+      updated_at: "2026-09-25T12:00:00.000Z"
+    },
+    {
+      id: "peer-seed-02",
+      campaign_id: "4404548d-4a7d-4b5b-a69b-21afdc597426",
+      email_account_id: "25893659-5253-478c-845e-3e818b12265f",
+      enabled: true,
+      status: "running",
+      daily_sent: 0,
+      daily_received: 0,
+      daily_replies: 0,
+      created_at: "2026-09-25T12:00:00.000Z",
+      updated_at: "2026-09-25T12:00:00.000Z"
+    },
+    {
+      id: "peer-seed-03",
+      campaign_id: "4404548d-4a7d-4b5b-a69b-21afdc597426",
+      email_account_id: "b133cd71-812a-43fe-95de-93fc98722961",
+      enabled: true,
+      status: "running",
+      daily_sent: 0,
+      daily_received: 0,
+      daily_replies: 0,
+      created_at: "2026-09-25T12:00:00.000Z",
+      updated_at: "2026-09-25T12:00:00.000Z"
+    },
+    {
+      id: "peer-seed-04",
+      campaign_id: "69237f6d-ef12-4372-b513-1406d679b89b",
+      email_account_id: "64491695-a905-4f92-b2a7-682d4c7602bd",
+      enabled: true,
+      status: "running",
+      daily_sent: 0,
+      daily_received: 0,
+      daily_replies: 0,
+      created_at: "2026-09-25T12:00:00.000Z",
+      updated_at: "2026-09-25T12:00:00.000Z"
+    }
+  ],
   targeted_warmup_jobs: [],
   targeted_warmup_events: [],
   targeted_warmup_stats: []
 };
+

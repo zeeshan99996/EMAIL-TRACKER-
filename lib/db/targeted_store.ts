@@ -35,9 +35,21 @@ export const targetedLocalDb = {
     return (db.targeted_warmup_campaigns || []).find(c => c.target_email_account_id === accountId);
   },
 
-  getCampaignById(campaignId: string): TargetedWarmupCampaign | undefined {
+  getCampaignById(campaignId: string, userId?: string): TargetedWarmupCampaign | undefined {
     const db = ensureDbFile();
-    return (db.targeted_warmup_campaigns || []).find(c => c.id === campaignId);
+    const campaigns = db.targeted_warmup_campaigns || [];
+    let found = campaigns.find(c => c.id === campaignId);
+    if (found) return found;
+
+    if (userId) {
+      const userCampaigns = this.getCampaigns(userId);
+      found = userCampaigns.find(c => c.id === campaignId) 
+        || userCampaigns.find(c => c.status === 'running' || c.status === 'paused')
+        || userCampaigns[0];
+      if (found) return found;
+    }
+
+    return campaigns.find(c => c.status === 'running' || c.status === 'paused') || campaigns[0];
   },
 
   upsertCampaign(campaign: Partial<TargetedWarmupCampaign> & { user_id: string; target_email_account_id: string }): TargetedWarmupCampaign {

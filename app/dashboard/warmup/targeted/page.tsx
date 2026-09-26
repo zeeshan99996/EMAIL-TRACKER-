@@ -95,6 +95,7 @@ export default function TargetedWarmupPage() {
 
   const handleAction = async (campaignId: string, action: 'start' | 'pause' | 'stop' | 'trigger_cycle') => {
     setSubmitting(true);
+    setError(null);
     try {
       const res = await fetch(`/api/warmup/targeted/${campaignId}`, {
         method: 'POST',
@@ -162,6 +163,13 @@ export default function TargetedWarmupPage() {
               )}
             </div>
           </div>
+          <button
+            onClick={() => setError(null)}
+            className="text-xs text-rose-500 hover:text-rose-800 font-bold px-2 py-1 rounded cursor-pointer"
+            title="Dismiss notice"
+          >
+            ✕ Dismiss
+          </button>
         </div>
       )}
 
@@ -184,15 +192,15 @@ export default function TargetedWarmupPage() {
               </button>
 
               {activeCampaign.status === 'running' ? (
-                <button onClick={() => handleAction(activeCampaign.id, 'pause')} disabled={submitting} className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg text-xs font-bold hover:bg-amber-100">
+                <button onClick={() => handleAction(activeCampaign.id, 'pause')} disabled={submitting} className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg text-xs font-bold hover:bg-amber-100 cursor-pointer">
                   <Pause className="w-3.5 h-3.5" /> Pause
                 </button>
               ) : (
-                <button onClick={() => handleSaveAndStart(true)} disabled={submitting} className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold hover:bg-emerald-100">
+                <button onClick={() => handleAction(activeCampaign.id, 'start')} disabled={submitting} className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold hover:bg-emerald-100 cursor-pointer">
                   <Play className="w-3.5 h-3.5" /> Resume
                 </button>
               )}
-              <button onClick={() => handleAction(activeCampaign.id, 'stop')} disabled={submitting} className="flex items-center gap-2 px-3 py-1.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold hover:bg-rose-100">
+              <button onClick={() => handleAction(activeCampaign.id, 'stop')} disabled={submitting} className="flex items-center gap-2 px-3 py-1.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold hover:bg-rose-100 cursor-pointer">
                 <Square className="w-3.5 h-3.5" /> Stop
               </button>
             </div>

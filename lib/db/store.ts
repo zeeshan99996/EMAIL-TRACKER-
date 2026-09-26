@@ -258,11 +258,21 @@ export async function loadDbFromSupabase(): Promise<DatabaseSchema> {
             parsed.email_warmup_accounts.push(seedWarm);
           }
         }
+        parsed.targeted_warmup_campaigns = parsed.targeted_warmup_campaigns || [];
+        for (const seedCamp of initialSeedData.targeted_warmup_campaigns) {
+          if (!parsed.targeted_warmup_campaigns.some(c => c.id === seedCamp.id)) {
+            parsed.targeted_warmup_campaigns.push(seedCamp);
+          }
+        }
+        parsed.targeted_warmup_peers = parsed.targeted_warmup_peers || [];
+        for (const seedPeer of initialSeedData.targeted_warmup_peers) {
+          if (!parsed.targeted_warmup_peers.some(p => p.id === seedPeer.id)) {
+            parsed.targeted_warmup_peers.push(seedPeer);
+          }
+        }
         parsed.email_warmup_jobs = parsed.email_warmup_jobs || [];
         parsed.email_warmup_events = parsed.email_warmup_events || [];
         parsed.email_warmup_stats = parsed.email_warmup_stats || [];
-        parsed.targeted_warmup_campaigns = parsed.targeted_warmup_campaigns || [];
-        parsed.targeted_warmup_peers = parsed.targeted_warmup_peers || [];
         parsed.targeted_warmup_jobs = parsed.targeted_warmup_jobs || [];
         parsed.targeted_warmup_events = parsed.targeted_warmup_events || [];
         parsed.targeted_warmup_stats = parsed.targeted_warmup_stats || [];
