@@ -8,22 +8,14 @@ import {
   Mail,
   ShieldCheck,
   BarChart3,
-  Flame,
   Inbox,
-  Target,
-  Activity,
-  TrendingUp,
   Sliders,
-  FolderKanban,
-  Key,
   Settings,
-  BookOpen,
-  LogOut,
-  Zap,
   X,
   ArrowUpRight,
+  Send,
+  LogOut,
 } from 'lucide-react';
-import { ProjectSelector } from './project-selector';
 
 interface NavItem {
   name: string;
@@ -38,54 +30,61 @@ interface NavSection {
   items: NavItem[];
 }
 
-const trackerNavSections: NavSection[] = [
+const cleanOutreachNavSections: NavSection[] = [
   {
-    title: 'EMAIL TRACKING',
+    title: 'Cold Outreach Engine',
     items: [
-      { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-      { name: 'Tracked Emails', href: '/dashboard/emails', icon: Mail },
-      { name: 'Email Verifier', href: '/dashboard/verifier', icon: ShieldCheck, badge: 'Clean', badgeColor: 'bg-white/20 text-white font-bold border border-white/30' },
-      { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+      {
+        name: 'Campaign Studio',
+        href: '/dashboard/campaigns',
+        icon: Send,
+        badge: 'Main',
+        badgeColor: 'bg-blue-600 text-white font-bold',
+      },
+      {
+        name: 'Overview & Graph',
+        href: '/dashboard',
+        icon: LayoutDashboard,
+      },
+      {
+        name: 'Tracked Emails',
+        href: '/dashboard/emails',
+        icon: Mail,
+      },
+      {
+        name: 'Prospect Replies',
+        href: '/dashboard/inbox',
+        icon: Inbox,
+        badge: 'Live',
+        badgeColor: 'bg-emerald-600 text-white font-bold',
+      },
+      {
+        name: 'Email Verifier',
+        href: '/dashboard/verifier',
+        icon: ShieldCheck,
+      },
+      {
+        name: 'Analytics',
+        href: '/dashboard/analytics',
+        icon: BarChart3,
+      },
     ],
   },
   {
-    title: 'INTEGRATIONS & DEV',
+    title: 'Senders & Config',
     items: [
-      { name: 'API & Apps Script', href: '/dashboard/api-keys', icon: Key },
-      { name: 'Projects', href: '/dashboard/projects', icon: FolderKanban },
-    ],
-  },
-  {
-    title: 'PLATFORM',
-    items: [
-      { name: 'Settings', href: '/dashboard/settings', icon: Settings },
-      { name: 'Documentation', href: '/dashboard/docs', icon: BookOpen },
-    ],
-  },
-];
-
-const warmupNavSections: NavSection[] = [
-  {
-    title: 'WARMUP & FLEET',
-    items: [
-      { name: 'Warmup Overview', href: '/dashboard/warmup', icon: Flame, badge: 'AI', badgeColor: 'bg-white/20 text-white font-bold border border-white/30' },
-      { name: 'Connected Mailboxes', href: '/dashboard/warmup/accounts', icon: Inbox },
-      { name: 'Targeted Campaigns', href: '/dashboard/warmup/targeted', icon: Target },
-    ],
-  },
-  {
-    title: 'MONITORING & AI',
-    items: [
-      { name: 'Activity & AI Logs', href: '/dashboard/warmup/events', icon: Activity },
-      { name: 'Warmup Stats', href: '/dashboard/warmup/stats', icon: TrendingUp },
-      { name: 'Warmup Settings', href: '/dashboard/warmup/settings', icon: Sliders },
-    ],
-  },
-  {
-    title: 'PLATFORM',
-    items: [
-      { name: 'Settings', href: '/dashboard/settings', icon: Settings },
-      { name: 'Documentation', href: '/dashboard/docs', icon: BookOpen },
+      {
+        name: 'Connected Mailboxes',
+        href: '/dashboard/accounts',
+        icon: Sliders,
+        badge: 'Fleet',
+        badgeColor: 'bg-slate-900 text-white font-bold',
+      },
+      {
+        name: 'Settings & Sync',
+        href: '/dashboard/settings',
+        icon: Settings,
+      },
     ],
   },
 ];
@@ -96,32 +95,9 @@ export function Sidebar({
 }: {
   mobileOpen?: boolean;
   setMobileOpen?: (open: boolean) => void;
+  userInfo?: any;
 }) {
   const pathname = usePathname();
-  const isWarmupMode = pathname.startsWith('/dashboard/warmup');
-  const activeSections = isWarmupMode ? warmupNavSections : trackerNavSections;
-  const [userInfo, setUserInfo] = React.useState<{ name?: string; email?: string } | null>(null);
-
-  React.useEffect(() => {
-    try {
-      const stored = localStorage.getItem('mailify_submitted_user');
-      if (stored) {
-        setUserInfo(JSON.parse(stored));
-      }
-    } catch {}
-  }, []);
-
-  const handleSignOut = async () => {
-    try {
-      await fetch('/api/auth/signout', { method: 'POST' });
-    } catch {}
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('mailify_submitted_user');
-      document.cookie = 'mailify_has_submitted=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-      document.cookie = 'warmup_user_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-      window.location.href = '/?view=landing';
-    }
-  };
 
   return (
     <>
@@ -129,142 +105,111 @@ export function Sidebar({
       {mobileOpen && (
         <div
           onClick={() => setMobileOpen && setMobileOpen(false)}
-          className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-40 md:hidden"
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 md:hidden"
         />
       )}
 
-      {/* Sidebar Container - Dark Style with Pure White Text */}
+      {/* Sidebar Container - Clean Minimal Light Theme */}
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-50 w-72 bg-[#0d131f] border-r border-slate-800/80 flex flex-col justify-between transition-transform duration-300 ease-in-out md:translate-x-0 text-white ${
-          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed md:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col justify-between transition-transform duration-200 ease-in-out md:translate-x-0 text-slate-800 shrink-0 ${
+          mobileOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'
         }`}
       >
         <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
-          {/* Logo Brand Header */}
-          <div className="h-20 px-6 flex items-center justify-between border-b border-slate-800/80">
+          {/* Logo Brand Header - Mailify */}
+          <div className="h-16 px-5 flex items-center justify-between border-b border-slate-200 shrink-0">
             <Link
-              href="/dashboard"
+              href="/dashboard/campaigns"
+              prefetch={false}
               className="flex items-center space-x-3 group"
               onClick={() => setMobileOpen && setMobileOpen(false)}
             >
-              <div className="w-10 h-10 rounded-2xl bg-slate-900 border border-slate-700/60 flex items-center justify-center p-1.5 shadow-md shadow-black/20 group-hover:border-[#53E2FE]/40 transition-all">
+              <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center p-1.5 shadow-xs">
                 <img
-                  src="/mailify-logo-white.png"
+                  src="/mailify-icon.png"
                   alt="Mailify Logo"
                   className="w-full h-full object-contain"
                 />
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center space-x-1.5">
-                  <span className="font-black text-lg tracking-tight text-white group-hover:text-slate-200 transition-colors">
-                    MAILIFY
+                  <span className="font-black text-base tracking-tight text-slate-900">
+                    Mailify
                   </span>
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#53E2FE] text-slate-950">
-                    2.0
+                  <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-blue-50 text-blue-700 border border-blue-200">
+                    PRO
                   </span>
                 </div>
-                <span className="text-[11px] font-semibold text-white">
-                  {isWarmupMode ? 'Warmup Fleet' : 'Tracking Engine'}
+                <span className="text-[10px] font-medium text-slate-500">
+                  Google Sheet Engine
                 </span>
               </div>
             </Link>
             {setMobileOpen && (
               <button
                 onClick={() => setMobileOpen(false)}
-                className="p-1.5 text-white hover:text-white rounded-lg md:hidden hover:bg-slate-800"
+                className="p-1.5 text-slate-400 hover:text-slate-800 rounded-lg md:hidden hover:bg-slate-100"
               >
-                <X className="w-5 h-5 text-white" />
+                <X className="w-5 h-5" />
               </button>
             )}
           </div>
 
-          {/* Mode Switcher Pill */}
-          <div className="p-3 pb-0 space-y-2">
-            <div className="flex items-center bg-slate-900/90 p-1 rounded-2xl border border-slate-800">
-              <Link
-                href="/dashboard"
-                onClick={() => setMobileOpen && setMobileOpen(false)}
-                className={`flex-1 flex items-center justify-center py-2 px-2.5 rounded-xl font-bold transition-all text-xs ${
-                  !isWarmupMode
-                    ? 'bg-[#53E2FE] text-slate-950 shadow-sm font-black'
-                    : 'text-white font-bold hover:text-white hover:bg-slate-800/80'
-                }`}
-              >
-                <Mail className={`w-3.5 h-3.5 mr-1.5 shrink-0 ${!isWarmupMode ? 'text-slate-950' : 'text-white'}`} />
-                <span className="truncate">Tracker</span>
-              </Link>
-
-              <Link
-                href="/dashboard/warmup"
-                onClick={() => setMobileOpen && setMobileOpen(false)}
-                className={`flex-1 flex items-center justify-center py-2 px-2.5 rounded-xl font-bold transition-all text-xs ${
-                  isWarmupMode
-                    ? 'bg-[#53E2FE] text-slate-950 shadow-sm font-black'
-                    : 'text-white font-bold hover:text-white hover:bg-slate-800/80'
-                }`}
-              >
-                <Flame className={`w-3.5 h-3.5 mr-1.5 shrink-0 ${isWarmupMode ? 'fill-slate-950 text-slate-950' : 'fill-amber-500 text-amber-500'}`} />
-                <span className="truncate">Email Warmup</span>
-              </Link>
-            </div>
-
-            {/* Back to Website / Portal Hub */}
+          {/* Quick Campaign Studio Shortcut */}
+          <div className="p-3 shrink-0">
             <Link
-              href="/?view=landing"
+              href="/dashboard/campaigns"
+              prefetch={false}
               onClick={() => setMobileOpen && setMobileOpen(false)}
-              className="w-full flex items-center justify-center py-2 px-3 text-xs font-bold text-white hover:text-white bg-slate-900/60 hover:bg-slate-800/80 rounded-xl transition-all border border-slate-800 hover:border-slate-700 shadow-xs group"
-              title="Return to Main Website"
+              className="flex items-center justify-between p-2.5 rounded-xl bg-blue-50 hover:bg-blue-100/80 border border-blue-200 text-blue-900 text-xs font-bold transition-all shadow-xs group"
             >
-              <span className="text-[#53E2FE] mr-1.5 font-bold transition-transform group-hover:-translate-x-0.5">←</span>
-              <span className="text-white font-bold">Back to Website</span>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+                <span>Campaign Studio</span>
+              </div>
+              <ArrowUpRight className="w-3.5 h-3.5 text-blue-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
             </Link>
           </div>
 
-          {/* Project Selector (shown in tracker mode) */}
-          <div className="px-3 py-3">
-            <ProjectSelector />
-          </div>
-
-          {/* Nav Sections */}
-          <nav className="px-3 py-1 space-y-5">
-            {activeSections.map((section) => (
+          {/* Unified Nav Sections */}
+          <nav className="px-3 py-1 space-y-4 flex-1">
+            {cleanOutreachNavSections.map((section) => (
               <div key={section.title}>
-                <div className="px-3 pb-2 text-[11px] font-black uppercase tracking-wider text-white">
+                <div className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   {section.title}
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   {section.items.map((item) => {
                     const isActive =
                       pathname === item.href ||
-                      (item.href !== '/dashboard' &&
-                        item.href !== '/dashboard/warmup' &&
-                        pathname.startsWith(item.href));
+                      (item.href !== '/dashboard' && pathname.startsWith(item.href));
                     const Icon = item.icon;
                     return (
                       <Link
                         key={item.name}
                         href={item.href}
+                        prefetch={false}
                         onClick={() => setMobileOpen && setMobileOpen(false)}
-                        className={`flex items-center justify-between px-3.5 py-2.5 text-sm font-bold rounded-xl transition-all duration-150 ${
+                        className={`flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-xl transition-colors ${
                           isActive
-                            ? 'bg-[#53E2FE] text-slate-950 shadow-md shadow-[#53E2FE]/20 font-black'
-                            : 'text-white font-bold hover:text-white hover:bg-slate-800/80'
+                            ? 'bg-blue-600 text-white shadow-xs font-bold'
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                         }`}
                       >
-                        <div className="flex items-center space-x-3">
-                          <Icon className={`w-4 h-4 ${
-                            isActive 
-                              ? 'text-slate-950' 
-                              : 'text-white'
-                          }`} />
-                          <span className={isActive ? 'text-slate-950 font-black' : 'text-white font-bold'}>{item.name}</span>
+                        <div className="flex items-center space-x-2.5 truncate">
+                          <Icon
+                            className={`w-4 h-4 shrink-0 ${
+                              isActive ? 'text-white' : 'text-slate-500'
+                            }`}
+                          />
+                          <span className="truncate">{item.name}</span>
                         </div>
                         {item.badge && (
                           <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md shrink-0 ${
                               isActive
-                                ? 'bg-slate-950/15 text-slate-950 font-black'
-                                : 'bg-white/20 text-white font-bold'
+                                ? 'bg-white/20 text-white'
+                                : item.badgeColor || 'bg-slate-100 text-slate-600 border border-slate-200'
                             }`}
                           >
                             {item.badge}
@@ -279,55 +224,37 @@ export function Sidebar({
           </nav>
         </div>
 
-        {/* Bottom Accent Widget (like reference image) */}
-        <div className="p-3">
-          <div className="relative overflow-hidden p-3.5 rounded-2xl bg-[#53E2FE]/10 border border-[#53E2FE]/25">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold text-white">Google Apps Script</p>
-                <p className="text-[11px] font-medium text-white mt-0.5">Real-time Gmail tracking</p>
-              </div>
-              <Link
-                href="/dashboard/api-keys"
-                className="w-8 h-8 rounded-full bg-[#53E2FE] text-slate-950 flex items-center justify-center shadow-sm hover:scale-105 transition-transform"
-                title="View Apps Script & API Key"
-              >
-                <ArrowUpRight className="w-4 h-4 font-bold stroke-[2.5]" />
-              </Link>
+        {/* Bottom Fast Status & Sign Out */}
+        <div className="p-3 shrink-0 border-t border-slate-200 bg-slate-50/60 space-y-2">
+          <div className="p-2.5 rounded-xl bg-white border border-slate-200 flex items-center justify-between shadow-xs">
+            <div className="space-y-0.5">
+              <p className="text-[11px] font-bold text-slate-900">Google Sheet Sync</p>
+              <p className="text-[10px] text-emerald-600 font-semibold">Connected</p>
             </div>
-          </div>
-        </div>
-
-        {/* Footer User Badge & Sign Out */}
-        <div className="p-3 border-t border-slate-800/80 space-y-2">
-          <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/90 border border-slate-800">
-            <div className="flex items-center space-x-2.5 overflow-hidden">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#53E2FE] to-blue-600 text-slate-950 flex items-center justify-center font-bold text-xs shrink-0">
-                {userInfo?.name ? userInfo.name.substring(0, 2).toUpperCase() : 'ET'}
-              </div>
-              <div className="truncate">
-                <p className="text-xs font-bold text-white truncate">
-                  {userInfo?.name || 'ERHA Technologies'}
-                </p>
-                <p className="text-[11px] font-medium text-white truncate">
-                  {userInfo?.email || 'admin@erha.com'}
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="p-1.5 text-white hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
-              title="Sign Out"
+            <Link
+              href="/dashboard/campaigns"
+              prefetch={false}
+              className="w-6 h-6 rounded-lg bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-all shadow-xs"
+              title="Launch Campaign Dispatcher"
             >
-              <LogOut className="w-4 h-4 text-white" />
-            </button>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
 
           <button
-            type="button"
-            onClick={handleSignOut}
-            className="w-full flex items-center justify-center space-x-2 py-2 px-3 rounded-xl text-xs font-bold text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-all cursor-pointer"
+            onClick={async () => {
+              try {
+                await fetch('/api/auth/signout', { method: 'POST' });
+              } catch {}
+              if (typeof window !== 'undefined') {
+                localStorage.removeItem('mailify_submitted_user');
+                document.cookie = 'mailify_has_submitted=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                document.cookie = 'warmup_user_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                window.location.href = '/?view=landing';
+              }
+            }}
+            className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+            title="Sign Out"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Sign Out</span>

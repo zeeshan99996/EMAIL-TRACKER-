@@ -3,13 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/header';
-import { DEMO_PROJECT } from '@/lib/demo-store';
 import { Email } from '@/lib/types';
 import {
   Search,
   Filter,
   Eye,
-  MousePointerClick,
+  Link2,
   ChevronLeft,
   ChevronRight,
   ExternalLink,
@@ -43,20 +42,21 @@ export default function EmailsPage() {
   };
 
   const handleDeleteEmail = async (id: string, recipientEmail: string) => {
-    if (!window.confirm(`Are you sure you want to delete the tracked email for "${recipientEmail}"? This will permanently remove its tracking history.`)) {
+    if (!window.confirm(`Are you sure you want to delete the tracked email for "${recipientEmail}"?`)) {
       return;
     }
 
     setDeletingId(id);
     try {
       const res = await fetch(`/api/v1/emails/${id}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to delete email');
+      if (res.ok) {
+        setEmails(prev => prev.filter(e => e.id !== id));
+      } else {
+        alert('Failed to delete email');
       }
-      setEmails(prev => prev.filter(e => e.id !== id));
-    } catch (err: any) {
-      alert('Error deleting email: ' + err.message);
+    } catch (err) {
+      console.error('Delete email failed:', err);
+      alert('Network error while deleting email');
     } finally {
       setDeletingId(null);
     }
@@ -64,7 +64,7 @@ export default function EmailsPage() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(() => loadData(false), 2500);
+    const interval = setInterval(() => loadData(false), 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -87,11 +87,11 @@ export default function EmailsPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto pb-16">
       <Header title="Tracked Emails" />
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Search */}
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
@@ -100,15 +100,15 @@ export default function EmailsPage() {
             placeholder="Search by recipient or subject..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50"
+            className="w-full pl-9 pr-4 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white text-slate-900 placeholder:text-slate-400 shadow-xs"
           />
         </div>
 
         {/* Filters & Refresh */}
-        <div className="flex items-center space-x-3 w-full md:w-auto">
-          <div className="flex items-center space-x-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-600">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
-            <span className="font-medium">Status:</span>
+        <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+          <div className="flex items-center space-x-1.5 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 shadow-xs">
+            <Filter className="w-3.5 h-3.5 text-slate-500" />
+            <span className="font-semibold text-slate-500">Status:</span>
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
@@ -125,63 +125,64 @@ export default function EmailsPage() {
           <button
             onClick={() => loadData(true)}
             disabled={isRefreshing}
-            className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition-colors"
+            className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg transition-colors cursor-pointer shadow-xs"
             title="Refresh now"
           >
             <RotateCw className={`w-3.5 h-3.5 text-slate-500 ${isRefreshing ? 'animate-spin text-blue-600' : ''}`} />
             <span>Refresh</span>
           </button>
 
-          <span className="hidden sm:inline-flex items-center px-2 py-1 rounded-md text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse" />
-            Live Sync (2.5s)
+            Live Sync
           </span>
         </div>
       </div>
 
       {/* Email Table */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                <th className="py-3 px-4">Recipient</th>
-                <th className="py-3 px-4">Subject</th>
-                <th className="py-3 px-4">Sent At</th>
-                <th className="py-3 px-4 text-center">Status</th>
-                <th className="py-3 px-4 text-center">Opens</th>
-                <th className="py-3 px-4 text-center">Clicks</th>
-                <th className="py-3 px-4">First Open</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+              <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                <th className="py-3.5 px-4">Recipient</th>
+                <th className="py-3.5 px-4">Subject</th>
+                <th className="py-3.5 px-4">Sent At</th>
+                <th className="py-3.5 px-4 text-center">Status</th>
+                <th className="py-3.5 px-4 text-center">Opens</th>
+                <th className="py-3.5 px-4 text-center">Clicks</th>
+                <th className="py-3.5 px-4">First Open</th>
+                <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-xs">
+            <tbody className="divide-y divide-slate-100 bg-white">
               {paginatedEmails.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-500">
+                  <td colSpan={8} className="py-14 text-center text-slate-400">
                     <Mail className="w-8 h-8 mx-auto text-slate-300 mb-2" />
-                    <p className="font-semibold text-slate-700">No tracked emails found.</p>
+                    <p className="font-semibold text-slate-600">No tracked emails found.</p>
                     <p className="text-[11px] text-slate-400 mt-0.5">
-                      Connect Google Apps Script or send a test email to start tracking.
+                      Send a batch via the Campaign Studio to track outbound emails here.
                     </p>
                   </td>
                 </tr>
               ) : (
                 paginatedEmails.map(email => {
                   let statusBadge = (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
                       SENT
                     </span>
                   );
-                  if (email.status === 'OPENED') {
+                  if (email.status === 'OPENED' || (email.open_count || 0) > 0) {
                     statusBadge = (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">
                         OPENED
                       </span>
                     );
-                  } else if (email.status === 'CLICKED') {
+                  }
+                  if (email.status === 'CLICKED' || (email.click_count || 0) > 0) {
                     statusBadge = (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                         CLICKED
                       </span>
                     );
@@ -195,35 +196,35 @@ export default function EmailsPage() {
                           <div className="text-[10px] text-slate-400">{email.recipient_name}</div>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 font-medium text-slate-800 max-w-xs truncate">
+                      <td className="py-3.5 px-4 font-medium text-slate-700 max-w-xs truncate">
                         {email.subject}
                       </td>
-                      <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">
-                        {new Date(email.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {new Date(email.sent_at).toLocaleDateString()}
+                      <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap text-[11px]">
+                        {new Date(email.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {new Date(email.sent_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                       </td>
                       <td className="py-3.5 px-4 text-center">{statusBadge}</td>
-                      <td className="py-3.5 px-4 text-center font-bold text-slate-700">
+                      <td className="py-3.5 px-4 text-center font-bold text-sky-600">
                         <span className="inline-flex items-center space-x-1">
-                          <Eye className="w-3 h-3 text-indigo-500" />
+                          <Eye className="w-3.5 h-3.5 text-sky-600" />
                           <span>{email.open_count}</span>
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-center font-bold text-slate-700">
+                      <td className="py-3.5 px-4 text-center font-bold text-blue-600">
                         <span className="inline-flex items-center space-x-1">
-                          <MousePointerClick className="w-3 h-3 text-emerald-500" />
+                          <Link2 className="w-3.5 h-3.5 text-blue-600" />
                           <span>{email.click_count}</span>
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">
+                      <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap text-[11px]">
                         {email.first_opened_at
                           ? new Date(email.first_opened_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                          : 'Not Opened'}
+                          : '—'}
                       </td>
                       <td className="py-3.5 px-4 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end space-x-1.5">
                           <Link
                             href={`/dashboard/emails/${email.id}`}
-                            className="inline-flex items-center space-x-1 text-xs font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-md transition-colors"
+                            className="inline-flex items-center space-x-1 text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
                           >
                             <span>Details</span>
                             <ExternalLink className="w-3 h-3" />
@@ -231,7 +232,7 @@ export default function EmailsPage() {
                           <button
                             onClick={() => handleDeleteEmail(email.id, email.recipient_email)}
                             disabled={deletingId === email.id}
-                            className="inline-flex items-center space-x-1 text-xs font-semibold text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-2.5 py-1 rounded-md transition-colors disabled:opacity-50"
+                            className="inline-flex items-center space-x-1 text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2.5 py-1 rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
                             title="Delete this email"
                           >
                             <Trash2 className="w-3 h-3" />
@@ -248,26 +249,26 @@ export default function EmailsPage() {
         </div>
 
         {/* Pagination Footer */}
-        <div className="p-4 bg-slate-50/50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+        <div className="p-4 bg-slate-50/60 border-t border-slate-200 flex items-center justify-between text-xs text-slate-600">
           <div>
-            Showing <span className="font-semibold">{paginatedEmails.length}</span> of{' '}
-            <span className="font-semibold">{filteredEmails.length}</span> emails
+            Showing <span className="font-bold text-slate-900">{paginatedEmails.length}</span> of{' '}
+            <span className="font-bold text-slate-900">{filteredEmails.length}</span> emails
           </div>
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="p-1.5 border border-slate-200 rounded-md disabled:opacity-40 hover:bg-white transition-colors"
+              className="p-1.5 border border-slate-200 bg-white rounded-lg disabled:opacity-30 hover:bg-slate-100 text-slate-700 transition-colors cursor-pointer shadow-xs"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="font-medium">
+            <span className="font-medium text-slate-700">
               Page {currentPage} of {totalPages}
             </span>
             <button
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className="p-1.5 border border-slate-200 rounded-md disabled:opacity-40 hover:bg-white transition-colors"
+              className="p-1.5 border border-slate-200 bg-white rounded-lg disabled:opacity-30 hover:bg-slate-100 text-slate-700 transition-colors cursor-pointer shadow-xs"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

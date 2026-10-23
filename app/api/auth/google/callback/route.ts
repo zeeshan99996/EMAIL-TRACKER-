@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       path: '/api/auth/google/callback',
       details: { error },
     });
-    return NextResponse.redirect(`${appUrl}/dashboard/warmup/accounts?error=${encodeURIComponent(error)}`);
+    return NextResponse.redirect(`${appUrl}/dashboard/accounts?error=${encodeURIComponent(error)}`);
   }
 
   if (!code || !state) {
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       path: '/api/auth/google/callback',
       details: { reason: 'missing_code_or_state' },
     });
-    return NextResponse.redirect(`${appUrl}/dashboard/warmup/accounts?error=missing_code_or_state`);
+    return NextResponse.redirect(`${appUrl}/dashboard/accounts?error=missing_code_or_state`);
   }
 
   const stateData = verifyOAuthState(state);
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       path: '/api/auth/google/callback',
       details: { reason: 'invalid_or_expired_state' },
     });
-    return NextResponse.redirect(`${appUrl}/dashboard/warmup/accounts?error=invalid_or_expired_state`);
+    return NextResponse.redirect(`${appUrl}/dashboard/accounts?error=invalid_or_expired_state`);
   }
 
   const userId = stateData.userId;
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     const { tokens, email, id: providerAccountId } = await exchangeCodeForTokens(code);
 
     if (!email || !tokens.access_token) {
-      return NextResponse.redirect(`${appUrl}/dashboard/warmup/accounts?error=failed_to_retrieve_email`);
+      return NextResponse.redirect(`${appUrl}/dashboard/accounts?error=failed_to_retrieve_email`);
     }
 
     logSecurityEvent({
@@ -213,12 +213,12 @@ export async function GET(request: NextRequest) {
     await saveDbAsync(localDb.ensureDbFile());
 
     return NextResponse.redirect(
-      `${appUrl}/dashboard/warmup/accounts?connected=true&email=${encodeURIComponent(email)}`
+      `${appUrl}/dashboard/accounts?connected=true&email=${encodeURIComponent(email)}`
     );
   } catch (err: any) {
     console.error('[OAuth Callback] Exception:', err);
     return NextResponse.redirect(
-      `${appUrl}/dashboard/warmup/accounts?error=${encodeURIComponent(err.message || 'oauth_exchange_failed')}`
+      `${appUrl}/dashboard/accounts?error=${encodeURIComponent(err.message || 'oauth_exchange_failed')}`
     );
   }
 }

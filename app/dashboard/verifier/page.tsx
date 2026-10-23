@@ -14,7 +14,6 @@ import {
   Mail,
   Server,
   Zap,
-  Sparkles,
   Copy,
   Check,
 } from 'lucide-react';
@@ -129,24 +128,24 @@ export default function EmailVerifierPage() {
       <Header title="Email Verifier & Fake Email Cleaner" />
 
       {/* Hero Overview Box */}
-      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 rounded-2xl p-6 text-white shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="space-y-1 max-w-2xl">
-          <div className="inline-flex items-center space-x-1.5 bg-white/10 px-2.5 py-1 rounded-full text-xs font-semibold backdrop-blur-sm">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 text-slate-900 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="space-y-1.5 max-w-2xl">
+          <div className="inline-flex items-center space-x-1.5 bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full text-xs font-semibold">
+            <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
             <span>Anti-Spam & Deliverability Protection</span>
           </div>
-          <h2 className="text-xl font-bold tracking-tight">Real-Time Email Verification & Auto-Cleaner</h2>
-          <p className="text-xs text-blue-100 leading-relaxed">
-            Verify email addresses before sending. Automatically detect and eliminate fake, disposable, temporary burner accounts (`mailinator`, `tempmail`), spam traps, and dead domains to protect your sender reputation from landing in Spam.
+          <h2 className="text-xl font-bold tracking-tight text-slate-900">Real-Time Email Verification & Auto-Cleaner</h2>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            Verify email addresses before sending. Automatically detect and eliminate fake, disposable, temporary burner accounts (mailinator, tempmail), spam traps, and dead domains to protect your sender reputation from landing in Spam.
           </p>
         </div>
 
         <button
           onClick={handleRunCleanup}
           disabled={cleaning}
-          className="flex items-center space-x-2 bg-white text-blue-700 hover:bg-blue-50 font-bold px-4 py-2.5 rounded-xl text-xs shadow transition-all shrink-0 disabled:opacity-50"
+          className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-lg text-xs shadow-sm transition-all shrink-0 disabled:opacity-50 cursor-pointer"
         >
-          <Trash2 className="w-4 h-4 text-rose-600" />
+          <Trash2 className="w-4 h-4 text-white" />
           <span>{cleaning ? 'Scanning & Purging...' : 'Auto-Clean Fake Emails in Database'}</span>
         </button>
       </div>

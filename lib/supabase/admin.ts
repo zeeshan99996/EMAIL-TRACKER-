@@ -36,12 +36,19 @@ import {
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-export const isDemoMode =
+export let isDemoMode =
   process.env.DEMO_MODE === 'true' ||
   !supabaseUrl ||
   supabaseUrl.includes('mock') ||
   !serviceRoleKey ||
   serviceRoleKey.includes('mock');
+
+export function fallbackToLocalMode(reason: string) {
+  if (!isDemoMode) {
+    console.warn(`[Supabase Resilient Fallback] ${reason}. Switched immediately to local persistent store.`);
+    isDemoMode = true;
+  }
+}
 
 export const supabaseAdmin = createClient(
   supabaseUrl || 'https://mock.supabase.co',
@@ -94,65 +101,83 @@ export async function validateApiKey(rawApiKey: string): Promise<ApiKey | null> 
   return data as ApiKey;
 }
 
+let cachedResolvedProjectId: string | null = null;
+
 /**
  * Ensures a project exists in Supabase for foreign key consistency.
  */
 async function ensureSupabaseProject(projectId: string): Promise<string> {
-  // Check if project exists
-  const { data: existing } = await supabaseAdmin
-    .from('projects')
-    .select('id')
-    .eq('id', projectId)
-    .single();
-
-  if (existing) {
-    return existing.id;
+  if (isDemoMode) {
+    return projectId || DEFAULT_PROJECT.id;
+  }
+  if (cachedResolvedProjectId) {
+    return cachedResolvedProjectId;
   }
 
-  // Check any project
-  const { data: anyProject } = await supabaseAdmin
-    .from('projects')
-    .select('id')
-    .limit(1);
+  try {
+    // Check if project exists
+    const { data: existing } = await supabaseAdmin
+      .from('projects')
+      .select('id')
+      .eq('id', projectId)
+      .maybeSingle();
 
-  if (anyProject && anyProject.length > 0) {
-    return anyProject[0].id;
-  }
+    if (existing) {
+      cachedResolvedProjectId = existing.id;
+      return existing.id;
+    }
 
-  // Create default account first if none exists
-  let accountId: string;
-  const { data: anyAccount } = await supabaseAdmin.from('accounts').select('id').limit(1);
-  if (anyAccount && anyAccount.length > 0) {
-    accountId = anyAccount[0].id;
-  } else {
-    const { data: newAcc, error: accErr } = await supabaseAdmin
-      .from('accounts')
-      .insert({ name: 'ERHA Technologies' })
+    // Check any project
+    const { data: anyProject } = await supabaseAdmin
+      .from('projects')
+      .select('id')
+      .limit(1);
+
+    if (anyProject && anyProject.length > 0) {
+      cachedResolvedProjectId = anyProject[0].id;
+      return anyProject[0].id;
+    }
+
+    // Create default account first if none exists
+    let accountId: string;
+    const { data: anyAccount } = await supabaseAdmin.from('accounts').select('id').limit(1);
+    if (anyAccount && anyAccount.length > 0) {
+      accountId = anyAccount[0].id;
+    } else {
+      const { data: newAcc, error: accErr } = await supabaseAdmin
+        .from('accounts')
+        .insert({ name: 'ERHA Technologies' })
+        .select()
+        .single();
+      if (accErr || !newAcc) {
+        throw new Error(`Failed to create default account in Supabase: ${accErr?.message}`);
+      }
+      accountId = newAcc.id;
+    }
+
+    // Create default project
+    const { data: newPrj, error: prjErr } = await supabaseAdmin
+      .from('projects')
+      .insert({
+        id: projectId === 'prj_demo_01' ? undefined : projectId,
+        account_id: accountId,
+        name: 'ERHA Technologies Outreach',
+        description: 'Primary outbound sales and marketing emails',
+      })
       .select()
       .single();
-    if (accErr || !newAcc) {
-      throw new Error(`Failed to create default account in Supabase: ${accErr?.message}`);
+
+    if (prjErr || !newPrj) {
+      throw new Error(`Failed to create default project in Supabase: ${prjErr?.message}`);
     }
-    accountId = newAcc.id;
+
+    cachedResolvedProjectId = newPrj.id;
+    return newPrj.id;
+  } catch (err: any) {
+    fallbackToLocalMode(err.message || 'Supabase ensureProject failed');
+    cachedResolvedProjectId = projectId || DEFAULT_PROJECT.id;
+    return cachedResolvedProjectId;
   }
-
-  // Create default project
-  const { data: newPrj, error: prjErr } = await supabaseAdmin
-    .from('projects')
-    .insert({
-      id: projectId === 'prj_demo_01' ? undefined : projectId,
-      account_id: accountId,
-      name: 'ERHA Technologies Outreach',
-      description: 'Primary outbound sales and marketing emails',
-    })
-    .select()
-    .single();
-
-  if (prjErr || !newPrj) {
-    throw new Error(`Failed to create default project in Supabase: ${prjErr?.message}`);
-  }
-
-  return newPrj.id;
 }
 
 /**
@@ -243,62 +268,102 @@ export async function createTrackedEmail(
   }
 
   // Database mode (Supabase PostgreSQL)
-  const effectiveProjectId = await ensureSupabaseProject(projectId);
+  try {
+    const effectiveProjectId = await ensureSupabaseProject(projectId);
 
-  const { data: insertedEmail, error: emailErr } = await supabaseAdmin
-    .from('emails')
-    .insert({
-      project_id: effectiveProjectId,
-      tracking_id: trackingId,
-      message_id: req.messageId || null,
-      recipient_email: req.to,
-      recipient_name: req.recipientName || null,
-      subject: req.subject,
-      original_html: req.html,
-      tracked_html: trackedHtml,
-      sent_at: now,
-      status: 'SENT',
-    })
-    .select()
-    .single();
+    const { data: insertedEmail, error: emailErr } = await supabaseAdmin
+      .from('emails')
+      .insert({
+        project_id: effectiveProjectId,
+        tracking_id: trackingId,
+        message_id: req.messageId || null,
+        recipient_email: req.to,
+        recipient_name: req.recipientName || null,
+        subject: req.subject,
+        original_html: req.html,
+        tracked_html: trackedHtml,
+        sent_at: now,
+        status: 'SENT',
+      })
+      .select()
+      .single();
 
-  if (emailErr || !insertedEmail) {
-    throw new Error(`Failed to store email in Supabase: ${emailErr?.message}`);
-  }
+    if (emailErr || !insertedEmail) {
+      throw new Error(`Failed to store email in Supabase: ${emailErr?.message}`);
+    }
 
-  // Insert links
-  if (links.length > 0) {
-    const linkInserts = links.map(link => ({
-      id: link.linkId,
+    // Insert links
+    if (links.length > 0) {
+      const linkInserts = links.map(link => ({
+        id: link.linkId,
+        email_id: insertedEmail.id,
+        original_url: link.originalUrl,
+        link_label: link.linkLabel,
+        link_index: link.linkIndex,
+        click_count: 0,
+      }));
+      const { error: linksErr } = await supabaseAdmin.from('email_links').insert(linkInserts);
+      if (linksErr) {
+        console.error('Error inserting email links into Supabase:', linksErr);
+      }
+    }
+
+    // Insert SENT event
+    const { error: eventErr } = await supabaseAdmin.from('email_events').insert({
       email_id: insertedEmail.id,
+      event_type: 'SENT',
+      occurred_at: now,
+    });
+    if (eventErr) {
+      console.error('Error inserting SENT event into Supabase:', eventErr);
+    }
+
+    invalidateDashboardCache();
+    return {
+      success: true,
+      emailId: insertedEmail.id,
+      trackingId,
+      status: 'SENT',
+      trackedHtml,
+    };
+  } catch (err: any) {
+    fallbackToLocalMode(err.message || 'Supabase email insert failed');
+
+    // Safe and ultra-fast persistent local store fallback
+    addStoreEmail(newEmail);
+    const emailLinks: EmailLink[] = links.map(link => ({
+      id: link.linkId,
+      email_id: emailId,
       original_url: link.originalUrl,
       link_label: link.linkLabel,
       link_index: link.linkIndex,
       click_count: 0,
+      first_clicked_at: null,
+      last_clicked_at: null,
+      created_at: now,
     }));
-    const { error: linksErr } = await supabaseAdmin.from('email_links').insert(linkInserts);
-    if (linksErr) {
-      console.error('Error inserting email links into Supabase:', linksErr);
-    }
-  }
+    addStoreEmailLinks(emailLinks);
+    addStoreEmailEvent({
+      id: `evt_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      email_id: emailId,
+      link_id: null,
+      event_type: 'SENT',
+      occurred_at: now,
+      ip_address: null,
+      user_agent: null,
+      referer: null,
+      metadata: null,
+    });
 
-  // Insert SENT event
-  const { error: eventErr } = await supabaseAdmin.from('email_events').insert({
-    email_id: insertedEmail.id,
-    event_type: 'SENT',
-    occurred_at: now,
-  });
-  if (eventErr) {
-    console.error('Error inserting SENT event into Supabase:', eventErr);
+    invalidateDashboardCache();
+    return {
+      success: true,
+      emailId,
+      trackingId,
+      status: 'SENT',
+      trackedHtml,
+    };
   }
-
-  return {
-    success: true,
-    emailId: insertedEmail.id,
-    trackingId,
-    status: 'SENT',
-    trackedHtml,
-  };
 }
 
 /**
@@ -353,50 +418,57 @@ export async function recordOpenEvent(
       metadata: null,
     });
 
+    invalidateDashboardCache();
     return true;
   }
 
   // Supabase Mode
-  const { data: email } = await supabaseAdmin
-    .from('emails')
-    .select('id, sent_at, first_opened_at, open_count, status')
-    .eq('tracking_id', trackingId)
-    .single();
+  try {
+    const { data: email } = await supabaseAdmin
+      .from('emails')
+      .select('id, sent_at, first_opened_at, open_count, status')
+      .eq('tracking_id', trackingId)
+      .single();
 
-  if (!email) return false;
+    if (!email) return false;
 
-  // Filter out immediate sub-second prefetch echoes within 2s of sending
-  if (userAgent?.includes('GoogleImageProxy') && email.sent_at) {
-    const elapsedMs = Date.now() - new Date(email.sent_at).getTime();
-    if (elapsedMs < 2000) {
-      console.log(`[Sender Filter] Ignored immediate prefetch echo within ${elapsedMs}ms of sending`);
-      return false;
+    // Filter out immediate sub-second prefetch echoes within 2s of sending
+    if (userAgent?.includes('GoogleImageProxy') && email.sent_at) {
+      const elapsedMs = Date.now() - new Date(email.sent_at).getTime();
+      if (elapsedMs < 2000) {
+        console.log(`[Sender Filter] Ignored immediate prefetch echo within ${elapsedMs}ms of sending`);
+        return false;
+      }
     }
+
+    const newStatus = email.status === 'SENT' ? 'OPENED' : email.status;
+    const firstOpened = email.first_opened_at || now;
+
+    await supabaseAdmin
+      .from('emails')
+      .update({
+        open_count: (email.open_count || 0) + 1,
+        first_opened_at: firstOpened,
+        last_opened_at: now,
+        status: newStatus,
+      })
+      .eq('id', email.id);
+
+    await supabaseAdmin.from('email_events').insert({
+      email_id: email.id,
+      event_type: 'OPEN',
+      occurred_at: now,
+      ip_address: ipAddress || null,
+      user_agent: userAgent || null,
+      referer: referer || null,
+    });
+
+    invalidateDashboardCache();
+    return true;
+  } catch (err: any) {
+    fallbackToLocalMode(err.message || 'Supabase recordOpen failed');
+    return recordOpenEvent(trackingId, ipAddress, userAgent, referer, skipRecord);
   }
-
-  const newStatus = email.status === 'SENT' ? 'OPENED' : email.status;
-  const firstOpened = email.first_opened_at || now;
-
-  await supabaseAdmin
-    .from('emails')
-    .update({
-      open_count: (email.open_count || 0) + 1,
-      first_opened_at: firstOpened,
-      last_opened_at: now,
-      status: newStatus,
-    })
-    .eq('id', email.id);
-
-  await supabaseAdmin.from('email_events').insert({
-    email_id: email.id,
-    event_type: 'OPEN',
-    occurred_at: now,
-    ip_address: ipAddress || null,
-    user_agent: userAgent || null,
-    referer: referer || null,
-  });
-
-  return true;
 }
 
 /**
@@ -472,89 +544,109 @@ export async function recordClickEvent(
       metadata: { label: link.link_label },
     });
 
+    invalidateDashboardCache();
     return link.original_url;
   }
 
   // Supabase Mode
-  const { data: email } = await supabaseAdmin
-    .from('emails')
-    .select('id, open_count, first_opened_at, click_count')
-    .eq('tracking_id', trackingId)
-    .single();
+  try {
+    const { data: email } = await supabaseAdmin
+      .from('emails')
+      .select('id, open_count, first_opened_at, click_count')
+      .eq('tracking_id', trackingId)
+      .single();
 
-  if (!email) return null;
+    if (!email) return null;
 
-  const { data: link } = await supabaseAdmin
-    .from('email_links')
-    .select('*')
-    .eq('id', linkId)
-    .eq('email_id', email.id)
-    .single();
+    const { data: link } = await supabaseAdmin
+      .from('email_links')
+      .select('*')
+      .eq('id', linkId)
+      .eq('email_id', email.id)
+      .single();
 
-  if (!link) return null;
+    if (!link) return null;
 
-  if (skipRecord) {
-    return link.original_url;
-  }
+    if (skipRecord) {
+      return link.original_url;
+    }
 
-  // A click implies the recipient opened the email (even if spam filters blocked 1x1 pixel image loading)
-  const needsOpen = !email.open_count || email.open_count === 0 || !email.first_opened_at;
-  const newOpenCount = needsOpen ? ((email.open_count || 0) + 1) : email.open_count;
-  const firstOpened = email.first_opened_at || now;
+    // A click implies the recipient opened the email (even if spam filters blocked 1x1 pixel image loading)
+    const needsOpen = !email.open_count || email.open_count === 0 || !email.first_opened_at;
+    const newOpenCount = needsOpen ? ((email.open_count || 0) + 1) : email.open_count;
+    const firstOpened = email.first_opened_at || now;
 
-  // Update email
-  await supabaseAdmin
-    .from('emails')
-    .update({
-      open_count: newOpenCount,
-      first_opened_at: firstOpened,
-      last_opened_at: now,
-      click_count: (email.click_count || 0) + 1,
-      status: 'CLICKED',
-    })
-    .eq('id', email.id);
+    // Update email
+    await supabaseAdmin
+      .from('emails')
+      .update({
+        open_count: newOpenCount,
+        first_opened_at: firstOpened,
+        last_opened_at: now,
+        click_count: (email.click_count || 0) + 1,
+        status: 'CLICKED',
+      })
+      .eq('id', email.id);
 
-  if (needsOpen) {
+    if (needsOpen) {
+      await supabaseAdmin.from('email_events').insert({
+        email_id: email.id,
+        event_type: 'OPEN',
+        occurred_at: now,
+        ip_address: ipAddress || null,
+        user_agent: userAgent || null,
+        referer: referer || null,
+        metadata: { note: 'Open detected via link click' },
+      });
+    }
+
+    // Update link
+    await supabaseAdmin
+      .from('email_links')
+      .update({
+        click_count: (link.click_count || 0) + 1,
+        first_clicked_at: link.first_clicked_at || now,
+        last_clicked_at: now,
+      })
+      .eq('id', link.id);
+
+    // Insert event
     await supabaseAdmin.from('email_events').insert({
       email_id: email.id,
-      event_type: 'OPEN',
+      link_id: link.id,
+      event_type: 'CLICK',
       occurred_at: now,
       ip_address: ipAddress || null,
       user_agent: userAgent || null,
       referer: referer || null,
-      metadata: { note: 'Open detected via link click' },
+      metadata: { label: link.link_label },
     });
+
+    invalidateDashboardCache();
+    return link.original_url;
+  } catch (err: any) {
+    fallbackToLocalMode(err.message || 'Supabase recordClick failed');
+    return recordClickEvent(trackingId, linkId, ipAddress, userAgent, referer, skipRecord);
   }
+}
 
-  // Update link
-  await supabaseAdmin
-    .from('email_links')
-    .update({
-      click_count: (link.click_count || 0) + 1,
-      first_clicked_at: link.first_clicked_at || now,
-      last_clicked_at: now,
-    })
-    .eq('id', link.id);
+let cachedDashboardResult: { projectId: string; data: any; timestamp: number } | null = null;
 
-  // Insert event
-  await supabaseAdmin.from('email_events').insert({
-    email_id: email.id,
-    link_id: link.id,
-    event_type: 'CLICK',
-    occurred_at: now,
-    ip_address: ipAddress || null,
-    user_agent: userAgent || null,
-    referer: referer || null,
-    metadata: { label: link.link_label },
-  });
-
-  return link.original_url;
+export function invalidateDashboardCache() {
+  cachedDashboardResult = null;
 }
 
 /**
  * Dashboard queries & Analytics helper
  */
 export async function getDashboardData(projectId: string = DEFAULT_PROJECT.id) {
+  if (
+    cachedDashboardResult &&
+    cachedDashboardResult.projectId === projectId &&
+    Date.now() - cachedDashboardResult.timestamp < 10000
+  ) {
+    return cachedDashboardResult.data;
+  }
   if (isDemoMode) {
     const allStoreEmails = getStoreEmails(projectId);
     const validEmails: Email[] = [];
@@ -631,120 +723,129 @@ export async function getDashboardData(projectId: string = DEFAULT_PROJECT.id) {
       .sort((a, b) => b.totalClicks - a.totalClicks)
       .slice(0, 5);
 
-    return {
+    const result = {
       summary,
       emails,
       activity: activity.slice(0, 10),
       topLinks,
     };
+    cachedDashboardResult = { projectId, data: result, timestamp: Date.now() };
+    return result;
   }
 
   // Supabase Mode
-  let emailQuery = supabaseAdmin
-    .from('emails')
-    .select('*')
-    .order('created_at', { ascending: false });
+  try {
+    let emailQuery = supabaseAdmin
+      .from('emails')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-  if (projectId && projectId !== 'all' && projectId !== DEFAULT_PROJECT.id) {
-    emailQuery = emailQuery.eq('project_id', projectId);
-  }
-
-  const { data: rawEmails } = await emailQuery;
-
-  // Real-time Email Verifier Auto-Cleaner:
-  // Automatically identify fake, disposable, or non-existent emails, permanently purge them from Supabase, and hide them from the dashboard
-  const fakeEmailIds: string[] = [];
-  const validEmails: Email[] = [];
-
-  for (const em of (rawEmails || [])) {
-    const fakeCheck = isFakeOrDisposableEmail(em.recipient_email);
-    if (fakeCheck.isFake) {
-      fakeEmailIds.push(em.id);
-    } else {
-      validEmails.push(em);
+    if (projectId && projectId !== 'all' && projectId !== DEFAULT_PROJECT.id) {
+      emailQuery = emailQuery.eq('project_id', projectId);
     }
-  }
 
-  // Instantly purge fake emails from Supabase
-  if (fakeEmailIds.length > 0) {
-    console.log(`[Email Verifier Auto-Cleaner] Purging ${fakeEmailIds.length} fake/disposable emails from database:`, fakeEmailIds);
-    try {
-      await supabaseAdmin.from('email_events').delete().in('email_id', fakeEmailIds);
-      await supabaseAdmin.from('email_links').delete().in('email_id', fakeEmailIds);
-      await supabaseAdmin.from('emails').delete().in('id', fakeEmailIds);
-    } catch (purgeErr) {
-      console.error('[Email Verifier Auto-Cleaner] Purge error:', purgeErr);
+    const { data: rawEmails } = await emailQuery;
+
+    // Real-time Email Verifier Auto-Cleaner:
+    // Automatically identify fake, disposable, or non-existent emails, permanently purge them from Supabase, and hide them from the dashboard
+    const fakeEmailIds: string[] = [];
+    const validEmails: Email[] = [];
+
+    for (const em of (rawEmails || [])) {
+      const fakeCheck = isFakeOrDisposableEmail(em.recipient_email);
+      if (fakeCheck.isFake) {
+        fakeEmailIds.push(em.id);
+      } else {
+        validEmails.push(em);
+      }
     }
+
+    // Instantly purge fake emails from Supabase
+    if (fakeEmailIds.length > 0) {
+      console.log(`[Email Verifier Auto-Cleaner] Purging ${fakeEmailIds.length} fake/disposable emails from database:`, fakeEmailIds);
+      try {
+        await supabaseAdmin.from('email_events').delete().in('email_id', fakeEmailIds);
+        await supabaseAdmin.from('email_links').delete().in('email_id', fakeEmailIds);
+        await supabaseAdmin.from('emails').delete().in('id', fakeEmailIds);
+      } catch (purgeErr) {
+        console.error('[Email Verifier Auto-Cleaner] Purge error:', purgeErr);
+      }
+    }
+
+    const emailList: Email[] = validEmails;
+    const totalEmails = emailList.length;
+    const trackedOpens = emailList.reduce((sum, e) => sum + (e.open_count || 0), 0);
+    const uniqueOpens = emailList.filter(e => (e.open_count || 0) > 0).length;
+    const totalClicks = emailList.reduce((sum, e) => sum + (e.click_count || 0), 0);
+    const uniqueClicks = emailList.filter(e => (e.click_count || 0) > 0).length;
+
+    const openRate = totalEmails > 0 ? Math.round((uniqueOpens / totalEmails) * 100) : 0;
+    const clickRate = totalEmails > 0 ? Math.round((uniqueClicks / totalEmails) * 100) : 0;
+    const unopenedEmails = Math.max(0, totalEmails - uniqueOpens);
+
+    const summary: AnalyticsSummary = {
+      totalEmails,
+      trackedOpens,
+      uniqueOpens,
+      unopenedEmails,
+      totalClicks,
+      uniqueClicks,
+      openRate,
+      clickRate,
+    };
+
+    // Get recent events
+    const { data: events } = await supabaseAdmin
+      .from('email_events')
+      .select('*, emails(recipient_email, subject), email_links(link_label, original_url)')
+      .order('occurred_at', { ascending: false })
+      .limit(20);
+
+    const activity: ActivityEvent[] = (events || [])
+      .filter((evt: any) => !fakeEmailIds.includes(evt.email_id) && !isFakeOrDisposableEmail(evt.emails?.recipient_email || '').isFake)
+      .slice(0, 10)
+      .map((evt: any) => ({
+        id: evt.id,
+        event_type: evt.event_type,
+        occurred_at: evt.occurred_at,
+        recipient_email: evt.emails?.recipient_email || 'Unknown',
+        email_subject: evt.emails?.subject || 'No Subject',
+        email_id: evt.email_id,
+        link_label: evt.email_links?.link_label,
+        original_url: evt.email_links?.original_url,
+      }));
+
+    // Top Links
+    const { data: links } = await supabaseAdmin
+      .from('email_links')
+      .select('*, emails(subject, recipient_email)')
+      .order('click_count', { ascending: false })
+      .limit(10);
+
+    const topLinks: TopLink[] = (links || [])
+      .filter((l: any) => !fakeEmailIds.includes(l.email_id) && !isFakeOrDisposableEmail(l.emails?.recipient_email || '').isFake)
+      .slice(0, 5)
+      .map((l: any) => ({
+        id: l.id,
+        original_url: l.original_url,
+        link_label: l.link_label,
+        totalClicks: l.click_count,
+        emailSubject: l.emails?.subject || 'Unknown Subject',
+        emailRecipient: l.emails?.recipient_email || 'Unknown Recipient',
+      }));
+
+    const result = {
+      summary,
+      emails: validEmails,
+      activity,
+      topLinks,
+    };
+    cachedDashboardResult = { projectId, data: result, timestamp: Date.now() };
+    return result;
+  } catch (err: any) {
+    fallbackToLocalMode(err.message || 'Supabase getDashboardData failed');
+    return getDashboardData(projectId);
   }
-
-  const emailList: Email[] = validEmails;
-  const totalEmails = emailList.length;
-  const trackedOpens = emailList.reduce((sum, e) => sum + (e.open_count || 0), 0);
-  const uniqueOpens = emailList.filter(e => (e.open_count || 0) > 0).length;
-  const totalClicks = emailList.reduce((sum, e) => sum + (e.click_count || 0), 0);
-  const uniqueClicks = emailList.filter(e => (e.click_count || 0) > 0).length;
-
-  const openRate = totalEmails > 0 ? Math.round((uniqueOpens / totalEmails) * 100) : 0;
-  const clickRate = totalEmails > 0 ? Math.round((uniqueClicks / totalEmails) * 100) : 0;
-  const unopenedEmails = Math.max(0, totalEmails - uniqueOpens);
-
-  const summary: AnalyticsSummary = {
-    totalEmails,
-    trackedOpens,
-    uniqueOpens,
-    unopenedEmails,
-    totalClicks,
-    uniqueClicks,
-    openRate,
-    clickRate,
-  };
-
-  // Get recent events
-  const { data: events } = await supabaseAdmin
-    .from('email_events')
-    .select('*, emails(recipient_email, subject), email_links(link_label, original_url)')
-    .order('occurred_at', { ascending: false })
-    .limit(20);
-
-  const activity: ActivityEvent[] = (events || [])
-    .filter((evt: any) => !fakeEmailIds.includes(evt.email_id) && !isFakeOrDisposableEmail(evt.emails?.recipient_email || '').isFake)
-    .slice(0, 10)
-    .map((evt: any) => ({
-      id: evt.id,
-      event_type: evt.event_type,
-      occurred_at: evt.occurred_at,
-      recipient_email: evt.emails?.recipient_email || 'Unknown',
-      email_subject: evt.emails?.subject || 'No Subject',
-      email_id: evt.email_id,
-      link_label: evt.email_links?.link_label,
-      original_url: evt.email_links?.original_url,
-    }));
-
-  // Top Links
-  const { data: links } = await supabaseAdmin
-    .from('email_links')
-    .select('*, emails(subject, recipient_email)')
-    .order('click_count', { ascending: false })
-    .limit(10);
-
-  const topLinks: TopLink[] = (links || [])
-    .filter((l: any) => !fakeEmailIds.includes(l.email_id) && !isFakeOrDisposableEmail(l.emails?.recipient_email || '').isFake)
-    .slice(0, 5)
-    .map((l: any) => ({
-      id: l.id,
-      original_url: l.original_url,
-      link_label: l.link_label,
-      totalClicks: l.click_count,
-      emailSubject: l.emails?.subject || 'Unknown Subject',
-      emailRecipient: l.emails?.recipient_email || 'Unknown Recipient',
-    }));
-
-  return {
-    summary,
-    emails: validEmails,
-    activity,
-    topLinks,
-  };
 }
 
 /**
@@ -985,43 +1086,47 @@ export async function getEmails(projectId?: string): Promise<Email[]> {
     return getStoreEmails(projectId).filter(e => !isFakeOrDisposableEmail(e.recipient_email).isFake);
   }
 
-  let emailQuery = supabaseAdmin
-    .from('emails')
-    .select('*')
-    .order('created_at', { ascending: false });
+  try {
+    let emailQuery = supabaseAdmin
+      .from('emails')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-  if (projectId && projectId !== 'all' && projectId !== DEFAULT_PROJECT.id) {
-    emailQuery = emailQuery.eq('project_id', projectId);
-  }
-
-  const { data, error } = await emailQuery;
-  if (error) {
-    console.error('Error fetching emails from Supabase:', error);
-    return [];
-  }
-
-  const validEmails: Email[] = [];
-  const fakeIds: string[] = [];
-  for (const em of (data || [])) {
-    if (isFakeOrDisposableEmail(em.recipient_email).isFake) {
-      fakeIds.push(em.id);
-    } else {
-      validEmails.push(em);
+    if (projectId && projectId !== 'all' && projectId !== DEFAULT_PROJECT.id) {
+      emailQuery = emailQuery.eq('project_id', projectId);
     }
-  }
 
-  if (fakeIds.length > 0) {
-    console.log(`[getEmails] Purging ${fakeIds.length} fake emails from Supabase`);
-    try {
-      await supabaseAdmin.from('email_events').delete().in('email_id', fakeIds);
-      await supabaseAdmin.from('email_links').delete().in('email_id', fakeIds);
-      await supabaseAdmin.from('emails').delete().in('id', fakeIds);
-    } catch (purgeErr) {
-      console.error('[getEmails] Purge error:', purgeErr);
+    const { data, error } = await emailQuery;
+    if (error) {
+      throw error;
     }
-  }
 
-  return validEmails;
+    const validEmails: Email[] = [];
+    const fakeIds: string[] = [];
+    for (const em of (data || [])) {
+      if (isFakeOrDisposableEmail(em.recipient_email).isFake) {
+        fakeIds.push(em.id);
+      } else {
+        validEmails.push(em);
+      }
+    }
+
+    if (fakeIds.length > 0) {
+      console.log(`[getEmails] Purging ${fakeIds.length} fake emails from Supabase`);
+      try {
+        await supabaseAdmin.from('email_events').delete().in('email_id', fakeIds);
+        await supabaseAdmin.from('email_links').delete().in('email_id', fakeIds);
+        await supabaseAdmin.from('emails').delete().in('id', fakeIds);
+      } catch (purgeErr) {
+        console.error('[getEmails] Purge error:', purgeErr);
+      }
+    }
+
+    return validEmails;
+  } catch (err: any) {
+    fallbackToLocalMode(err.message || 'Supabase getEmails failed');
+    return getEmails(projectId);
+  }
 }
 
 

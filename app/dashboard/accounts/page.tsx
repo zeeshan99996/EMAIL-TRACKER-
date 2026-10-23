@@ -825,7 +825,7 @@ function AccountsContent() {
                 </div>
                 {customProvider.includes('Hostinger') && (
                   <div className="pl-6 text-[11px] text-rose-800 bg-white/80 p-3 rounded-lg border border-rose-200 space-y-2">
-                    <p className="font-bold text-rose-950">💡 How to Fix & Connect Immediately:</p>
+                    <p className="font-bold text-rose-950">How to Fix & Connect Immediately:</p>
                     <ol className="list-decimal list-inside space-y-1.5 text-slate-700">
                       <li>
                         <strong>Verify or Reset Mailbox Password:</strong> Log into{' '}

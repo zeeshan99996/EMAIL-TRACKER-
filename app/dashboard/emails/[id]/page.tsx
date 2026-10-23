@@ -7,7 +7,7 @@ import { Email, EmailEvent, EmailLink } from '@/lib/types';
 import {
   ArrowLeft,
   Eye,
-  MousePointerClick,
+  Link2,
   Clock,
   Send,
   Code2,
@@ -250,7 +250,7 @@ export default function EmailDetailsPage({ params }: { params: { id: string } })
         <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
           <p className="text-xs font-medium text-slate-400">Total Link Clicks</p>
           <h3 className="text-2xl font-bold text-slate-900 mt-1 flex items-center space-x-2">
-            <MousePointerClick className="w-5 h-5 text-emerald-600" />
+            <Link2 className="w-5 h-5 text-blue-600" />
             <span>{email.click_count}</span>
           </h3>
           <p className="text-[11px] text-slate-500 mt-1">
@@ -333,7 +333,7 @@ export default function EmailDetailsPage({ params }: { params: { id: string } })
                       title = 'Email Opened';
                       desc = `1x1 Tracking Pixel loaded. IP: ${evt.ip_address || 'Anonymized'}`;
                     } else if (evt.event_type === 'CLICK') {
-                      badge = <MousePointerClick className="w-4 h-4 text-emerald-600" />;
+                      badge = <Link2 className="w-4 h-4 text-blue-600" />;
                       title = `Link Clicked: "${evt.metadata?.label || 'Tracked Link'}"`;
                       desc = `Redirected recipient to original target URL. IP: ${evt.ip_address || 'Anonymized'}`;
                     }

@@ -37,28 +37,28 @@ export function WorkflowStepper() {
   const steps: WorkflowStep[] = [
     {
       stepNumber: 1,
-      title: 'Email Warmup',
-      description: 'Build your sender reputation and improve inbox deliverability.',
-      href: '/dashboard/warmup',
-      buttonText: 'Open Warmup Fleet',
-      badge: 'Step 1 • Reputation',
+      title: 'Google Sheet Sync',
+      description: 'Connect your lead sheet via 2-way Apps Script Web App.',
+      href: '/dashboard/campaigns',
+      buttonText: 'Open Campaign Studio',
+      badge: 'Step 1 • Connect Sheet',
       accentColor: {
-        border: 'border-purple-200 hover:border-purple-400',
-        bg: 'from-purple-500/5 to-indigo-500/5',
-        text: 'text-purple-600',
-        badgeBg: 'bg-purple-100 text-purple-800',
-        iconBg: 'bg-purple-600 text-white shadow-purple-200',
-        button: 'bg-purple-600 hover:bg-purple-700 text-white',
+        border: 'border-blue-200 hover:border-blue-400',
+        bg: 'from-blue-500/5 to-indigo-500/5',
+        text: 'text-blue-600',
+        badgeBg: 'bg-blue-100 text-blue-800',
+        iconBg: 'bg-blue-600 text-white shadow-blue-200',
+        button: 'bg-blue-600 hover:bg-blue-700 text-white',
       },
-      icon: <Flame className="w-5 h-5" />,
-      features: ['Auto Warmup Ramp', 'Frequency Control', 'Real Inbox Activity'],
+      icon: <Send className="w-5 h-5" />,
+      features: ['2-Way Google Sheet Sync', 'Auto-Loads All Leads', 'Status Row Updates'],
     },
     {
       stepNumber: 2,
-      title: 'Email Verify',
-      description: 'Clean your list and remove invalid, burner, or risky emails.',
-      href: '/dashboard/verifier',
-      buttonText: 'Clean Email List',
+      title: 'Email Verifier Gate',
+      description: 'Filter out disposable domains, non-existent mailboxes, and fake emails.',
+      href: '/dashboard/campaigns',
+      buttonText: 'Check Verification Gate',
       badge: 'Step 2 • Clean List',
       accentColor: {
         border: 'border-emerald-200 hover:border-emerald-400',
@@ -69,14 +69,14 @@ export function WorkflowStepper() {
         button: 'bg-emerald-600 hover:bg-emerald-700 text-white',
       },
       icon: <ShieldCheck className="w-5 h-5" />,
-      features: ['Syntax Check', 'Disposable Check', 'Spam Trap Detection'],
+      features: ['DNS MX Record Lookup', 'Disposable Filter', 'Marks INVALID ❌ in Sheet'],
     },
     {
       stepNumber: 3,
-      title: 'Email Send',
-      description: 'Send your emails through Google Apps Script & Sheets with ease.',
-      href: '/dashboard/api-keys?tab=script',
-      buttonText: 'Get Apps Script Code',
+      title: 'Batch Dispatcher',
+      description: 'Pick batches of 5, 10, 12, 15, or All pending leads with custom template.',
+      href: '/dashboard/campaigns',
+      buttonText: 'Launch Dispatcher',
       badge: 'Step 3 • Delivery',
       accentColor: {
         border: 'border-sky-200 hover:border-sky-400',
@@ -87,12 +87,12 @@ export function WorkflowStepper() {
         button: 'bg-sky-600 hover:bg-sky-700 text-white',
       },
       icon: <Send className="w-5 h-5" />,
-      features: ['Connect Gmail & Sheets', 'Schedule Campaigns', 'Auto Pixel Injection'],
+      features: ['Batch Picking (5, 10, All)', 'Auto-Personalized Pitch', 'Marks SENT ✅ in Sheet'],
     },
     {
       stepNumber: 4,
-      title: 'Email Track',
-      description: 'Monitor opens, link clicks, who opened, when and how many times.',
+      title: 'Real-Time Tracking',
+      description: 'Monitor verified email opens, click redirects, and recipient timestamps.',
       href: '/dashboard/emails',
       buttonText: 'View Tracked Emails',
       badge: 'Step 4 • Analytics',
@@ -105,7 +105,7 @@ export function WorkflowStepper() {
         button: 'bg-amber-600 hover:bg-amber-700 text-white',
       },
       icon: <BarChart3 className="w-5 h-5" />,
-      features: ['1x1 Pixel Open Tracking', 'Link Click Redirection', 'Live 2.5s Real-time Sync'],
+      features: ['1x1 Pixel Open Detection', 'Click Redirection Engine', 'Who Opened Feed'],
     },
   ];
 
@@ -196,10 +196,10 @@ export function WorkflowStepper() {
         </div>
 
         <Link
-          href="/dashboard/docs"
+          href="/dashboard/campaigns"
           className="text-xs font-bold text-blue-600 hover:text-blue-700 whitespace-nowrap"
         >
-          View Full Guide →
+          Open Campaign Studio →
         </Link>
       </div>
     </div>

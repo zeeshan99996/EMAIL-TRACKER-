@@ -481,28 +481,37 @@ export async function checkMxRecords(domain: string): Promise<{ hasMx: boolean; 
     return { hasMx: true, hosts: [`mx.${cleanDomain}`] };
   }
 
-  try {
-    const records = await dns.promises.resolveMx(cleanDomain);
-    if (records && records.length > 0) {
-      records.sort((a, b) => a.priority - b.priority);
-      return {
-        hasMx: true,
-        hosts: records.map(r => r.exchange),
-      };
-    }
-    return { hasMx: false, hosts: [] };
-  } catch (err: any) {
-    // If no MX record, check fallback to A record (RFC 5321 allows A record fallback)
+  // Strict 1500ms timeout so DNS resolution never freezes on slow/dead domains
+  const timeoutPromise = new Promise<{ hasMx: boolean; hosts: string[] }>((resolve) =>
+    setTimeout(() => resolve({ hasMx: false, hosts: [] }), 1500)
+  );
+
+  const resolvePromise = (async () => {
     try {
-      const aRecords = await dns.promises.resolve4(cleanDomain);
-      if (aRecords && aRecords.length > 0) {
-        return { hasMx: true, hosts: aRecords };
+      const records = await dns.promises.resolveMx(cleanDomain);
+      if (records && records.length > 0) {
+        records.sort((a, b) => a.priority - b.priority);
+        return {
+          hasMx: true,
+          hosts: records.map(r => r.exchange),
+        };
       }
+      return { hasMx: false, hosts: [] };
     } catch {
-      // Domain resolution completely failed (e.g. ENOTFOUND)
+      // If no MX record, check fallback to A record
+      try {
+        const aRecords = await dns.promises.resolve4(cleanDomain);
+        if (aRecords && aRecords.length > 0) {
+          return { hasMx: true, hosts: aRecords };
+        }
+      } catch {
+        // Domain resolution completely failed
+      }
+      return { hasMx: false, hosts: [] };
     }
-    return { hasMx: false, hosts: [] };
-  }
+  })();
+
+  return Promise.race([resolvePromise, timeoutPromise]);
 }
 
 /**
