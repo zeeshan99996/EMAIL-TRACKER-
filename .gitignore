@@ -37,3 +37,4 @@ Thumbs.db
 Email warmup/
 *.tsbuildinfo
 
+.vercel

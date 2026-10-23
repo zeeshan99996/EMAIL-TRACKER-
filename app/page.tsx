@@ -1,8 +1,5 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import React from 'react';
-import MizuLanding from '@/components/mizu-landing';
-
-export default function LandingPage() {
-  return <MizuLanding />;
+export default function RootPage() {
+  redirect('/dashboard');
 }

@@ -250,7 +250,7 @@ export function Sidebar({
                 localStorage.removeItem('mailify_submitted_user');
                 document.cookie = 'mailify_has_submitted=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
                 document.cookie = 'warmup_user_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-                window.location.href = '/?view=landing';
+                window.location.href = '/login';
               }
             }}
             className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
