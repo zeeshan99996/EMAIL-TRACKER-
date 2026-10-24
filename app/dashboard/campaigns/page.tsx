@@ -927,16 +927,7 @@ export default function CampaignsPage() {
               <FileSpreadsheet className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-slate-900 tracking-tight">Google Sheet Integration</h2>
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                  Live Sync
-                </span>
-              </div>
-              <p className="text-xs text-slate-500">
-                Connected sheet syncs leads and writes "SENT" or "INVALID" back to your sheet rows.
-              </p>
+              <h2 className="text-base font-bold text-slate-900 tracking-tight">Google Sheet Integration</h2>
             </div>
           </div>
 

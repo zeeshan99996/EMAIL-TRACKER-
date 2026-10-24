@@ -185,11 +185,6 @@ export default function DashboardPage() {
                 }}
               />
             </div>
-
-            <div className="text-xs sm:text-[13px] text-slate-700 mt-3 flex items-center justify-between pt-2 border-t border-slate-100">
-              <span>Total: <strong className="text-black text-sm">{sheetStats.totalLeads}</strong></span>
-              <span className="text-blue-600 font-bold text-xs sm:text-[13px]">Dispatch Studio &rarr;</span>
-            </div>
           </div>
         </Link>
 
@@ -225,14 +220,6 @@ export default function DashboardPage() {
                   width: `${sheetStats.totalLeads > 0 ? Math.min(100, Math.round((sheetStats.sentCount / sheetStats.totalLeads) * 100)) : (summary.totalEmails > 0 ? 100 : 0)}%`,
                 }}
               />
-            </div>
-
-            <div className="text-xs sm:text-[13px] text-slate-700 mt-3 flex items-center justify-between pt-2 border-t border-slate-100">
-              <span className="text-black font-semibold flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
-                Sheet Sync Active
-              </span>
-              <span className="text-blue-600 font-bold text-xs sm:text-[13px]">View Logs &rarr;</span>
             </div>
           </div>
         </Link>
@@ -270,11 +257,6 @@ export default function DashboardPage() {
                 }}
               />
             </div>
-
-            <div className="text-xs sm:text-[13px] text-slate-700 mt-3 flex items-center justify-between pt-2 border-t border-slate-100">
-              <span className="text-slate-700"><strong className="text-black">{summary.uniqueOpens}</strong> unique</span>
-              <span className="text-blue-600 font-bold text-xs sm:text-[13px]">Pixel Tracked &rarr;</span>
-            </div>
           </div>
         </Link>
 
@@ -311,11 +293,6 @@ export default function DashboardPage() {
                 }}
               />
             </div>
-
-            <div className="text-xs sm:text-[13px] text-slate-700 mt-3 flex items-center justify-between pt-2 border-t border-slate-100">
-              <span className="text-black font-semibold">Auto Redirects</span>
-              <span className="text-blue-600 font-bold text-xs sm:text-[13px]">View Logs &rarr;</span>
-            </div>
           </div>
         </Link>
       </div>
@@ -331,10 +308,6 @@ export default function DashboardPage() {
               <h3 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
                 Outreach &amp; Engagement Timeline
               </h3>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                Live Sync
-              </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
               Daily comparative volume of sent emails, verified opens, and link clicks
