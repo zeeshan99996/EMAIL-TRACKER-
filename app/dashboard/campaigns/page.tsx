@@ -432,13 +432,27 @@ export default function CampaignsPage() {
       fetchLeads();
     }
 
-    // 2. Load custom templates from localStorage
+    // 2. Load custom templates from localStorage & handle preselected template
     try {
       const savedT = localStorage.getItem('erha_custom_campaign_templates');
+      let combined = [...PRESET_TEMPLATES];
       if (savedT) {
         const parsedT = JSON.parse(savedT);
         if (Array.isArray(parsedT) && parsedT.length > 0) {
-          setTemplates([...PRESET_TEMPLATES, ...parsedT]);
+          combined = [...PRESET_TEMPLATES, ...parsedT];
+          setTemplates(combined);
+        }
+      }
+
+      const preselectedId = localStorage.getItem('erha_selected_template_id');
+      if (preselectedId) {
+        localStorage.removeItem('erha_selected_template_id');
+        const found = combined.find((t) => t.id === preselectedId);
+        if (found) {
+          setSelectedTemplateId(found.id);
+          setSubject(found.subject);
+          setBodyHtml(found.body);
+          setActiveStep(3);
         }
       }
     } catch {}
@@ -1551,16 +1565,25 @@ export default function CampaignsPage() {
                 <Edit3 className="w-3 h-3" />
                 {showTemplateEditor ? 'Hide Editor' : 'Preview / Edit'}
               </button>
-              {templates.find((t) => t.id === selectedTemplateId)?.isCustom && (
-                <button
-                  type="button"
-                  onClick={(e) => handleDeleteTemplate(selectedTemplateId, e)}
-                  className="text-slate-400 hover:text-rose-600 cursor-pointer"
-                  title="Delete Custom Template"
+              <div className="flex items-center gap-1.5">
+                <Link
+                  href="/dashboard/templates"
+                  className="text-slate-500 hover:text-blue-600 font-semibold"
+                  title="Open Templates Studio to upload images from PC"
                 >
-                  <Trash2 className="w-3 h-3" />
-                </button>
-              )}
+                  <span>Studio &rarr;</span>
+                </Link>
+                {templates.find((t) => t.id === selectedTemplateId)?.isCustom && (
+                  <button
+                    type="button"
+                    onClick={(e) => handleDeleteTemplate(selectedTemplateId, e)}
+                    className="text-slate-400 hover:text-rose-600 cursor-pointer ml-1"
+                    title="Delete Custom Template"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 

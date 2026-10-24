@@ -15,6 +15,7 @@ import {
   ArrowUpRight,
   Send,
   LogOut,
+  LayoutTemplate,
 } from 'lucide-react';
 
 interface NavItem {
@@ -40,6 +41,13 @@ const cleanOutreachNavSections: NavSection[] = [
         icon: Send,
         badge: 'Main',
         badgeColor: 'bg-blue-600 text-white font-bold',
+      },
+      {
+        name: 'Email Templates',
+        href: '/dashboard/templates',
+        icon: LayoutTemplate,
+        badge: 'New',
+        badgeColor: 'bg-emerald-600 text-white font-bold',
       },
       {
         name: 'Overview & Graph',
