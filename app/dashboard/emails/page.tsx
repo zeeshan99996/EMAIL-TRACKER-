@@ -24,6 +24,7 @@ export default function EmailsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
   const itemsPerPage = 10;
 
   const loadData = async (manual = false) => {
@@ -59,6 +60,31 @@ export default function EmailsPage() {
       alert('Network error while deleting email');
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleClearAll = async () => {
+    if (
+      !window.confirm(
+        'Are you sure you want to delete ALL tracked emails and start completely fresh? This cannot be undone.'
+      )
+    ) {
+      return;
+    }
+
+    setIsClearing(true);
+    try {
+      const res = await fetch('/api/v1/emails/cleanup?mode=all', { method: 'POST' });
+      if (res.ok) {
+        setEmails([]);
+      } else {
+        alert('Failed to clear emails');
+      }
+    } catch (err) {
+      console.error('Clear all failed:', err);
+      alert('Network error while clearing emails');
+    } finally {
+      setIsClearing(false);
     }
   };
 
@@ -130,6 +156,16 @@ export default function EmailsPage() {
           >
             <RotateCw className={`w-3.5 h-3.5 text-slate-500 ${isRefreshing ? 'animate-spin text-blue-600' : ''}`} />
             <span>Refresh</span>
+          </button>
+
+          <button
+            onClick={handleClearAll}
+            disabled={isClearing || emails.length === 0}
+            className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/80 border border-rose-200 rounded-lg transition-colors cursor-pointer shadow-xs disabled:opacity-40 disabled:cursor-not-allowed"
+            title="Clear all tracked emails to start completely fresh"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+            <span>{isClearing ? 'Clearing...' : 'Clear All'}</span>
           </button>
 
           <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">

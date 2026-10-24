@@ -144,6 +144,21 @@ export function deleteStoreEmail(id: string): boolean {
   return deleted;
 }
 
+export function clearStoreEmails(projectId?: string): void {
+  saveDb(db => {
+    if (projectId && projectId !== 'all') {
+      const idsToRemove = new Set(db.emails.filter(e => e.project_id === projectId).map(e => e.id));
+      db.emails = db.emails.filter(e => !idsToRemove.has(e.id));
+      db.emailLinks = db.emailLinks.filter(l => !idsToRemove.has(l.email_id));
+      db.emailEvents = db.emailEvents.filter(ev => !idsToRemove.has(ev.email_id));
+    } else {
+      db.emails = [];
+      db.emailLinks = [];
+      db.emailEvents = [];
+    }
+  });
+}
+
 
 // Links
 export function addStoreEmailLinks(links: EmailLink[]): void {

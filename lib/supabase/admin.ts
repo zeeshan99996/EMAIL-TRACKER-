@@ -18,6 +18,7 @@ import {
   getStoreProjects,
   addStoreProject,
   deleteStoreEmail,
+  clearStoreEmails,
   DEFAULT_PROJECT,
 } from '../store';
 import {
@@ -1076,6 +1077,36 @@ export async function deleteEmail(emailId: string): Promise<boolean> {
   }
 
   return true;
+}
+
+/**
+ * Deletes all tracked emails, associated links, and events for clean fresh state.
+ */
+export async function clearAllEmails(projectId?: string): Promise<boolean> {
+  invalidateDashboardCache();
+  if (isDemoMode) {
+    clearStoreEmails(projectId);
+    return true;
+  }
+
+  try {
+    const supabase = createAdminClient();
+    let query = supabase.from('emails').delete();
+    if (projectId && projectId !== 'all') {
+      query = query.eq('project_id', projectId);
+    } else {
+      query = query.neq('id', '00000000-0000-0000-0000-000000000000');
+    }
+    const { error } = await query;
+    if (error) {
+      console.error('Error clearing emails from Supabase:', error);
+      clearStoreEmails(projectId);
+    }
+    return true;
+  } catch (err) {
+    clearStoreEmails(projectId);
+    return true;
+  }
 }
 
 /**

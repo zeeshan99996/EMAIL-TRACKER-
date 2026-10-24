@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getEmails, deleteEmail } from '@/lib/supabase/admin';
+import { getEmails, deleteEmail, clearAllEmails } from '@/lib/supabase/admin';
 import { verifyEmail } from '@/lib/verification/email-verifier';
 
 export const dynamic = 'force-dynamic';
@@ -8,6 +8,20 @@ export async function POST(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const projectId = searchParams.get('projectId') || undefined;
+    const mode = searchParams.get('mode');
+    const all = searchParams.get('all');
+
+    // Wipe all tracking data if mode === 'all'
+    if (mode === 'all' || all === 'true') {
+      const emails = await getEmails(projectId);
+      await clearAllEmails(projectId);
+      return NextResponse.json({
+        success: true,
+        message: 'All tracked emails and activity history have been wiped clean for fresh real-time testing.',
+        scanned: emails.length,
+        cleanedCount: emails.length,
+      });
+    }
 
     const emails = await getEmails(projectId);
     if (!emails || emails.length === 0) {
@@ -47,9 +61,30 @@ export async function POST(req: NextRequest) {
           : 'All emails in your database are clean and valid!',
     });
   } catch (err: any) {
-    console.error('Error cleaning up fake emails:', err);
+    console.error('Error cleaning up emails:', err);
     return NextResponse.json(
-      { success: false, error: err.message || 'Failed to cleanup fake emails.' },
+      { success: false, error: err.message || 'Failed to cleanup emails.' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const projectId = searchParams.get('projectId') || undefined;
+    const emails = await getEmails(projectId);
+    await clearAllEmails(projectId);
+    return NextResponse.json({
+      success: true,
+      message: 'All tracked emails and activity history have been wiped clean for fresh real-time testing.',
+      scanned: emails.length,
+      cleanedCount: emails.length,
+    });
+  } catch (err: any) {
+    console.error('Error clearing all emails:', err);
+    return NextResponse.json(
+      { success: false, error: err.message || 'Failed to clear all emails.' },
       { status: 500 }
     );
   }
