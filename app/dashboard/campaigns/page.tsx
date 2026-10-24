@@ -140,12 +140,6 @@ export default function CampaignsPage() {
       email: 'Connected Google Sheet',
       provider: 'Apps Script',
     },
-    {
-      id: 'demo_sender',
-      name: 'Default Outreach Mailbox',
-      email: 'outbound@erhatechnologies.com',
-      provider: 'SMTP',
-    },
   ]);
   const [showAddMailboxModal, setShowAddMailboxModal] = useState(false);
   const [newMailboxName, setNewMailboxName] = useState('');
@@ -848,8 +842,12 @@ function doPost(e) {
             <tbody className="divide-y divide-slate-100 bg-white">
               {filteredLeads.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-10 text-center text-slate-400">
-                    No leads found matching current filter or search.
+                  <td colSpan={6} className="py-12 px-4 text-center text-slate-400">
+                    <FileSpreadsheet className="w-8 h-8 mx-auto text-slate-300 mb-2" />
+                    <p className="font-semibold text-slate-700 text-sm">No leads in batch</p>
+                    <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                      Connect your Google Sheet Webhook URL above or click &quot;Import CSV / Paste Leads&quot; to load your outreach prospects.
+                    </p>
                   </td>
                 </tr>
               ) : (
