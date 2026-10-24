@@ -1340,14 +1340,14 @@ export default function CampaignsPage() {
           </div>
         </div>
 
-        {/* 4 Cascading Dropdowns & Action Controls Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* 4 Cascading Dropdowns & Action Controls Grid - Compact & Responsive */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {/* STEP 1: CUSTOM LEADS SELECTOR */}
           <div
-            className={`p-4 rounded-xl border transition-all ${
+            className={`p-3 sm:p-3.5 rounded-xl border flex flex-col justify-between transition-all ${
               activeStep === 1
-                ? 'bg-blue-50/50 border-blue-300 ring-1 ring-blue-300'
-                : 'bg-slate-50 border-slate-200'
+                ? 'bg-blue-50/50 border-blue-300 ring-1 ring-blue-300 shadow-xs'
+                : 'bg-slate-50/70 border-slate-200'
             }`}
           >
             <div className="flex items-center justify-between mb-2">
@@ -1355,7 +1355,7 @@ export default function CampaignsPage() {
                 <span className="w-4 h-4 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-bold">
                   1
                 </span>
-                Select Leads to Send
+                Select Leads
               </label>
               <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
                 {selectedRows.length} Selected
@@ -1394,16 +1394,16 @@ export default function CampaignsPage() {
                       handleBatchCountChange(customBatchInput);
                     }
                   }}
-                  className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500 font-bold placeholder:text-slate-400 placeholder:font-normal shadow-xs"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500 font-bold placeholder:text-slate-400 placeholder:font-normal shadow-xs"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-slate-400 pointer-events-none">
+                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-slate-400 pointer-events-none">
                   leads
                 </span>
               </div>
 
               <button
                 type="submit"
-                className="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer whitespace-nowrap"
+                className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer whitespace-nowrap"
                 title="Select and proceed to Step 2"
               >
                 <span>Select</span>
@@ -1411,19 +1411,18 @@ export default function CampaignsPage() {
               </button>
             </form>
 
-
             <div className="flex items-center justify-between text-[10px] text-slate-500 mt-2 px-0.5">
-              <span>Total in sheet: {leads.length}</span>
+              <span>Total: {leads.length}</span>
               <span className="font-semibold text-emerald-700">Pending: {pendingCount}</span>
             </div>
           </div>
 
           {/* STEP 2: SENDING EMAIL (MAILBOX) DROPDOWN */}
           <div
-            className={`p-4 rounded-xl border transition-all ${
+            className={`p-3 sm:p-3.5 rounded-xl border flex flex-col justify-between transition-all ${
               activeStep === 2
-                ? 'bg-blue-50/50 border-blue-300 ring-1 ring-blue-300'
-                : 'bg-slate-50 border-slate-200'
+                ? 'bg-blue-50/50 border-blue-300 ring-1 ring-blue-300 shadow-xs'
+                : 'bg-slate-50/70 border-slate-200'
             }`}
           >
             <div className="flex items-center justify-between mb-2">
@@ -1436,7 +1435,7 @@ export default function CampaignsPage() {
               <button
                 type="button"
                 onClick={() => setShowAddMailboxModal(true)}
-                className="text-[11px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-0.5"
+                className="text-[11px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-0.5 cursor-pointer"
               >
                 <Plus className="w-3 h-3" />
                 Add Mail
@@ -1450,7 +1449,7 @@ export default function CampaignsPage() {
                   setSenderAccount(e.target.value);
                   setActiveStep(3);
                 }}
-                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500 appearance-none font-semibold cursor-pointer truncate pr-7 shadow-xs"
+                className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500 appearance-none font-semibold cursor-pointer truncate pr-7 shadow-xs"
               >
                 {mailboxes.map((mb) => (
                   <option key={mb.id} value={mb.id}>
@@ -1458,16 +1457,16 @@ export default function CampaignsPage() {
                   </option>
                 ))}
               </select>
-              <ChevronDown className="w-4 h-4 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-4 h-4 text-slate-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
 
-            <div className="mt-2.5 flex items-center justify-between text-[11px] text-slate-500">
-              <span className="truncate">
+            <div className="mt-2 flex items-center justify-between text-[10px] text-slate-500 px-0.5">
+              <span className="truncate max-w-[130px]">
                 {mailboxes.find((m) => m.id === senderAccount)?.email || 'Connected Google Sheet'}
               </span>
               <Link
                 href="/dashboard/accounts"
-                className="text-blue-600 hover:underline shrink-0 ml-1 font-semibold"
+                className="text-blue-600 hover:underline shrink-0 font-semibold"
               >
                 Fleet
               </Link>
@@ -1476,10 +1475,10 @@ export default function CampaignsPage() {
 
           {/* STEP 3: TEMPLATE SELECT DROPDOWN */}
           <div
-            className={`p-4 rounded-xl border transition-all ${
+            className={`p-3 sm:p-3.5 rounded-xl border flex flex-col justify-between transition-all ${
               activeStep === 3
-                ? 'bg-blue-50/50 border-blue-300 ring-1 ring-blue-300'
-                : 'bg-slate-50 border-slate-200'
+                ? 'bg-blue-50/50 border-blue-300 ring-1 ring-blue-300 shadow-xs'
+                : 'bg-slate-50/70 border-slate-200'
             }`}
           >
             <div className="flex items-center justify-between mb-2">
@@ -1487,7 +1486,7 @@ export default function CampaignsPage() {
                 <span className="w-4 h-4 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-bold">
                   3
                 </span>
-                Choose Template
+                Template
               </label>
               <button
                 type="button"
@@ -1501,7 +1500,7 @@ export default function CampaignsPage() {
                   setModalTab('code');
                   setShowSaveTemplateModal(true);
                 }}
-                className="text-[11px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-0.5"
+                className="text-[11px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-0.5 cursor-pointer"
               >
                 <Plus className="w-3 h-3" />
                 New
@@ -1512,7 +1511,7 @@ export default function CampaignsPage() {
               <select
                 value={selectedTemplateId}
                 onChange={(e) => handleTemplateChange(e.target.value)}
-                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500 appearance-none font-semibold cursor-pointer truncate pr-7 shadow-xs"
+                className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500 appearance-none font-semibold cursor-pointer truncate pr-7 shadow-xs"
               >
                 {templates.map((tmpl) => (
                   <option key={tmpl.id} value={tmpl.id}>
@@ -1520,14 +1519,14 @@ export default function CampaignsPage() {
                   </option>
                 ))}
               </select>
-              <ChevronDown className="w-4 h-4 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-4 h-4 text-slate-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
 
-            <div className="mt-2.5 flex items-center justify-between text-[11px]">
+            <div className="mt-2 flex items-center justify-between text-[10px] px-0.5">
               <button
                 type="button"
                 onClick={() => setShowTemplateEditor(!showTemplateEditor)}
-                className="text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1"
+                className="text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1 cursor-pointer"
               >
                 <Edit3 className="w-3 h-3" />
                 {showTemplateEditor ? 'Hide Editor' : 'Preview / Edit'}
@@ -1536,10 +1535,10 @@ export default function CampaignsPage() {
                 <button
                   type="button"
                   onClick={(e) => handleDeleteTemplate(selectedTemplateId, e)}
-                  className="text-slate-400 hover:text-rose-600"
+                  className="text-slate-400 hover:text-rose-600 cursor-pointer"
                   title="Delete Custom Template"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="w-3 h-3" />
                 </button>
               )}
             </div>
@@ -1547,51 +1546,23 @@ export default function CampaignsPage() {
 
           {/* STEP 4: SEND & VERIFY ACTION BUTTON */}
           <div
-            className={`p-4 rounded-xl border flex flex-col justify-between transition-all ${
+            className={`p-3 sm:p-3.5 rounded-xl border flex flex-col justify-between transition-all ${
               activeStep === 4
-                ? 'bg-blue-50/50 border-blue-300 ring-1 ring-blue-300'
-                : 'bg-slate-50 border-slate-200'
+                ? 'bg-blue-50/50 border-blue-300 ring-1 ring-blue-300 shadow-xs'
+                : 'bg-slate-50/70 border-slate-200'
             }`}
           >
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  <span className="w-4 h-4 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-bold">
-                    4
-                  </span>
-                  Verification &amp; Send
-                </label>
-              </div>
-
-              {/* Verifier Toggle */}
-              <label className="flex items-center gap-2 cursor-pointer text-[11px] text-slate-700 bg-white p-2 rounded-xl border border-slate-200 shadow-xs">
-                <input
-                  type="checkbox"
-                  checked={verifyBeforeSend}
-                  onChange={(e) => setVerifyBeforeSend(e.target.checked)}
-                  className="w-4 h-4 rounded text-blue-600 bg-slate-100 border-slate-300 focus:ring-blue-500"
-                />
-                <span className="flex items-center gap-1 font-semibold text-slate-800">
-                  <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
-                  Auto-Verify &amp; Drop Fakes
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                <span className="w-4 h-4 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-bold">
+                  4
                 </span>
+                Verify &amp; Send
               </label>
-
-              {/* Anti-Spam Cadence Info */}
-              <div className="mt-2.5 p-2.5 rounded-xl bg-slate-100 border border-slate-200 text-[10px] text-slate-700 space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-900 flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-blue-600" />
-                    2 - 3 Min Anti-Spam Interval
-                  </span>
-                  <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                    0% Spam Guard
-                  </span>
-                </div>
-                <p className="text-slate-500 leading-relaxed">
-                  Emails will automatically send one-by-one with 2-3 minute intervals, and each row in your Google Sheet will update to &quot;SENT&quot; automatically.
-                </p>
-              </div>
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 flex items-center gap-0.5">
+                <Clock className="w-2.5 h-2.5" />
+                2-3m Cadence
+              </span>
             </div>
 
             {/* Launch CTA */}
@@ -1604,7 +1575,7 @@ export default function CampaignsPage() {
                 executeDispatch();
               }}
               disabled={isDispatching || leads.length === 0}
-              className={`mt-3 w-full py-2.5 rounded-xl font-bold text-xs tracking-wide shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer ${
+              className={`w-full py-1.5 px-3 rounded-lg font-bold text-xs tracking-wide shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
                 isDispatching
                   ? 'bg-emerald-600 text-white cursor-not-allowed opacity-90'
                   : 'bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:pointer-events-none'
@@ -1613,17 +1584,56 @@ export default function CampaignsPage() {
               {isDispatching ? (
                 <>
                   <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  Campaign Running ({activeCampaign?.sentCount || 0}/{activeCampaign?.totalCount || selectedRows.length} Sent)...
+                  <span className="truncate">Sending ({activeCampaign?.sentCount || 0}/{activeCampaign?.totalCount || selectedRows.length})...</span>
                 </>
               ) : (
                 <>
                   <Send className="w-3.5 h-3.5" />
-                  {selectedRows.length === 0
-                    ? `Select & Send All (${filteredLeads.length})`
-                    : `Verify & Send (${selectedRows.length})`}
+                  <span className="truncate">
+                    {selectedRows.length === 0
+                      ? `Send All (${filteredLeads.length})`
+                      : `Verify & Send (${selectedRows.length})`}
+                  </span>
                 </>
               )}
             </button>
+
+            <div className="mt-2 flex items-center justify-between text-[10px] text-slate-600 px-0.5">
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={verifyBeforeSend}
+                  onChange={(e) => setVerifyBeforeSend(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded text-blue-600 bg-white border-slate-300 focus:ring-blue-500"
+                />
+                <span className="font-semibold text-slate-700 flex items-center gap-0.5">
+                  <ShieldCheck className="w-3 h-3 text-blue-600" />
+                  Drop Fakes
+                </span>
+              </label>
+              <span className="text-[10px] text-slate-400 font-medium">Sheet auto-sync</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Human Anti-Spam Interval & Realtime Sheet Sync Info Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600">
+          <div className="flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1 font-bold text-slate-900">
+              <Clock className="w-3.5 h-3.5 text-blue-600" />
+              Human 2–3 Min Interval:
+            </span>
+            <span className="text-slate-500">
+              Emails dispatch one-by-one with natural gaps to protect inbox deliverability.
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-[10px]">
+            <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              0% Spam Guard
+            </span>
+            <span className="text-slate-500">
+              Google Sheet row status updates to &quot;SENT&quot; automatically.
+            </span>
           </div>
         </div>
 
