@@ -1411,35 +1411,6 @@ export default function CampaignsPage() {
               </button>
             </form>
 
-            {/* Quick Batch Pills (e.g. 25, 50, 100, 250, All) */}
-            <div className="flex items-center gap-1 mt-2.5">
-              {[25, 50, 100, 250].map((cnt) => (
-                <button
-                  key={cnt}
-                  type="button"
-                  onClick={() => handleBatchCountChange(cnt)}
-                  className={`flex-1 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
-                    selectedRows.length === cnt
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-                  }`}
-                >
-                  {cnt}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={() => handleBatchCountChange(pendingCount || leads.length)}
-                className={`flex-1 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
-                  selectedRows.length === (pendingCount || leads.length) && selectedRows.length > 0
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-                }`}
-                title={`Select all ${pendingCount || leads.length} leads`}
-              >
-                All
-              </button>
-            </div>
 
             <div className="flex items-center justify-between text-[10px] text-slate-500 mt-2 px-0.5">
               <span>Total in sheet: {leads.length}</span>
