@@ -1,8 +1,11 @@
 export interface LeadItem {
+  id?: number | string;
   row: number;
   name: string;
   email: string;
-  company: string;
+  company?: string;
+  website?: string;
+  phone?: string;
   status: string;
   sentAt?: string;
 }

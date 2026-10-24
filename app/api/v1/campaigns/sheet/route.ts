@@ -36,51 +36,83 @@ export async function GET(req: NextRequest) {
           const sheetData = await response.json();
           if (sheetData && sheetData.success) {
             const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+            const domainRegex = /(?:https?:\/\/)?(?:[a-zA-Z0-9-]+\.)+(?:com|ae|org|io|net|co|ai|in|me|store|shop|online|tech|dev|app|cc|info)[^\s]*/i;
+            const phoneRegex = /^[\d\s+\-().]{7,20}$/;
             const rawLeads = sheetData.leads || [];
 
             const normalizedLeads: LeadItem[] = rawLeads.map((lead: any, idx: number) => {
-              let email = String(lead.email || '').trim();
-              let name = String(lead.name || '').trim();
-              let company = String(lead.company || '').trim();
-              let status = String(lead.status || '').trim();
+              let rawName = String(lead.name || '').trim();
+              let rawEmail = String(lead.email || '').trim();
+              let rawWebsite = String(lead.website || lead.company || '').trim();
+              let rawPhone = String(lead.phone || '').trim();
+              let status = String(lead.status || 'PENDING').trim();
               let sentAt = String(lead.sentAt || '').trim();
 
-              // If email doesn't have an @, search across other properties to find the real email
-              if (!emailRegex.test(email)) {
-                if (emailRegex.test(company)) {
-                  const detected = company.match(emailRegex)![0];
-                  company = email; // previous email was company name
-                  email = detected;
-                } else if (emailRegex.test(name)) {
-                  const detected = name.match(emailRegex)![0];
-                  name = email;
-                  email = detected;
-                } else if (emailRegex.test(status)) {
-                  email = status.match(emailRegex)![0];
-                  status = 'PENDING';
-                } else if (emailRegex.test(sentAt)) {
-                  email = sentAt.match(emailRegex)![0];
-                  sentAt = '';
-                } else {
-                  for (const [, val] of Object.entries(lead)) {
-                    if (typeof val === 'string' && emailRegex.test(val)) {
-                      email = val.match(emailRegex)![0];
-                      break;
-                    }
+              // 1. Detect Real Website
+              let detectedWebsite = '';
+              if (rawWebsite && domainRegex.test(rawWebsite) && !emailRegex.test(rawWebsite)) {
+                detectedWebsite = rawWebsite.match(domainRegex)![0];
+              } else if (rawName && domainRegex.test(rawName) && !emailRegex.test(rawName)) {
+                detectedWebsite = rawName.match(domainRegex)![0];
+              } else if (rawEmail && domainRegex.test(rawEmail) && !emailRegex.test(rawEmail)) {
+                detectedWebsite = rawEmail.match(domainRegex)![0];
+              }
+
+              // 2. Detect Real Email Address
+              let detectedEmail = '';
+              if (emailRegex.test(rawEmail)) {
+                detectedEmail = rawEmail.match(emailRegex)![0];
+              } else if (emailRegex.test(rawName)) {
+                detectedEmail = rawName.match(emailRegex)![0];
+              } else if (emailRegex.test(rawWebsite)) {
+                detectedEmail = rawWebsite.match(emailRegex)![0];
+              } else {
+                for (const [, val] of Object.entries(lead)) {
+                  if (typeof val === 'string' && emailRegex.test(val)) {
+                    detectedEmail = val.match(emailRegex)![0];
+                    break;
                   }
                 }
               }
 
-              // Ensure name is clean
-              if (!name || name === email) {
-                name = company || 'Valued Contact';
+              // 3. Detect Real Phone Number
+              let detectedPhone = '';
+              if (phoneRegex.test(rawPhone) && rawPhone.replace(/\D/g, '').length >= 7) {
+                detectedPhone = rawPhone;
+              } else {
+                for (const [, val] of Object.entries(lead)) {
+                  if (typeof val === 'string' && phoneRegex.test(val.trim()) && val.trim().replace(/\D/g, '').length >= 7) {
+                    detectedPhone = val.trim();
+                    break;
+                  }
+                }
+              }
+
+              // 4. Detect Real Name / Store Name
+              let detectedName = rawName;
+              if (!detectedName || domainRegex.test(detectedName) || detectedName === detectedEmail) {
+                // If rawName was domain/url, but rawEmail contained business name (e.g. "Ecity Electronics")
+                if (rawEmail && !emailRegex.test(rawEmail) && !domainRegex.test(rawEmail)) {
+                  detectedName = rawEmail;
+                } else if (rawWebsite && !domainRegex.test(rawWebsite) && !emailRegex.test(rawWebsite)) {
+                  detectedName = rawWebsite;
+                } else if (detectedWebsite) {
+                  // Fallback: derive readable name from website domain
+                  const cleanDomain = detectedWebsite.replace(/^https?:\/\//i, '').replace(/^www\./i, '').split('.')[0];
+                  detectedName = cleanDomain.charAt(0).toUpperCase() + cleanDomain.slice(1);
+                } else {
+                  detectedName = 'Valued Contact';
+                }
               }
 
               return {
+                id: lead.id || idx + 1,
                 row: lead.row || idx + 2,
-                name,
-                email,
-                company,
+                name: detectedName,
+                email: detectedEmail,
+                website: detectedWebsite,
+                phone: detectedPhone,
+                company: detectedName,
                 status: status || 'PENDING',
                 sentAt,
               };

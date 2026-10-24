@@ -30,14 +30,19 @@ import {
   Trash2,
   Save,
   Edit3,
+  Globe,
+  Phone,
 } from 'lucide-react';
 import Link from 'next/link';
 
 interface LeadItem {
+  id?: number | string;
   row: number;
   name: string;
   email: string;
-  company: string;
+  website?: string;
+  phone?: string;
+  company?: string;
   status: string;
   sentAt?: string;
 }
@@ -106,10 +111,9 @@ const PRESET_TEMPLATES: CustomTemplate[] = [
 const SMART_APPS_SCRIPT_CODE = `/**
  * Email Tracker & Outreach Platform — Universal Smart Google Sheet Webhook Sync
  * 
- * Auto-detects:
- * - Email Column (checks headers or scans rows for "@" email addresses)
- * - Name Column & Company/Store Column
- * - Updates "SENT ✅" or "INVALID ❌" in real-time
+ * Auto-detects columns:
+ * - ID, Name, Email Address, Website, Phone Number, Sheet Row, Status
+ * - Automatically updates "SENT ✅" or "INVALID ❌" in real-time
  */
 function doGet(e) {
   try {
@@ -125,15 +129,10 @@ function doGet(e) {
       }
       var headers = data[0].map(function(h) { return String(h || '').trim().toLowerCase(); });
 
-      // 1. Detect Email Column (by header or by scanning cell values for '@')
-      var colEmail = -1;
-      for (var c = 0; c < headers.length; c++) {
-        var h = headers[c];
-        if (h === 'email' || h === 'e-mail' || h === 'email address' || h.indexOf('email') !== -1 || (h.indexOf('mail') !== -1 && h.indexOf('name') === -1)) {
-          colEmail = c;
-          break;
-        }
-      }
+      // 1. Detect Email Column
+      var colEmail = headers.findIndex(function(h) {
+        return h === 'email' || h === 'e-mail' || h === 'email address' || h.indexOf('email') !== -1 || (h.indexOf('mail') !== -1 && h.indexOf('name') === -1);
+      });
       if (colEmail === -1) {
         for (var c = 0; c < headers.length; c++) {
           for (var r = 1; r < Math.min(data.length, 25); r++) {
@@ -147,53 +146,80 @@ function doGet(e) {
         }
       }
 
-      // 2. Detect Name Column
-      var colName = -1;
-      for (var c = 0; c < headers.length; c++) {
-        var h = headers[c];
-        if ((h.indexOf('name') !== -1 || h.indexOf('lead') !== -1 || h.indexOf('contact') !== -1) && h.indexOf('company') === -1) {
-          colName = c;
-          break;
+      // 2. Detect Website Column
+      var colWebsite = headers.findIndex(function(h) {
+        return h === 'website' || h === 'web' || h === 'url' || h === 'domain' || h === 'site' || h.indexOf('website') !== -1 || h.indexOf('url') !== -1;
+      });
+      if (colWebsite === -1) {
+        var domainRegex = /\\.(com|ae|org|io|net|co|ai|in|me|store|shop|online)/i;
+        for (var c = 0; c < headers.length; c++) {
+          if (c === colEmail) continue;
+          for (var r = 1; r < Math.min(data.length, 25); r++) {
+            var val = String(data[r][c] || '').trim();
+            if (domainRegex.test(val) && val.indexOf('@') === -1) {
+              colWebsite = c;
+              break;
+            }
+          }
+          if (colWebsite !== -1) break;
         }
       }
 
-      // 3. Detect Company Column
-      var colCompany = -1;
-      for (var c = 0; c < headers.length; c++) {
-        var h = headers[c];
-        if (h.indexOf('company') !== -1 || h.indexOf('store') !== -1 || h.indexOf('business') !== -1 || h.indexOf('website') !== -1 || h.indexOf('brand') !== -1) {
-          colCompany = c;
-          break;
+      // 3. Detect Phone Column
+      var colPhone = headers.findIndex(function(h) {
+        return h.indexOf('phone') !== -1 || h.indexOf('mobile') !== -1 || h.indexOf('tel') !== -1 || h.indexOf('cell') !== -1 || h.indexOf('contact no') !== -1 || h.indexOf('whatsapp') !== -1;
+      });
+      if (colPhone === -1) {
+        var phoneRegex = /^[\\d\\s+\\-().]{7,20}$/;
+        for (var c = 0; c < headers.length; c++) {
+          if (c === colEmail || c === colWebsite) continue;
+          for (var r = 1; r < Math.min(data.length, 25); r++) {
+            var val = String(data[r][c] || '').trim();
+            if (phoneRegex.test(val) && val.replace(/\\D/g, '').length >= 7) {
+              colPhone = c;
+              break;
+            }
+          }
+          if (colPhone !== -1) break;
         }
       }
 
-      // 4. Detect Status Column
-      var colStatus = -1;
-      for (var c = 0; c < headers.length; c++) {
-        if (headers[c].indexOf('status') !== -1 || headers[c].indexOf('state') !== -1) {
-          colStatus = c;
-          break;
+      // 4. Detect Name Column
+      var colName = headers.findIndex(function(h) {
+        return (h.indexOf('name') !== -1 || h.indexOf('lead') !== -1 || h.indexOf('contact') !== -1 || h.indexOf('title') !== -1) && h.indexOf('company') === -1 && h.indexOf('website') === -1;
+      });
+      if (colName === -1) {
+        for (var c = 0; c < headers.length; c++) {
+          if (c !== colEmail && c !== colWebsite && c !== colPhone) {
+            colName = c;
+            break;
+          }
         }
       }
+      if (colName === -1) colName = 0;
 
-      // 5. Detect Sent At Column
-      var colSentAt = -1;
-      for (var c = 0; c < headers.length; c++) {
-        if (headers[c].indexOf('sent') !== -1 || headers[c].indexOf('date') !== -1) {
-          colSentAt = c;
-          break;
-        }
-      }
+      // 5. Detect Status & Sent At Column
+      var colStatus = headers.findIndex(function(h) { return h.indexOf('status') !== -1 || h.indexOf('state') !== -1; });
+      var colSentAt = headers.findIndex(function(h) { return h.indexOf('sent') !== -1 || h.indexOf('date') !== -1 || h.indexOf('time') !== -1; });
 
-      var emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+      var emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/;
+      var domainRegex = /(?:https?:\\/\\/)?(?:[a-zA-Z0-9-]+\\.)+(?:com|ae|org|io|net|co|ai|in|me|store|shop|online|tech|dev)[^\\s]*/i;
       var leads = [];
 
       for (var r = 1; r < data.length; r++) {
         var row = data[r];
-        var leadEmail = colEmail !== -1 ? String(row[colEmail] || '').trim() : '';
+        var leadName = colName !== -1 ? String(row[colName] || '').trim() : '';
+        var rawEmail = colEmail !== -1 ? String(row[colEmail] || '').trim() : '';
+        var leadWebsite = colWebsite !== -1 ? String(row[colWebsite] || '').trim() : '';
+        var leadPhone = colPhone !== -1 ? String(row[colPhone] || '').trim() : '';
+        var leadStatus = colStatus !== -1 ? String(row[colStatus] || '').trim() : '';
+        var leadSentAt = colSentAt !== -1 ? String(row[colSentAt] || '').trim() : '';
 
-        // Row-level fallback: scan all cells in this row if colEmail doesn't contain a valid email
-        if (!emailRegex.test(leadEmail)) {
+        // Extract valid email or scan row
+        var leadEmail = '';
+        if (emailRegex.test(rawEmail)) {
+          leadEmail = rawEmail.match(emailRegex)[0];
+        } else {
           for (var c = 0; c < row.length; c++) {
             var cell = String(row[c] || '').trim();
             if (emailRegex.test(cell)) {
@@ -203,21 +229,36 @@ function doGet(e) {
           }
         }
 
-        var leadName = colName !== -1 ? String(row[colName] || '').trim() : '';
-        var leadCompany = colCompany !== -1 ? String(row[colCompany] || '').trim() : '';
-        var leadStatus = colStatus !== -1 ? String(row[colStatus] || '').trim() : '';
-        var leadSentAt = colSentAt !== -1 ? String(row[colSentAt] || '').trim() : '';
+        // Extract valid website if missing
+        if (!leadWebsite) {
+          for (var c = 0; c < row.length; c++) {
+            var cell = String(row[c] || '').trim();
+            if (c !== colEmail && domainRegex.test(cell) && cell.indexOf('@') === -1) {
+              leadWebsite = cell.match(domainRegex)[0];
+              break;
+            }
+          }
+        }
 
-        if (!leadName && leadCompany) leadName = leadCompany;
+        if ((!leadName || domainRegex.test(leadName)) && rawEmail && !emailRegex.test(rawEmail)) {
+          leadName = rawEmail;
+        }
+        if (!leadName && leadWebsite) {
+          var clean = leadWebsite.replace(/^https?:\\/\\//i, '').replace(/^www\\./i, '').split('.')[0];
+          leadName = clean.charAt(0).toUpperCase() + clean.slice(1);
+        }
         if (!leadName) leadName = 'Contact';
 
-        if (!leadEmail && (!leadName || leadName === 'Contact')) continue;
+        if (!leadEmail && !leadWebsite && (!leadName || leadName === 'Contact')) continue;
 
         leads.push({
+          id: r,
           row: r + 1,
           name: leadName,
           email: leadEmail,
-          company: leadCompany,
+          website: leadWebsite,
+          phone: leadPhone,
+          company: leadName,
           status: leadStatus,
           sentAt: leadSentAt
         });
@@ -344,39 +385,17 @@ export default function CampaignsPage() {
       const res = await fetch(endpoint, { cache: 'no-store' });
       const data = await res.json();
       if (data && data.leads) {
-        const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
-        const cleanedLeads: LeadItem[] = data.leads.map((l: LeadItem) => {
-          let email = (l.email || '').trim();
-          let company = (l.company || '').trim();
-          let name = (l.name || '').trim();
-          if (!emailRegex.test(email)) {
-            if (emailRegex.test(company)) {
-              const actual = company.match(emailRegex)![0];
-              company = email;
-              email = actual;
-            } else if (emailRegex.test(name)) {
-              const actual = name.match(emailRegex)![0];
-              name = email;
-              email = actual;
-            }
-          }
-          if (!name || name === email) {
-            name = company || 'Valued Contact';
-          }
-          return { ...l, email, company, name };
-        });
-
-        setLeads(cleanedLeads);
+        setLeads(data.leads);
         if (targetUrl.trim()) {
           try {
             localStorage.setItem('erha_sheet_webhook_url', targetUrl.trim());
           } catch {}
         }
         // Auto-select pending leads based on batchCount (or all leads if none marked sent)
-        const pendingLeads = cleanedLeads.filter(
+        const pendingLeads = data.leads.filter(
           (l: LeadItem) => !l.status || !l.status.toLowerCase().includes('sent')
         );
-        const toSelect = pendingLeads.length > 0 ? pendingLeads : cleanedLeads;
+        const toSelect = pendingLeads.length > 0 ? pendingLeads : data.leads;
         setSelectedRows(toSelect.slice(0, batchCount).map((l: LeadItem) => l.row));
       }
     } catch (err) {
@@ -604,9 +623,11 @@ export default function CampaignsPage() {
 
     const matchesSearch =
       !searchQuery ||
-      l.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      l.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      l.company.toLowerCase().includes(searchQuery.toLowerCase());
+      (l.name && l.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (l.email && l.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (l.website && l.website.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (l.phone && l.phone.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (l.company && l.company.toLowerCase().includes(searchQuery.toLowerCase()));
 
     return matchesTab && matchesSearch;
   });
@@ -672,6 +693,21 @@ export default function CampaignsPage() {
         if (cancelDispatchRef.current) break;
 
         const currentLead = selectedLeadObjects[i];
+
+        if (!currentLead.email || !currentLead.email.includes('@')) {
+          setLeads((prev) =>
+            prev.map((l) =>
+              l.row === currentLead.row ? { ...l, status: 'NO EMAIL ⚠️' } : l
+            )
+          );
+          setActiveCampaign({
+            isRunning: true,
+            sentCount,
+            totalCount: totalLeads,
+            message: `Skipped ${currentLead.name} (Row ${currentLead.row}) because no email address was found in sheet.`,
+          });
+          continue;
+        }
 
         setActiveCampaign({
           isRunning: true,
@@ -1108,10 +1144,12 @@ export default function CampaignsPage() {
           <table className="w-full text-left text-xs border-collapse">
             <thead className="bg-slate-50 sticky top-0 z-10 text-slate-600 border-b border-slate-200 text-[11px] uppercase tracking-wider font-bold">
               <tr>
-                <th className="p-3 w-12 text-center">Pick</th>
+                <th className="p-3 w-10 text-center">Pick</th>
+                <th className="p-3 w-12 text-center">ID</th>
                 <th className="p-3">Lead Name</th>
                 <th className="p-3">Email Address</th>
-                <th className="p-3">Company</th>
+                <th className="p-3">Website</th>
+                <th className="p-3">Phone Number</th>
                 <th className="p-3">Sheet Row</th>
                 <th className="p-3">Status</th>
               </tr>
@@ -1119,7 +1157,7 @@ export default function CampaignsPage() {
             <tbody className="divide-y divide-slate-100 bg-white">
               {filteredLeads.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 px-4 text-center text-slate-400">
+                  <td colSpan={8} className="py-12 px-4 text-center text-slate-400">
                     <FileSpreadsheet className="w-8 h-8 mx-auto text-slate-300 mb-2" />
                     <p className="font-semibold text-slate-700 text-sm">No leads in batch</p>
                     <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
@@ -1128,13 +1166,18 @@ export default function CampaignsPage() {
                   </td>
                 </tr>
               ) : (
-                filteredLeads.map((lead) => {
+                filteredLeads.map((lead, index) => {
                   const isSelected = selectedRows.includes(lead.row);
                   const isSent = lead.status && lead.status.toLowerCase().includes('sent');
                   const isInvalid =
                     lead.status &&
                     (lead.status.toLowerCase().includes('invalid') ||
                       lead.status.toLowerCase().includes('fake'));
+
+                  const cleanWeb = lead.website ? lead.website.trim() : '';
+                  const webHref = cleanWeb.startsWith('http://') || cleanWeb.startsWith('https://')
+                    ? cleanWeb
+                    : `https://${cleanWeb}`;
 
                   return (
                     <tr
@@ -1146,6 +1189,7 @@ export default function CampaignsPage() {
                           : 'hover:bg-slate-50/70'
                       }`}
                     >
+                      {/* 1. Pick Checkbox */}
                       <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => toggleSelectRow(lead.row)}
@@ -1158,44 +1202,72 @@ export default function CampaignsPage() {
                           )}
                         </button>
                       </td>
+
+                      {/* 2. ID */}
+                      <td className="p-3 text-center font-mono text-slate-500 text-[11px] font-semibold">
+                        {lead.id || index + 1}
+                      </td>
+
+                      {/* 3. Lead Name */}
                       <td className="p-3">
                         <div className="font-bold text-slate-900 flex items-center gap-2">
                           <div className="w-6 h-6 rounded-full bg-slate-100 text-slate-700 font-bold text-[10px] flex items-center justify-center shrink-0 border border-slate-200">
                             {lead.name ? lead.name.charAt(0).toUpperCase() : 'C'}
                           </div>
-                          <span>{lead.name}</span>
+                          <span className="truncate max-w-[150px] sm:max-w-xs">{lead.name || '—'}</span>
                         </div>
                       </td>
+
+                      {/* 4. Email Address */}
                       <td className="p-3">
                         {lead.email && lead.email.includes('@') ? (
-                          <span className="font-mono text-slate-700 text-[11px] bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                          <span className="font-mono text-slate-700 text-[11px] bg-slate-100 px-2 py-0.5 rounded border border-slate-200 inline-block max-w-[190px] truncate">
                             {lead.email}
                           </span>
-                        ) : lead.company && lead.company.includes('@') ? (
-                          <span className="font-mono text-blue-700 text-[11px] bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                            {lead.company}
-                          </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 font-mono text-amber-700 text-[10px] bg-amber-50 px-2 py-0.5 rounded border border-amber-200 font-semibold" title="Missing @ in email address. Update Apps Script to auto-detect columns!">
-                            <AlertTriangle className="w-3 h-3 text-amber-600" />
-                            {lead.email || 'No Email'}
-                          </span>
+                          <span className="text-slate-400 font-medium">—</span>
                         )}
                       </td>
-                      <td className="p-3 text-slate-700 font-medium">
-                        {lead.company ? (
-                          <div className="flex items-center gap-1.5">
-                            <Building className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <span>{lead.company}</span>
-                          </div>
+
+                      {/* 5. Website (Clickable if present, blank if not) */}
+                      <td className="p-3">
+                        {cleanWeb ? (
+                          <a
+                            href={webHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center gap-1 font-mono text-blue-600 hover:text-blue-800 hover:underline text-[11px] bg-blue-50/70 hover:bg-blue-100/70 px-2 py-0.5 rounded border border-blue-200 transition-colors"
+                            title={webHref}
+                          >
+                            <Globe className="w-3 h-3 text-blue-500 shrink-0" />
+                            <span className="truncate max-w-[130px]">{cleanWeb.replace(/^https?:\/\//i, '').replace(/^www\./i, '')}</span>
+                            <ExternalLink className="w-2.5 h-2.5 text-blue-400 shrink-0" />
+                          </a>
                         ) : (
-                          <span className="text-slate-400">—</span>
+                          <span className="text-slate-400 font-medium">—</span>
                         )}
                       </td>
-                      <td className="p-3 text-slate-500 font-mono text-[11px]">
+
+                      {/* 6. Phone Number (if present, else blank) */}
+                      <td className="p-3 text-slate-700 font-mono text-[11px]">
+                        {lead.phone ? (
+                          <span className="inline-flex items-center gap-1 text-slate-700 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
+                            <Phone className="w-3 h-3 text-slate-400 shrink-0" />
+                            <span>{lead.phone}</span>
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 font-medium">—</span>
+                        )}
+                      </td>
+
+                      {/* 7. Sheet Row */}
+                      <td className="p-3 text-slate-500 font-mono text-[11px] whitespace-nowrap">
                         Row {lead.row}
                       </td>
-                      <td className="p-3">
+
+                      {/* 8. Status */}
+                      <td className="p-3 whitespace-nowrap">
                         {isSent ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                             <Check className="w-3 h-3" />

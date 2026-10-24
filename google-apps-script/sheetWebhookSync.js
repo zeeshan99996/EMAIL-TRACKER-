@@ -148,17 +148,11 @@ function readAllLeadsFromSheet() {
 
   const headers = data[0].map(h => String(h).trim().toLowerCase());
   
-  // 1. Header-based matching
-  let colEmail = headers.findIndex(h => h === 'email' || h === 'e-mail' || h.includes('email') || (h.includes('mail') && !h.includes('name')));
-  let colName = headers.findIndex(h => (h.includes('name') || h.includes('lead') || h.includes('contact')) && !h.includes('company'));
-  let colCompany = headers.findIndex(h => h.includes('company') || h.includes('website') || h.includes('domain') || h.includes('org') || h.includes('business'));
-  let colStatus = headers.findIndex(h => h.includes('status') || h.includes('state'));
-  let colSentAt = headers.findIndex(h => h.includes('sent at') || h.includes('date') || h.includes('time'));
-
-  // 2. Value-based auto-detection (find the column that actually contains '@')
+  // 1. Detect Email Column
+  let colEmail = headers.findIndex(h => h === 'email' || h === 'e-mail' || h === 'email address' || h.includes('email') || (h.includes('mail') && !h.includes('name')));
   if (colEmail === -1) {
     for (let c = 0; c < headers.length; c++) {
-      const sampleHasAt = data.slice(1, 10).some(r => r[c] && String(r[c]).includes('@'));
+      const sampleHasAt = data.slice(1, 20).some(r => r[c] && String(r[c]).includes('@'));
       if (sampleHasAt) {
         colEmail = c;
         break;
@@ -166,60 +160,111 @@ function readAllLeadsFromSheet() {
     }
   }
 
-  // 3. Value-based domain/website detection (find column with .com, .ae, etc.)
-  if (colCompany === -1) {
+  // 2. Detect Website Column
+  let colWebsite = headers.findIndex(h => h === 'website' || h === 'web' || h === 'url' || h === 'domain' || h === 'site' || h.includes('website') || h.includes('url'));
+  if (colWebsite === -1) {
+    const domainRegex = /\.(com|ae|org|io|net|co|ai|in|me|store|shop|online)/i;
     for (let c = 0; c < headers.length; c++) {
       if (c === colEmail) continue;
-      const sampleHasDomain = data.slice(1, 10).some(r => r[c] && /\.(com|ae|org|io|net|co|ai)/i.test(String(r[c])));
+      const sampleHasDomain = data.slice(1, 20).some(r => r[c] && domainRegex.test(String(r[c])) && !String(r[c]).includes('@'));
       if (sampleHasDomain) {
-        colCompany = c;
+        colWebsite = c;
         break;
       }
     }
   }
 
-  // Fallbacks
-  if (colName === -1) colName = 0;
-  if (colEmail === -1) colEmail = (headers.length > 1 ? 1 : 0);
-  if (colCompany === -1) colCompany = (headers.length > 2 ? 2 : 1);
-  if (colStatus === -1) colStatus = 3;
-  if (colSentAt === -1) colSentAt = 4;
+  // 3. Detect Phone Column
+  let colPhone = headers.findIndex(h => h.includes('phone') || h.includes('mobile') || h.includes('tel') || h.includes('cell') || h.includes('whatsapp') || h.includes('contact no'));
+  if (colPhone === -1) {
+    const phoneRegex = /^[\d\s+\-().]{7,20}$/;
+    for (let c = 0; c < headers.length; c++) {
+      if (c === colEmail || c === colWebsite) continue;
+      const sampleHasPhone = data.slice(1, 20).some(r => r[c] && phoneRegex.test(String(r[c]).trim()) && String(r[c]).replace(/\D/g, '').length >= 7);
+      if (sampleHasPhone) {
+        colPhone = c;
+        break;
+      }
+    }
+  }
 
+  // 4. Detect Name / Store Column
+  let colName = headers.findIndex(h => (h.includes('name') || h.includes('lead') || h.includes('contact') || h.includes('store') || h.includes('title')) && !h.includes('company') && !h.includes('website'));
+  if (colName === -1) {
+    for (let c = 0; c < headers.length; c++) {
+      if (c !== colEmail && c !== colWebsite && c !== colPhone) {
+        colName = c;
+        break;
+      }
+    }
+  }
+  if (colName === -1) colName = 0;
+
+  // 5. Detect Status & Sent At Column
+  let colStatus = headers.findIndex(h => h.includes('status') || h.includes('state'));
+  let colSentAt = headers.findIndex(h => h.includes('sent at') || h.includes('date') || h.includes('time'));
+
+  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+  const domainRegex = /(?:https?:\/\/)?(?:[a-zA-Z0-9-]+\.)+(?:com|ae|org|io|net|co|ai|in|me|store|shop|online|tech|dev)[^\s]*/i;
   const leads = [];
 
   for (let r = 1; r < data.length; r++) {
     const row = data[r];
-    let emailVal = row[colEmail] ? String(row[colEmail]).trim() : '';
-    var emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
-    
-    // Auto-detect email from other cells in this row if primary column doesn't have an @ email address
-    if (!emailRegex.test(emailVal)) {
+    let leadName = colName !== -1 ? String(row[colName] || '').trim() : '';
+    let rawEmail = colEmail !== -1 ? String(row[colEmail] || '').trim() : '';
+    let leadWebsite = colWebsite !== -1 ? String(row[colWebsite] || '').trim() : '';
+    let leadPhone = colPhone !== -1 ? String(row[colPhone] || '').trim() : '';
+    let leadStatus = colStatus !== -1 ? String(row[colStatus] || '').trim() : '';
+    let leadSentAt = colSentAt !== -1 ? String(row[colSentAt] || '').trim() : '';
+
+    // Extract valid email or scan row
+    let leadEmail = '';
+    if (emailRegex.test(rawEmail)) {
+      leadEmail = rawEmail.match(emailRegex)[0];
+    } else {
       for (let c = 0; c < row.length; c++) {
         const cell = String(row[c] || '').trim();
         if (emailRegex.test(cell)) {
-          emailVal = cell.match(emailRegex)[0];
+          leadEmail = cell.match(emailRegex)[0];
           break;
         }
       }
     }
-    
-    // Ignore completely empty rows
-    if (!emailVal && !row[colName]) continue;
 
-    let leadName = row[colName] ? String(row[colName]).trim() : '';
-    let leadCompany = row[colCompany] ? String(row[colCompany]).trim() : '';
-    
-    // If company is in the name slot or vice versa, keep them clean
-    if (!leadName && leadCompany) leadName = leadCompany;
+    // Extract valid website if missing
+    if (!leadWebsite) {
+      for (let c = 0; c < row.length; c++) {
+        const cell = String(row[c] || '').trim();
+        if (c !== colEmail && domainRegex.test(cell) && !cell.includes('@')) {
+          leadWebsite = cell.match(domainRegex)[0];
+          break;
+        }
+      }
+    }
+
+    // Ensure leadName is clean and not a raw domain if business name is available
+    if ((!leadName || domainRegex.test(leadName)) && rawEmail && !emailRegex.test(rawEmail)) {
+      leadName = rawEmail;
+    }
+    if (!leadName && leadWebsite) {
+      const clean = leadWebsite.replace(/^https?:\/\//i, '').replace(/^www\./i, '').split('.')[0];
+      leadName = clean.charAt(0).toUpperCase() + clean.slice(1);
+    }
     if (!leadName) leadName = 'Valued Contact';
 
+    // Ignore completely empty rows
+    if (!leadEmail && !leadWebsite && (!leadName || leadName === 'Valued Contact')) continue;
+
     leads.push({
+      id: r,
       row: r + 1, // 1-based sheet row number (row 2 is first data row)
       name: leadName,
-      email: emailVal,
-      company: leadCompany,
-      status: row[colStatus] ? String(row[colStatus]).trim() : '',
-      sentAt: row[colSentAt] ? String(row[colSentAt]).trim() : ''
+      email: leadEmail,
+      website: leadWebsite,
+      phone: leadPhone,
+      company: leadName,
+      status: leadStatus,
+      sentAt: leadSentAt
     });
   }
 
