@@ -153,7 +153,7 @@ export async function POST(req: NextRequest) {
                     row: lead.row,
                   },
                 }),
-                signal: AbortSignal.timeout(3000),
+                signal: AbortSignal.timeout(6000),
               });
             } catch (err: any) {
               console.warn('Sheet send notice:', err.message);
@@ -244,7 +244,7 @@ export async function POST(req: NextRequest) {
     if (sheetUpdates.length > 0) {
       updateInMemoryLeadStatuses(sheetUpdates);
 
-      // If user provided a real Google Apps Script Web App URL, notify sheet directly with 3s timeout
+      // If user provided a real Google Apps Script Web App URL, notify sheet directly with 6s timeout
       if (sheetWebhookUrl && sheetWebhookUrl.trim().startsWith('http')) {
         try {
           await fetch(sheetWebhookUrl, {
@@ -252,7 +252,7 @@ export async function POST(req: NextRequest) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'updateStatus', updates: sheetUpdates }),
             cache: 'no-store',
-            signal: AbortSignal.timeout(3000),
+            signal: AbortSignal.timeout(6000),
           });
         } catch (err: any) {
           console.warn('Google Sheet background sync notice:', err.message);
