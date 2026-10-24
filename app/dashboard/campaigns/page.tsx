@@ -319,6 +319,7 @@ export default function CampaignsPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [batchCount, setBatchCount] = useState<number>(10);
+  const [customBatchInput, setCustomBatchInput] = useState<string>('10');
   const [filterTab, setFilterTab] = useState<'pending' | 'all' | 'sent' | 'invalid'>('pending');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -567,13 +568,16 @@ export default function CampaignsPage() {
   };
 
   // Adjust batch selection
-  const handleBatchCountChange = (count: number) => {
-    setBatchCount(count);
+  const handleBatchCountChange = (count: number | string) => {
+    const num = typeof count === 'string' ? parseInt(count, 10) : count;
+    if (isNaN(num) || num <= 0) return;
+    setBatchCount(num);
+    setCustomBatchInput(String(num));
     const pendingLeads = leads.filter(
       (l) => !l.status || !l.status.toLowerCase().includes('sent')
     );
     const toSelect = pendingLeads.length > 0 ? pendingLeads : leads;
-    setSelectedRows(toSelect.slice(0, count).map((l) => l.row));
+    setSelectedRows(toSelect.slice(0, num).map((l) => l.row));
     setActiveStep(2);
   };
 
@@ -1338,7 +1342,7 @@ export default function CampaignsPage() {
 
         {/* 4 Cascading Dropdowns & Action Controls Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* STEP 1: BATCH SIZE / LEADS SELECTOR */}
+          {/* STEP 1: CUSTOM LEADS SELECTOR */}
           <div
             className={`p-4 rounded-xl border transition-all ${
               activeStep === 1
@@ -1353,32 +1357,68 @@ export default function CampaignsPage() {
                 </span>
                 Select Leads to Send
               </label>
-              <span className="text-[11px] font-bold text-blue-600">{selectedRows.length} Leads</span>
+              <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                {selectedRows.length} Selected
+              </span>
             </div>
 
-            <div className="relative">
-              <select
-                value={batchCount}
-                onChange={(e) => handleBatchCountChange(Number(e.target.value))}
-                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500 appearance-none font-semibold cursor-pointer shadow-xs"
+            {/* Custom Number Input Box with "Select & Next" */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleBatchCountChange(customBatchInput);
+              }}
+              className="flex items-center gap-1.5"
+            >
+              <div className="relative flex-1">
+                <input
+                  type="number"
+                  min={1}
+                  max={leads.length || 10000}
+                  placeholder="e.g. 50, 100..."
+                  value={customBatchInput}
+                  onChange={(e) => {
+                    setCustomBatchInput(e.target.value);
+                    const val = parseInt(e.target.value, 10);
+                    if (!isNaN(val) && val > 0) {
+                      const pendingLeads = leads.filter(
+                        (l) => !l.status || !l.status.toLowerCase().includes('sent')
+                      );
+                      const toSelect = pendingLeads.length > 0 ? pendingLeads : leads;
+                      setSelectedRows(toSelect.slice(0, val).map((l) => l.row));
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleBatchCountChange(customBatchInput);
+                    }
+                  }}
+                  className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500 font-bold placeholder:text-slate-400 placeholder:font-normal shadow-xs"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-slate-400 pointer-events-none">
+                  leads
+                </span>
+              </div>
+
+              <button
+                type="submit"
+                className="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer whitespace-nowrap"
+                title="Select and proceed to Step 2"
               >
-                <option value={10}>Send 10 Leads (Default)</option>
-                <option value={5}>Send 5 Leads</option>
-                <option value={12}>Send 12 Leads</option>
-                <option value={15}>Send 15 Leads</option>
-                <option value={20}>Send 20 Leads</option>
-                <option value={pendingCount}>Send All Pending ({pendingCount})</option>
-              </select>
-              <ChevronDown className="w-4 h-4 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
+                <span>Select</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </form>
 
-            {/* Quick Batch Pills */}
+            {/* Quick Batch Pills (e.g. 25, 50, 100, 250, All) */}
             <div className="flex items-center gap-1 mt-2.5">
-              {[5, 10, 12, 15].map((cnt) => (
+              {[25, 50, 100, 250].map((cnt) => (
                 <button
                   key={cnt}
+                  type="button"
                   onClick={() => handleBatchCountChange(cnt)}
-                  className={`flex-1 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                  className={`flex-1 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
                     selectedRows.length === cnt
                       ? 'bg-blue-600 text-white shadow-xs'
                       : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
@@ -1388,15 +1428,22 @@ export default function CampaignsPage() {
                 </button>
               ))}
               <button
-                onClick={() => handleBatchCountChange(pendingCount)}
-                className={`flex-1 py-1 rounded-lg text-[10px] font-bold transition-all ${
-                  selectedRows.length === pendingCount
+                type="button"
+                onClick={() => handleBatchCountChange(pendingCount || leads.length)}
+                className={`flex-1 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                  selectedRows.length === (pendingCount || leads.length) && selectedRows.length > 0
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
                 }`}
+                title={`Select all ${pendingCount || leads.length} leads`}
               >
                 All
               </button>
+            </div>
+
+            <div className="flex items-center justify-between text-[10px] text-slate-500 mt-2 px-0.5">
+              <span>Total in sheet: {leads.length}</span>
+              <span className="font-semibold text-emerald-700">Pending: {pendingCount}</span>
             </div>
           </div>
 
