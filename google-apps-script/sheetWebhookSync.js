@@ -111,17 +111,40 @@ function readAllLeadsFromSheet() {
 
   const headers = data[0].map(h => String(h).trim().toLowerCase());
   
-  // Find column indexes
-  let colEmail = headers.findIndex(h => h.includes('email') || h.includes('mail'));
-  let colName = headers.findIndex(h => h.includes('name') || h.includes('lead') || h.includes('first'));
-  let colCompany = headers.findIndex(h => h.includes('company') || h.includes('organization') || h.includes('business'));
-  let colStatus = headers.findIndex(h => h.includes('status') || h.includes('state') || h.includes('sent'));
+  // 1. Header-based matching
+  let colEmail = headers.findIndex(h => h === 'email' || h === 'e-mail' || h.includes('email') || (h.includes('mail') && !h.includes('name')));
+  let colName = headers.findIndex(h => (h.includes('name') || h.includes('lead') || h.includes('contact')) && !h.includes('company'));
+  let colCompany = headers.findIndex(h => h.includes('company') || h.includes('website') || h.includes('domain') || h.includes('org') || h.includes('business'));
+  let colStatus = headers.findIndex(h => h.includes('status') || h.includes('state'));
   let colSentAt = headers.findIndex(h => h.includes('sent at') || h.includes('date') || h.includes('time'));
 
-  // Defaults if headers not named specifically: col 0 = Name, col 1 = Email, col 2 = Company, col 3 = Status
-  if (colEmail === -1) colEmail = 1;
+  // 2. Value-based auto-detection (find the column that actually contains '@')
+  if (colEmail === -1) {
+    for (let c = 0; c < headers.length; c++) {
+      const sampleHasAt = data.slice(1, 10).some(r => r[c] && String(r[c]).includes('@'));
+      if (sampleHasAt) {
+        colEmail = c;
+        break;
+      }
+    }
+  }
+
+  // 3. Value-based domain/website detection (find column with .com, .ae, etc.)
+  if (colCompany === -1) {
+    for (let c = 0; c < headers.length; c++) {
+      if (c === colEmail) continue;
+      const sampleHasDomain = data.slice(1, 10).some(r => r[c] && /\.(com|ae|org|io|net|co|ai)/i.test(String(r[c])));
+      if (sampleHasDomain) {
+        colCompany = c;
+        break;
+      }
+    }
+  }
+
+  // Fallbacks
   if (colName === -1) colName = 0;
-  if (colCompany === -1) colCompany = 2;
+  if (colEmail === -1) colEmail = (headers.length > 1 ? 1 : 0);
+  if (colCompany === -1) colCompany = (headers.length > 2 ? 2 : 1);
   if (colStatus === -1) colStatus = 3;
   if (colSentAt === -1) colSentAt = 4;
 
@@ -136,7 +159,7 @@ function readAllLeadsFromSheet() {
 
     leads.push({
       row: r + 1, // 1-based sheet row number (row 2 is first data row)
-      name: row[colName] ? String(row[colName]).trim() : 'Valued Contact',
+      name: row[colName] ? String(row[colName]).trim() : (row[colCompany] ? String(row[colCompany]).trim() : 'Valued Contact'),
       email: emailVal,
       company: row[colCompany] ? String(row[colCompany]).trim() : '',
       status: row[colStatus] ? String(row[colStatus]).trim() : '',

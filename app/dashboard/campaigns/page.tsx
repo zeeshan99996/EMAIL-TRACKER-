@@ -180,11 +180,12 @@ export default function CampaignsPage() {
             localStorage.setItem('erha_sheet_webhook_url', targetUrl.trim());
           } catch {}
         }
-        // Auto-select pending leads based on batchCount
+        // Auto-select pending leads based on batchCount (or all leads if none marked sent)
         const pendingLeads = data.leads.filter(
-          (l: LeadItem) => !l.status || l.status.toLowerCase().includes('pending')
+          (l: LeadItem) => !l.status || !l.status.toLowerCase().includes('sent')
         );
-        setSelectedRows(pendingLeads.slice(0, batchCount).map((l: LeadItem) => l.row));
+        const toSelect = pendingLeads.length > 0 ? pendingLeads : data.leads;
+        setSelectedRows(toSelect.slice(0, batchCount).map((l: LeadItem) => l.row));
       }
     } catch (err) {
       console.error('Failed to load leads:', err);
@@ -347,9 +348,10 @@ export default function CampaignsPage() {
   const handleBatchCountChange = (count: number) => {
     setBatchCount(count);
     const pendingLeads = leads.filter(
-      (l) => !l.status || l.status.toLowerCase().includes('pending')
+      (l) => !l.status || !l.status.toLowerCase().includes('sent')
     );
-    setSelectedRows(pendingLeads.slice(0, count).map((l) => l.row));
+    const toSelect = pendingLeads.length > 0 ? pendingLeads : leads;
+    setSelectedRows(toSelect.slice(0, count).map((l) => l.row));
     setActiveStep(2);
   };
 
@@ -385,13 +387,16 @@ export default function CampaignsPage() {
   // Filtered Leads
   const filteredLeads = leads.filter((l) => {
     const statusLower = (l.status || '').toLowerCase();
+    const isSent = statusLower.includes('sent');
+    const isInvalid = statusLower.includes('invalid') || statusLower.includes('fake');
+
     let matchesTab = true;
     if (filterTab === 'pending') {
-      matchesTab = !statusLower || statusLower.includes('pending');
+      matchesTab = !isSent && !isInvalid;
     } else if (filterTab === 'sent') {
-      matchesTab = statusLower.includes('sent');
+      matchesTab = isSent;
     } else if (filterTab === 'invalid') {
-      matchesTab = statusLower.includes('invalid') || statusLower.includes('fake');
+      matchesTab = isInvalid;
     }
 
     const matchesSearch =
@@ -593,10 +598,12 @@ function doPost(e) {
     setTimeout(() => setCopiedCode(false), 3000);
   };
 
+  const isLeadSent = (l: LeadItem) => !!(l.status && l.status.toLowerCase().includes('sent'));
+  const isLeadInvalid = (l: LeadItem) => !!(l.status && (l.status.toLowerCase().includes('invalid') || l.status.toLowerCase().includes('fake')));
   const totalLeadsCount = leads.length;
-  const pendingCount = leads.filter((l) => !l.status || l.status.toLowerCase().includes('pending')).length;
-  const sentCount = leads.filter((l) => l.status && l.status.toLowerCase().includes('sent')).length;
-  const invalidCount = leads.filter((l) => l.status && (l.status.toLowerCase().includes('invalid') || l.status.toLowerCase().includes('fake'))).length;
+  const pendingCount = leads.filter((l) => !isLeadSent(l) && !isLeadInvalid(l)).length;
+  const sentCount = leads.filter(isLeadSent).length;
+  const invalidCount = leads.filter(isLeadInvalid).length;
 
   return (
     <div className="space-y-6 pb-20 max-w-7xl mx-auto">
@@ -1202,12 +1209,18 @@ function doPost(e) {
 
             {/* Launch CTA */}
             <button
-              onClick={executeDispatch}
-              disabled={selectedLeadObjects.length === 0 || isDispatching}
+              onClick={() => {
+                if (selectedRows.length === 0) {
+                  toggleSelectAllVisible(filteredLeads);
+                  return;
+                }
+                executeDispatch();
+              }}
+              disabled={isDispatching || leads.length === 0}
               className="mt-3 w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs tracking-wide shadow-xs transition-colors disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-1.5"
             >
               <Send className="w-3.5 h-3.5" />
-              Verify &amp; Send ({selectedRows.length})
+              {selectedRows.length === 0 ? `Select & Send All (${filteredLeads.length})` : `Verify & Send (${selectedRows.length})`}
             </button>
           </div>
         </div>
