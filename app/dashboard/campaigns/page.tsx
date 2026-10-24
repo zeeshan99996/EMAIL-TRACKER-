@@ -103,6 +103,174 @@ const PRESET_TEMPLATES: CustomTemplate[] = [
   },
 ];
 
+const SMART_APPS_SCRIPT_CODE = `/**
+ * Email Tracker & Outreach Platform — Universal Smart Google Sheet Webhook Sync
+ * 
+ * Auto-detects:
+ * - Email Column (checks headers or scans rows for "@" email addresses)
+ * - Name Column & Company/Store Column
+ * - Updates "SENT ✅" or "INVALID ❌" in real-time
+ */
+function doGet(e) {
+  try {
+    var action = (e && e.parameter && e.parameter.action) || 'getLeads';
+    if (action === 'ping') {
+      return ContentService.createTextOutput(JSON.stringify({ success: true, message: 'Google Sheet Webhook is active!' })).setMimeType(ContentService.MimeType.JSON);
+    }
+    if (action === 'getLeads') {
+      var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+      var data = sheet.getDataRange().getValues();
+      if (data.length <= 1) {
+        return ContentService.createTextOutput(JSON.stringify({ success: true, sheetTitle: sheet.getName(), totalLeads: 0, leads: [] })).setMimeType(ContentService.MimeType.JSON);
+      }
+      var headers = data[0].map(function(h) { return String(h || '').trim().toLowerCase(); });
+
+      // 1. Detect Email Column (by header or by scanning cell values for '@')
+      var colEmail = -1;
+      for (var c = 0; c < headers.length; c++) {
+        var h = headers[c];
+        if (h === 'email' || h === 'e-mail' || h === 'email address' || h.indexOf('email') !== -1 || (h.indexOf('mail') !== -1 && h.indexOf('name') === -1)) {
+          colEmail = c;
+          break;
+        }
+      }
+      if (colEmail === -1) {
+        for (var c = 0; c < headers.length; c++) {
+          for (var r = 1; r < Math.min(data.length, 25); r++) {
+            var val = String(data[r][c] || '').trim();
+            if (val.indexOf('@') !== -1 && val.indexOf('.') !== -1 && val.indexOf(' ') === -1) {
+              colEmail = c;
+              break;
+            }
+          }
+          if (colEmail !== -1) break;
+        }
+      }
+
+      // 2. Detect Name Column
+      var colName = -1;
+      for (var c = 0; c < headers.length; c++) {
+        var h = headers[c];
+        if ((h.indexOf('name') !== -1 || h.indexOf('lead') !== -1 || h.indexOf('contact') !== -1) && h.indexOf('company') === -1) {
+          colName = c;
+          break;
+        }
+      }
+
+      // 3. Detect Company Column
+      var colCompany = -1;
+      for (var c = 0; c < headers.length; c++) {
+        var h = headers[c];
+        if (h.indexOf('company') !== -1 || h.indexOf('store') !== -1 || h.indexOf('business') !== -1 || h.indexOf('website') !== -1 || h.indexOf('brand') !== -1) {
+          colCompany = c;
+          break;
+        }
+      }
+
+      // 4. Detect Status Column
+      var colStatus = -1;
+      for (var c = 0; c < headers.length; c++) {
+        if (headers[c].indexOf('status') !== -1 || headers[c].indexOf('state') !== -1) {
+          colStatus = c;
+          break;
+        }
+      }
+
+      // 5. Detect Sent At Column
+      var colSentAt = -1;
+      for (var c = 0; c < headers.length; c++) {
+        if (headers[c].indexOf('sent') !== -1 || headers[c].indexOf('date') !== -1) {
+          colSentAt = c;
+          break;
+        }
+      }
+
+      var emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+      var leads = [];
+
+      for (var r = 1; r < data.length; r++) {
+        var row = data[r];
+        var leadEmail = colEmail !== -1 ? String(row[colEmail] || '').trim() : '';
+
+        // Row-level fallback: scan all cells in this row if colEmail doesn't contain a valid email
+        if (!emailRegex.test(leadEmail)) {
+          for (var c = 0; c < row.length; c++) {
+            var cell = String(row[c] || '').trim();
+            if (emailRegex.test(cell)) {
+              leadEmail = cell.match(emailRegex)[0];
+              break;
+            }
+          }
+        }
+
+        var leadName = colName !== -1 ? String(row[colName] || '').trim() : '';
+        var leadCompany = colCompany !== -1 ? String(row[colCompany] || '').trim() : '';
+        var leadStatus = colStatus !== -1 ? String(row[colStatus] || '').trim() : '';
+        var leadSentAt = colSentAt !== -1 ? String(row[colSentAt] || '').trim() : '';
+
+        if (!leadName && leadCompany) leadName = leadCompany;
+        if (!leadName) leadName = 'Contact';
+
+        if (!leadEmail && (!leadName || leadName === 'Contact')) continue;
+
+        leads.push({
+          row: r + 1,
+          name: leadName,
+          email: leadEmail,
+          company: leadCompany,
+          status: leadStatus,
+          sentAt: leadSentAt
+        });
+      }
+
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        sheetTitle: sheet.getName(),
+        totalLeads: leads.length,
+        leads: leads
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, error: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doPost(e) {
+  try {
+    var payload = JSON.parse(e.postData.contents);
+    if (payload.action === 'updateStatus') {
+      var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+      var lastCol = Math.max(sheet.getLastColumn(), 1);
+      var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(function(h) {
+        return String(h || '').trim().toLowerCase();
+      });
+      var colStatus = headers.findIndex(function(h) { return h.indexOf('status') !== -1; });
+      var colSentAt = headers.findIndex(function(h) { return h.indexOf('sent') !== -1 || h.indexOf('date') !== -1; });
+
+      if (colStatus === -1) {
+        colStatus = headers.length;
+        sheet.getRange(1, colStatus + 1).setValue('Status').setFontWeight('bold');
+      }
+      if (colSentAt === -1) {
+        colSentAt = colStatus + 1;
+        sheet.getRange(1, colSentAt + 1).setValue('Sent At').setFontWeight('bold');
+      }
+
+      var updates = payload.updates || [];
+      for (var i = 0; i < updates.length; i++) {
+        var u = updates[i];
+        if (u.row && u.row >= 2) {
+          if (u.status !== undefined) sheet.getRange(u.row, colStatus + 1).setValue(u.status);
+          if (u.sentAt !== undefined) sheet.getRange(u.row, colSentAt + 1).setValue(u.sentAt);
+        }
+      }
+      return ContentService.createTextOutput(JSON.stringify({ success: true, updated: updates.length })).setMimeType(ContentService.MimeType.JSON);
+    }
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, error: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}`;
+
 export default function CampaignsPage() {
   const [sheetUrl, setSheetUrl] = useState('');
   const [leads, setLeads] = useState<LeadItem[]>([]);
@@ -176,17 +344,39 @@ export default function CampaignsPage() {
       const res = await fetch(endpoint, { cache: 'no-store' });
       const data = await res.json();
       if (data && data.leads) {
-        setLeads(data.leads);
+        const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+        const cleanedLeads: LeadItem[] = data.leads.map((l: LeadItem) => {
+          let email = (l.email || '').trim();
+          let company = (l.company || '').trim();
+          let name = (l.name || '').trim();
+          if (!emailRegex.test(email)) {
+            if (emailRegex.test(company)) {
+              const actual = company.match(emailRegex)![0];
+              company = email;
+              email = actual;
+            } else if (emailRegex.test(name)) {
+              const actual = name.match(emailRegex)![0];
+              name = email;
+              email = actual;
+            }
+          }
+          if (!name || name === email) {
+            name = company || 'Valued Contact';
+          }
+          return { ...l, email, company, name };
+        });
+
+        setLeads(cleanedLeads);
         if (targetUrl.trim()) {
           try {
             localStorage.setItem('erha_sheet_webhook_url', targetUrl.trim());
           } catch {}
         }
         // Auto-select pending leads based on batchCount (or all leads if none marked sent)
-        const pendingLeads = data.leads.filter(
+        const pendingLeads = cleanedLeads.filter(
           (l: LeadItem) => !l.status || !l.status.toLowerCase().includes('sent')
         );
-        const toSelect = pendingLeads.length > 0 ? pendingLeads : data.leads;
+        const toSelect = pendingLeads.length > 0 ? pendingLeads : cleanedLeads;
         setSelectedRows(toSelect.slice(0, batchCount).map((l: LeadItem) => l.row));
       }
     } catch (err) {
@@ -604,61 +794,7 @@ export default function CampaignsPage() {
   };
 
   const copyAppsScriptCode = () => {
-    const code = `/**
- * Email Tracker & Outreach Platform — Google Sheet Webhook Sync Script
- * 1. Open Google Sheets -> Extensions -> Apps Script
- * 2. Paste this code and Deploy as Web App ("Execute as: Me", "Access: Anyone")
- * 3. Copy Web App URL into the Email Tracker Dashboard!
- */
-function doGet(e) {
-  try {
-    const action = (e && e.parameter && e.parameter.action) || 'getLeads';
-    if (action === 'getLeads') {
-      const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-      const data = sheet.getDataRange().getValues();
-      const leads = [];
-      for (let r = 1; r < data.length; r++) {
-        if (!data[r][1] && !data[r][0]) continue;
-        leads.push({
-          row: r + 1,
-          name: data[r][0] || 'Contact',
-          email: String(data[r][1] || '').trim(),
-          company: data[r][2] || '',
-          status: data[r][3] || '',
-          sentAt: data[r][4] || ''
-        });
-      }
-      return ContentService.createTextOutput(JSON.stringify({
-        success: true,
-        sheetTitle: sheet.getName(),
-        leads: leads
-      })).setMimeType(ContentService.MimeType.JSON);
-    }
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({ success: false, error: err.toString() })).setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-function doPost(e) {
-  try {
-    const payload = JSON.parse(e.postData.contents);
-    if (payload.action === 'updateStatus') {
-      const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-      const updates = payload.updates || [];
-      for (let i = 0; i < updates.length; i++) {
-        const u = updates[i];
-        if (u.row) {
-          if (u.status) sheet.getRange(u.row, 4).setValue(u.status);
-          if (u.sentAt) sheet.getRange(u.row, 5).setValue(u.sentAt);
-        }
-      }
-      return ContentService.createTextOutput(JSON.stringify({ success: true, updated: updates.length })).setMimeType(ContentService.MimeType.JSON);
-    }
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({ success: false, error: err.toString() })).setMimeType(ContentService.MimeType.JSON);
-  }
-}`;
-    navigator.clipboard.writeText(code);
+    navigator.clipboard.writeText(SMART_APPS_SCRIPT_CODE);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 3000);
   };
@@ -1031,9 +1167,20 @@ function doPost(e) {
                         </div>
                       </td>
                       <td className="p-3">
-                        <span className="font-mono text-slate-600 text-[11px] bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                          {lead.email}
-                        </span>
+                        {lead.email && lead.email.includes('@') ? (
+                          <span className="font-mono text-slate-700 text-[11px] bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                            {lead.email}
+                          </span>
+                        ) : lead.company && lead.company.includes('@') ? (
+                          <span className="font-mono text-blue-700 text-[11px] bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                            {lead.company}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 font-mono text-amber-700 text-[10px] bg-amber-50 px-2 py-0.5 rounded border border-amber-200 font-semibold" title="Missing @ in email address. Update Apps Script to auto-detect columns!">
+                            <AlertTriangle className="w-3 h-3 text-amber-600" />
+                            {lead.email || 'No Email'}
+                          </span>
+                        )}
                       </td>
                       <td className="p-3 text-slate-700 font-medium">
                         {lead.company ? (
@@ -1545,39 +1692,8 @@ function doPost(e) {
             </div>
 
             <div className="relative">
-              <pre className="bg-slate-900 border border-slate-800 p-4 rounded-xl text-[11px] text-blue-200 font-mono max-h-60 overflow-y-auto">
-                {`// Google Sheet Webhook Sync Script for Email Tracker
-function doGet(e) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  const data = sheet.getDataRange().getValues();
-  const leads = [];
-  for (let r = 1; r < data.length; r++) {
-    if (!data[r][1]) continue;
-    leads.push({
-      row: r + 1,
-      name: data[r][0] || 'Contact',
-      email: data[r][1],
-      company: data[r][2] || '',
-      status: data[r][3] || '',
-      sentAt: data[r][4] || ''
-    });
-  }
-  return ContentService.createTextOutput(JSON.stringify({ success: true, leads: leads })).setMimeType(ContentService.MimeType.JSON);
-}
-
-function doPost(e) {
-  const payload = JSON.parse(e.postData.contents);
-  if (payload.action === 'updateStatus') {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    payload.updates.forEach(u => {
-      if (u.row) {
-        if (u.status) sheet.getRange(u.row, 4).setValue(u.status);
-        if (u.sentAt) sheet.getRange(u.row, 5).setValue(u.sentAt);
-      }
-    });
-    return ContentService.createTextOutput(JSON.stringify({ success: true })).setMimeType(ContentService.MimeType.JSON);
-  }
-}`}
+              <pre className="bg-slate-900 border border-slate-800 p-4 rounded-xl text-[11px] text-blue-200 font-mono max-h-72 overflow-y-auto whitespace-pre">
+                {SMART_APPS_SCRIPT_CODE}
               </pre>
 
               <button

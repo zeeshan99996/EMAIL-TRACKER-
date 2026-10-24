@@ -35,15 +35,66 @@ export async function GET(req: NextRequest) {
         if (response.ok) {
           const sheetData = await response.json();
           if (sheetData && sheetData.success) {
+            const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+            const rawLeads = sheetData.leads || [];
+
+            const normalizedLeads: LeadItem[] = rawLeads.map((lead: any, idx: number) => {
+              let email = String(lead.email || '').trim();
+              let name = String(lead.name || '').trim();
+              let company = String(lead.company || '').trim();
+              let status = String(lead.status || '').trim();
+              let sentAt = String(lead.sentAt || '').trim();
+
+              // If email doesn't have an @, search across other properties to find the real email
+              if (!emailRegex.test(email)) {
+                if (emailRegex.test(company)) {
+                  const detected = company.match(emailRegex)![0];
+                  company = email; // previous email was company name
+                  email = detected;
+                } else if (emailRegex.test(name)) {
+                  const detected = name.match(emailRegex)![0];
+                  name = email;
+                  email = detected;
+                } else if (emailRegex.test(status)) {
+                  email = status.match(emailRegex)![0];
+                  status = 'PENDING';
+                } else if (emailRegex.test(sentAt)) {
+                  email = sentAt.match(emailRegex)![0];
+                  sentAt = '';
+                } else {
+                  for (const [, val] of Object.entries(lead)) {
+                    if (typeof val === 'string' && emailRegex.test(val)) {
+                      email = val.match(emailRegex)![0];
+                      break;
+                    }
+                  }
+                }
+              }
+
+              // Ensure name is clean
+              if (!name || name === email) {
+                name = company || 'Valued Contact';
+              }
+
+              return {
+                row: lead.row || idx + 2,
+                name,
+                email,
+                company,
+                status: status || 'PENDING',
+                sentAt,
+              };
+            });
+
             return NextResponse.json({
               success: true,
               source: 'google_sheet',
               sheetTitle: sheetData.sheetTitle || 'Connected Google Sheet',
-              totalLeads: sheetData.totalLeads || sheetData.leads?.length || 0,
-              pendingCount: sheetData.pendingCount ?? sheetData.leads?.filter((l: any) => !l.status || l.status.toLowerCase().includes('pending')).length,
-              sentCount: sheetData.sentCount ?? sheetData.leads?.filter((l: any) => l.status && l.status.toLowerCase().includes('sent')).length,
-              invalidCount: sheetData.invalidCount ?? 0,
-              leads: sheetData.leads || [],
+              totalLeads: sheetData.totalLeads || normalizedLeads.length,
+              pendingCount: normalizedLeads.filter((l: any) => !l.status || l.status.toLowerCase().includes('pending')).length,
+              sentCount: normalizedLeads.filter((l: any) => l.status && l.status.toLowerCase().includes('sent')).length,
+              invalidCount: normalizedLeads.filter((l: any) => l.status && (l.status.toLowerCase().includes('invalid') || l.status.toLowerCase().includes('fake'))).length,
+              leads: normalizedLeads,
             });
           }
         }

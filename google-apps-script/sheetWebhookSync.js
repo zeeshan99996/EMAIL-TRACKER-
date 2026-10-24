@@ -189,16 +189,35 @@ function readAllLeadsFromSheet() {
 
   for (let r = 1; r < data.length; r++) {
     const row = data[r];
-    const emailVal = row[colEmail] ? String(row[colEmail]).trim() : '';
+    let emailVal = row[colEmail] ? String(row[colEmail]).trim() : '';
+    var emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+    
+    // Auto-detect email from other cells in this row if primary column doesn't have an @ email address
+    if (!emailRegex.test(emailVal)) {
+      for (let c = 0; c < row.length; c++) {
+        const cell = String(row[c] || '').trim();
+        if (emailRegex.test(cell)) {
+          emailVal = cell.match(emailRegex)[0];
+          break;
+        }
+      }
+    }
     
     // Ignore completely empty rows
     if (!emailVal && !row[colName]) continue;
 
+    let leadName = row[colName] ? String(row[colName]).trim() : '';
+    let leadCompany = row[colCompany] ? String(row[colCompany]).trim() : '';
+    
+    // If company is in the name slot or vice versa, keep them clean
+    if (!leadName && leadCompany) leadName = leadCompany;
+    if (!leadName) leadName = 'Valued Contact';
+
     leads.push({
       row: r + 1, // 1-based sheet row number (row 2 is first data row)
-      name: row[colName] ? String(row[colName]).trim() : (row[colCompany] ? String(row[colCompany]).trim() : 'Valued Contact'),
+      name: leadName,
       email: emailVal,
-      company: row[colCompany] ? String(row[colCompany]).trim() : '',
+      company: leadCompany,
       status: row[colStatus] ? String(row[colStatus]).trim() : '',
       sentAt: row[colSentAt] ? String(row[colSentAt]).trim() : ''
     });
