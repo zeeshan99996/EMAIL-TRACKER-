@@ -195,9 +195,9 @@ export default function EmailDetailsPage({ params }: { params: { id: string } })
           <button
             onClick={handleSimulateOpen}
             disabled={simulating}
-            className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors disabled:opacity-50"
+            className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors disabled:opacity-50"
           >
-            <Play className="w-3.5 h-3.5 text-indigo-600 fill-current" />
+            <Play className="w-3.5 h-3.5 text-blue-600 fill-current" />
             <span>Simulate Open</span>
           </button>
           <button
@@ -238,7 +238,7 @@ export default function EmailDetailsPage({ params }: { params: { id: string } })
         <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
           <p className="text-xs font-medium text-slate-400">Total Opens</p>
           <h3 className="text-2xl font-bold text-slate-900 mt-1 flex items-center space-x-2">
-            <Eye className="w-5 h-5 text-indigo-600" />
+            <Eye className="w-5 h-5 text-blue-600" />
             <span>{email.open_count}</span>
           </h3>
           <p className="text-[11px] text-slate-500 mt-1">
@@ -262,7 +262,7 @@ export default function EmailDetailsPage({ params }: { params: { id: string } })
         <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
           <p className="text-xs font-medium text-slate-400">Last Recorded Activity</p>
           <h3 className="text-sm font-bold text-slate-900 mt-2 flex items-center space-x-1.5">
-            <Clock className="w-4 h-4 text-amber-500 shrink-0" />
+            <Clock className="w-4 h-4 text-slate-500 shrink-0" />
             <span className="truncate">
               {email.last_opened_at
                 ? new Date(email.last_opened_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -329,7 +329,7 @@ export default function EmailDetailsPage({ params }: { params: { id: string } })
                     let desc = `Ingested & delivered via REST API to ${email.recipient_email}`;
 
                     if (evt.event_type === 'OPEN') {
-                      badge = <Eye className="w-4 h-4 text-indigo-600" />;
+                      badge = <Eye className="w-4 h-4 text-blue-600" />;
                       title = 'Email Opened';
                       desc = `1x1 Tracking Pixel loaded. IP: ${evt.ip_address || 'Anonymized'}`;
                     } else if (evt.event_type === 'CLICK') {

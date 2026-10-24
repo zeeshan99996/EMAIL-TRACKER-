@@ -2,16 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/header';
-import { DEMO_PROJECT } from '@/lib/demo-store';
 import {
   Calendar,
-  BarChart2,
-  TrendingUp,
-  Eye,
-  MousePointerClick,
-  Mail,
-  Filter,
   ArrowUpRight,
+  Loader2,
+  TrendingUp,
+  BarChart2,
+  ExternalLink,
 } from 'lucide-react';
 import {
   BarChart,
@@ -28,8 +25,10 @@ import {
 export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState<string>('7d');
   const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    setLoading(true);
     fetch('/api/v1/dashboard', { cache: 'no-store' })
       .then(r => r.json())
       .then(res => {
@@ -37,10 +36,21 @@ export default function AnalyticsPage() {
           setData(res);
         }
       })
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, [dateRange]);
 
-  if (!data) return null;
+  if (loading || !data) {
+    return (
+      <div className="space-y-6">
+        <Header title="Analytics & Performance" />
+        <div className="flex flex-col items-center justify-center min-h-[400px] bg-white rounded-xl border border-slate-200">
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-3" />
+          <p className="text-sm font-semibold text-slate-700">Loading performance analytics...</p>
+        </div>
+      </div>
+    );
+  }
 
   const { summary, topLinks } = data;
 
@@ -161,8 +171,8 @@ export default function AnalyticsPage() {
               <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} />
               <Tooltip contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
               <Bar dataKey="sent" fill="#2563eb" radius={[4, 4, 0, 0]} name="Sent" />
-              <Bar dataKey="opens" fill="#4f46e5" radius={[4, 4, 0, 0]} name="Opens" />
-              <Bar dataKey="clicks" fill="#10b981" radius={[4, 4, 0, 0]} name="Clicks" />
+              <Bar dataKey="opens" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Opens" />
+              <Bar dataKey="clicks" fill="#0284c7" radius={[4, 4, 0, 0]} name="Clicks" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -183,8 +193,8 @@ export default function AnalyticsPage() {
               <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} tickLine={false} />
               <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} unit="%" />
               <Tooltip contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
-              <Line type="monotone" dataKey="openRate" stroke="#4f46e5" strokeWidth={3} dot={{ r: 4 }} name="Open Rate %" />
-              <Line type="monotone" dataKey="clickRate" stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} name="Click Rate %" />
+              <Line type="monotone" dataKey="openRate" stroke="#2563eb" strokeWidth={3} dot={{ r: 4 }} name="Open Rate %" />
+              <Line type="monotone" dataKey="clickRate" stroke="#0284c7" strokeWidth={3} dot={{ r: 4 }} name="Click Rate %" />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -204,24 +214,32 @@ export default function AnalyticsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
-              {topLinks.map((link: any) => (
-                <tr key={link.id} className="hover:bg-slate-50">
-                  <td className="py-3 px-3 font-bold text-slate-900">
-                    {link.link_label || 'Direct Link'}
+              {(!topLinks || topLinks.length === 0) ? (
+                <tr>
+                  <td colSpan={4} className="py-8 text-center text-slate-500 font-medium">
+                    No link clicks recorded yet. When recipients click tracked links in your sent emails, they will appear here.
                   </td>
-                  <td className="py-3 px-3 text-blue-600 font-mono truncate max-w-xs">
-                    <a href={link.original_url} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center">
-                      {link.original_url} <ArrowUpRight className="w-3 h-3 ml-1" />
-                    </a>
-                  </td>
-                  <td className="py-3 px-3 text-center font-bold text-slate-900">
-                    <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold">
-                      {link.totalClicks}
-                    </span>
-                  </td>
-                  <td className="py-3 px-3 text-slate-600 truncate max-w-xs">{link.emailSubject}</td>
                 </tr>
-              ))}
+              ) : (
+                topLinks.map((link: any) => (
+                  <tr key={link.id} className="hover:bg-slate-50">
+                    <td className="py-3 px-3 font-bold text-slate-900">
+                      {link.link_label || 'Direct Link'}
+                    </td>
+                    <td className="py-3 px-3 text-blue-600 font-mono truncate max-w-xs">
+                      <a href={link.original_url} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center">
+                        {link.original_url} <ArrowUpRight className="w-3 h-3 ml-1" />
+                      </a>
+                    </td>
+                    <td className="py-3 px-3 text-center font-bold text-slate-900">
+                      <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold border border-blue-100">
+                        {link.totalClicks}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3 text-slate-600 truncate max-w-xs">{link.emailSubject}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
