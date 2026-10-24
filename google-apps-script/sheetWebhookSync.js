@@ -44,6 +44,43 @@ function doGet(e) {
       });
     }
 
+    if (action === 'getReplies') {
+      const replies = [];
+      try {
+        if (typeof GmailApp !== 'undefined') {
+          const userEmail = (Session.getActiveUser().getEmail() || '').toLowerCase();
+          const threads = GmailApp.search('to:me -from:me', 0, 15);
+          for (let i = 0; i < threads.length; i++) {
+            const thread = threads[i];
+            const msgs = thread.getMessages();
+            for (let j = 0; j < msgs.length; j++) {
+              const msg = msgs[j];
+              const from = msg.getFrom() || '';
+              if (from && (!userEmail || !from.toLowerCase().includes(userEmail))) {
+                replies.push({
+                  id: msg.getId(),
+                  senderName: from.replace(/<.*>/, '').trim() || from,
+                  senderEmail: (from.match(/<([^>]+)>/) || [null, from])[1].trim(),
+                  subject: msg.getSubject() || '(No Subject)',
+                  preview: (msg.getPlainBody() || '').substring(0, 140).replace(/\s+/g, ' '),
+                  body: msg.getPlainBody() || '',
+                  receivedAt: msg.getDate().toISOString(),
+                  unread: msg.isUnread()
+                });
+              }
+            }
+          }
+        }
+      } catch (err) {
+        return jsonResponse({ success: false, error: err.toString(), replies: [] });
+      }
+      return jsonResponse({
+        success: true,
+        count: replies.length,
+        replies: replies
+      });
+    }
+
     return jsonResponse({ success: false, error: 'Unknown action: ' + action });
   } catch (err) {
     return jsonResponse({ success: false, error: err.toString() });
