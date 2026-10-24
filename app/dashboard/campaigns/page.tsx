@@ -30,12 +30,6 @@ import {
   Trash2,
   Save,
   Edit3,
-  Play,
-  Pause,
-  FastForward,
-  Timer,
-  Minimize2,
-  Maximize2,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -155,36 +149,20 @@ export default function CampaignsPage() {
   // Modals & Execution State
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
-  const [showDispatchModal, setShowDispatchModal] = useState(false);
   const [isDispatching, setIsDispatching] = useState(false);
-  // Anti-Spam Human Cycle Delivery Cadence State
-  const [sendingCadence, setSendingCadence] = useState<'human_2_3m' | 'standard_1_2m' | 'fast_30s' | 'instant'>('human_2_3m');
-  const [cycleCountdown, setCycleCountdown] = useState<number>(0);
-  const [totalCycleSeconds, setTotalCycleSeconds] = useState<number>(0);
-  const [isCyclePaused, setIsCyclePaused] = useState<boolean>(false);
-  const [isModalMinimized, setIsModalMinimized] = useState<boolean>(false);
-  const [currentQueueTarget, setCurrentQueueTarget] = useState<{
-    index: number;
-    total: number;
-    lead: LeadItem;
-    status: 'sending' | 'cooldown' | 'done';
+
+  // Automated Background Campaign State (Quiet, automatic, zero countdown)
+  const [activeCampaign, setActiveCampaign] = useState<{
+    isRunning: boolean;
+    sentCount: number;
+    totalCount: number;
+    lastSentEmail?: string;
+    lastSentRow?: number;
+    message: string;
+    isFinished?: boolean;
   } | null>(null);
 
-  // Cancellation and cycle control refs (immune to stale closure issues)
   const cancelDispatchRef = useRef(false);
-  const pauseDispatchRef = useRef(false);
-  const skipWaitRef = useRef(false);
-
-  const [dispatchProgress, setDispatchProgress] = useState<{
-    step: string;
-    percent: number;
-    log: string[];
-    summary?: any;
-  }>({
-    step: 'Idle',
-    percent: 0,
-    log: [],
-  });
 
   // Load leads from Sheet Webhook or Demo Data
   const fetchLeads = async (url?: string) => {
@@ -464,132 +442,55 @@ export default function CampaignsPage() {
     .replace(/\{\{\s*company\s*\}\}/gi, previewLead.company || 'your company')
     .replace(/\{\{\s*email\s*\}\}/gi, previewLead.email);
 
-  // Sleep with support for Pause, Skip, and Cancel
-  const sleepWithControls = async (
-    seconds: number,
-    onTick: (remaining: number) => void
-  ): Promise<'completed' | 'skipped' | 'cancelled'> => {
-    let remaining = seconds;
-    setTotalCycleSeconds(seconds);
-    onTick(remaining);
-
-    while (remaining > 0) {
-      if (cancelDispatchRef.current) return 'cancelled';
-      if (skipWaitRef.current) {
-        skipWaitRef.current = false;
-        return 'skipped';
-      }
-      if (pauseDispatchRef.current) {
-        await new Promise((r) => setTimeout(r, 250));
-        continue;
-      }
-      await new Promise((r) => setTimeout(r, 1000));
-      remaining--;
-      onTick(remaining);
-    }
-    return 'completed';
-  };
-
-  const handleSkipWait = () => {
-    skipWaitRef.current = true;
-  };
-
-  const handleTogglePause = () => {
-    pauseDispatchRef.current = !pauseDispatchRef.current;
-    setIsCyclePaused(pauseDispatchRef.current);
-  };
-
   const handleStopCampaign = () => {
     cancelDispatchRef.current = true;
-    pauseDispatchRef.current = false;
-    setIsCyclePaused(false);
+    setIsDispatching(false);
+    setActiveCampaign((prev) =>
+      prev
+        ? {
+            ...prev,
+            isRunning: false,
+            isFinished: true,
+            message: `Campaign stopped by user. Sent ${prev.sentCount} of ${prev.totalCount} emails.`,
+          }
+        : null
+    );
   };
 
-  // Dispatch campaign execution with Anti-Spam Human Cycle
+  // Automated background campaign execution (2-3 min intervals, zero countdown, instant Sheet updates)
   const executeDispatch = async () => {
     if (selectedLeadObjects.length === 0) return;
 
     const activeMailbox = mailboxes.find((m) => m.id === senderAccount);
-    const mailboxDisplay = activeMailbox
-      ? `${activeMailbox.name} (${activeMailbox.email})`
-      : senderAccount === 'apps_script'
-      ? 'Google Apps Script (Sheet Gmail)'
-      : 'Platform Connected Mailbox';
-
-    // Reset controls
-    cancelDispatchRef.current = false;
-    pauseDispatchRef.current = false;
-    skipWaitRef.current = false;
-    setIsCyclePaused(false);
-    setIsModalMinimized(false);
-    setShowDispatchModal(true);
-    setIsDispatching(true);
-
     const totalLeads = selectedLeadObjects.length;
+
+    cancelDispatchRef.current = false;
+    setIsDispatching(true);
+    setActiveCampaign({
+      isRunning: true,
+      sentCount: 0,
+      totalCount: totalLeads,
+      message: `Automated campaign started for ${totalLeads} lead(s). Emails will send with 2-3 minute intervals, and Google Sheet will update automatically on each send.`,
+    });
+
     let sentCount = 0;
     let invalidCount = 0;
     let failedCount = 0;
 
-    const initialLog = [
-      `Starting Anti-Spam Human Outreach Campaign for ${totalLeads} selected lead(s)`,
-      `Delivery Cadence: ${
-        sendingCadence === 'human_2_3m'
-          ? '2 - 3 Minutes Human Interval (Recommended: 0% Spam, Max Inbox Placement)'
-          : sendingCadence === 'standard_1_2m'
-          ? '1 - 2 Minutes Standard Cadence'
-          : sendingCadence === 'fast_30s'
-          ? '30 - 45s Fast Queue'
-          : 'Instant / Burst'
-      }`,
-      verifyBeforeSend
-        ? 'DNS Verifier Gate: ACTIVE (Filtering DNS MX & Disposable domains)'
-        : 'DNS Verifier Gate: BYPASSED',
-      `Sending Mailbox: ${mailboxDisplay}`,
-      `Real-time Sheet Sync: ACTIVE (Each row marked in Google Sheet immediately upon send)`,
-    ];
-
-    setDispatchProgress({
-      step: `Initializing Campaign Queue (0 of ${totalLeads})...`,
-      percent: 5,
-      log: initialLog,
-    });
-
     try {
       for (let i = 0; i < totalLeads; i++) {
-        if (cancelDispatchRef.current) {
-          setDispatchProgress((prev) => ({
-            ...prev,
-            step: 'Campaign Stopped by User',
-            log: [...prev.log, 'Campaign was halted by user. Remaining leads were not sent.'],
-          }));
-          break;
-        }
+        if (cancelDispatchRef.current) break;
 
         const currentLead = selectedLeadObjects[i];
-        setCurrentQueueTarget({
-          index: i + 1,
-          total: totalLeads,
-          lead: currentLead,
-          status: 'sending',
+
+        setActiveCampaign({
+          isRunning: true,
+          sentCount,
+          totalCount: totalLeads,
+          message: `Sending email ${i + 1} of ${totalLeads} to ${currentLead.name} (${currentLead.email}) [Row ${currentLead.row}]...`,
         });
 
-        const timeStr = new Date().toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-        });
-
-        setDispatchProgress((prev) => ({
-          ...prev,
-          step: `[${i + 1}/${totalLeads}] Dispatching to ${currentLead.name} (${currentLead.email})...`,
-          percent: Math.round((i / totalLeads) * 100),
-          log: [
-            ...prev.log,
-            `[${timeStr}] Dispatching email ${i + 1} of ${totalLeads} to ${currentLead.name} (${currentLead.email}) [Row ${currentLead.row}]...`,
-          ],
-        }));
-
-        // Send single lead
+        // Dispatch single lead
         let singleRes: any = null;
         try {
           const res = await fetch('/api/v1/campaigns/dispatch', {
@@ -621,21 +522,23 @@ export default function CampaignsPage() {
         if (singleRes && singleRes.success && leadResult) {
           if (leadResult.sent) {
             sentCount++;
-            // Update table state immediately in real time!
+            // Update table row immediately in real time!
             setLeads((prev) =>
               prev.map((l) =>
                 l.row === currentLead.row ? { ...l, status: 'SENT ✅', sentAt: nowFormatted } : l
               )
             );
 
-            setDispatchProgress((prev) => ({
-              ...prev,
-              percent: Math.round(((i + 1) / totalLeads) * 100),
-              log: [
-                ...prev.log,
-                `[${timeStr}] SENT ✅: ${currentLead.name} (${currentLead.email}) -> Marked SENT in Sheet with tracking pixel.`,
-              ],
-            }));
+            setActiveCampaign({
+              isRunning: true,
+              sentCount,
+              totalCount: totalLeads,
+              lastSentEmail: currentLead.email,
+              lastSentRow: currentLead.row,
+              message: `Email ${i + 1} of ${totalLeads} sent to ${currentLead.name} (${currentLead.email})! Google Sheet Row ${currentLead.row} updated to SENT ✅.${
+                i < totalLeads - 1 ? ' Next email will send automatically in 2-3 minutes.' : ''
+              }`,
+            });
           } else if (leadResult.status?.includes('INVALID')) {
             invalidCount++;
             setLeads((prev) =>
@@ -644,13 +547,14 @@ export default function CampaignsPage() {
               )
             );
 
-            setDispatchProgress((prev) => ({
-              ...prev,
-              log: [
-                ...prev.log,
-                `[${timeStr}] INVALID ❌: ${currentLead.email} (${leadResult.reason || 'Rejected by Verifier'}) -> Marked INVALID in Sheet.`,
-              ],
-            }));
+            setActiveCampaign({
+              isRunning: true,
+              sentCount,
+              totalCount: totalLeads,
+              message: `Lead ${currentLead.email} was flagged invalid by verifier. Google Sheet Row ${currentLead.row} marked INVALID ❌.${
+                i < totalLeads - 1 ? ' Next email will send automatically in 2-3 minutes.' : ''
+              }`,
+            });
           } else {
             failedCount++;
             setLeads((prev) =>
@@ -658,123 +562,44 @@ export default function CampaignsPage() {
                 l.row === currentLead.row ? { ...l, status: 'FAILED ⚠️', sentAt: '' } : l
               )
             );
-
-            setDispatchProgress((prev) => ({
-              ...prev,
-              log: [
-                ...prev.log,
-                `[${timeStr}] FAILED ⚠️: ${currentLead.email} -> ${leadResult.reason || 'Dispatch error'}. Marked in Sheet.`,
-              ],
-            }));
           }
         } else {
           failedCount++;
-          setDispatchProgress((prev) => ({
-            ...prev,
-            log: [
-              ...prev.log,
-              `[${timeStr}] FAILED ⚠️: ${currentLead.email} -> ${singleRes?.error || 'Server error'}.`,
-            ],
-          }));
         }
 
-        // If this is NOT the last lead, execute the Anti-Spam cycle cooldown!
+        // If more leads remain, sleep in background for 2 to 3 minutes (120 to 180 seconds)!
+        // Quiet background delay with zero visual countdown clock
         if (i < totalLeads - 1 && !cancelDispatchRef.current) {
-          const nextLead = selectedLeadObjects[i + 1];
-
-          // Calculate interval
-          let delaySec = 0;
-          if (sendingCadence === 'human_2_3m') {
-            // Random interval between 120s (2m 00s) and 180s (3m 00s)
-            delaySec = Math.floor(120 + Math.random() * 60);
-          } else if (sendingCadence === 'standard_1_2m') {
-            // Random interval between 60s (1m 00s) and 120s (2m 00s)
-            delaySec = Math.floor(60 + Math.random() * 60);
-          } else if (sendingCadence === 'fast_30s') {
-            delaySec = 30;
-          } else {
-            delaySec = 0;
-          }
-
-          if (delaySec > 0) {
-            setCurrentQueueTarget({
-              index: i + 2,
-              total: totalLeads,
-              lead: nextLead,
-              status: 'cooldown',
-            });
-
-            const m = Math.floor(delaySec / 60);
-            const s = delaySec % 60;
-            const delayDisplay = `${m}m ${s < 10 ? '0' : ''}${s}s`;
-
-            setDispatchProgress((prev) => ({
-              ...prev,
-              step: `Anti-Spam Cycle: Cooling down for ${delayDisplay} before sending email ${i + 2}...`,
-              log: [
-                ...prev.log,
-                `[${timeStr}] Anti-Spam Safety: Pausing ${delayDisplay} (${delaySec}s) to mimic human sending and avoid Gmail spam filters. Next recipient: ${nextLead.name} (${nextLead.email}).`,
-              ],
-            }));
-
-            const sleepResult = await sleepWithControls(delaySec, (rem) => {
-              setCycleCountdown(rem);
-            });
-
-            if (sleepResult === 'cancelled') {
-              setDispatchProgress((prev) => ({
-                ...prev,
-                step: 'Campaign Halted',
-                log: [...prev.log, 'Anti-Spam Cycle was stopped by user.'],
-              }));
-              break;
-            } else if (sleepResult === 'skipped') {
-              setDispatchProgress((prev) => ({
-                ...prev,
-                log: [...prev.log, 'Interval skipped by user. Dispatching next recipient immediately!'],
-              }));
-            }
+          const delaySec = Math.floor(120 + Math.random() * 60); // 2 to 3 minutes
+          for (let s = 0; s < delaySec; s++) {
+            if (cancelDispatchRef.current) break;
+            await new Promise((r) => setTimeout(r, 1000));
           }
         }
       }
 
-      // Finish up
-      setCurrentQueueTarget(null);
-      setCycleCountdown(0);
+      // Campaign finished
+      if (!cancelDispatchRef.current) {
+        setActiveCampaign({
+          isRunning: false,
+          sentCount,
+          totalCount: totalLeads,
+          message: `Campaign complete! All ${sentCount} emails were sent automatically with 2-3 minute intervals, and your Google Sheet has been updated.`,
+          isFinished: true,
+        });
+      }
 
-      const summary = {
-        totalRequested: totalLeads,
-        sentCount,
-        invalidCount,
-        failedCount,
-      };
-
-      setDispatchProgress((prev) => ({
-        ...prev,
-        step: cancelDispatchRef.current ? 'Campaign Interrupted' : 'Completed Successfully',
-        percent: 100,
-        log: [
-          ...prev.log,
-          `=========================================`,
-          `Campaign Summary: ${sentCount} Sent, ${invalidCount} Invalid Filtered, ${failedCount} Failed.`,
-          `All Google Sheet rows have been synced and updated row-by-row.`,
-        ],
-        summary,
-      }));
-
-      // Refresh leads from sheet to sync
       await fetchLeads();
     } catch (err: any) {
-      setDispatchProgress((prev) => ({
-        ...prev,
-        step: 'Error occurred during queue cycle',
-        percent: 100,
-        log: [...prev.log, `Queue Error: ${err.message}`],
-      }));
+      setActiveCampaign({
+        isRunning: false,
+        sentCount,
+        totalCount: totalLeads,
+        message: `Campaign encountered an issue: ${err.message}`,
+        isFinished: true,
+      });
     } finally {
       setIsDispatching(false);
-      setCurrentQueueTarget(null);
-      setCycleCountdown(0);
     }
   };
 
@@ -848,6 +673,75 @@ function doPost(e) {
   return (
     <div className="space-y-6 pb-20 max-w-7xl mx-auto">
       <Header title="Campaign Studio" />
+
+      {/* AUTOMATED OUTREACH CAMPAIGN BANNER (QUIET, 2-3 MIN INTERVALS, NO COUNTDOWN) */}
+      {activeCampaign && (
+        <div
+          className={`border rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm transition-all ${
+            activeCampaign.isFinished
+              ? 'bg-emerald-50/90 border-emerald-200 text-emerald-950'
+              : 'bg-gradient-to-r from-blue-50/90 via-indigo-50/80 to-blue-50/90 border-blue-200 text-slate-900'
+          }`}
+        >
+          <div className="flex items-start gap-3.5">
+            <div
+              className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+                activeCampaign.isFinished
+                  ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                  : 'bg-blue-100 text-blue-700 border-blue-200'
+              }`}
+            >
+              {activeCampaign.isFinished ? (
+                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+              ) : (
+                <Send className="w-5 h-5 text-blue-600 animate-pulse" />
+              )}
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h4 className="text-sm font-bold text-slate-900">
+                  {activeCampaign.isFinished
+                    ? 'Automated Campaign Completed'
+                    : 'Automated Outreach Campaign in Progress'}
+                </h4>
+                {activeCampaign.isRunning && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+                    2 - 3 Min Anti-Spam Interval
+                  </span>
+                )}
+                <span className="text-[10px] font-bold text-slate-700 bg-white px-2.5 py-0.5 rounded-md border border-slate-200 shadow-2xs">
+                  Sent: {activeCampaign.sentCount} / {activeCampaign.totalCount}
+                </span>
+              </div>
+              <p className="text-xs text-slate-700 mt-1 font-medium leading-relaxed">
+                {activeCampaign.message}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
+            {activeCampaign.isRunning && (
+              <button
+                type="button"
+                onClick={handleStopCampaign}
+                className="px-4 py-2 rounded-xl bg-white border border-rose-300 hover:bg-rose-50 text-rose-700 text-xs font-bold transition-all shadow-xs cursor-pointer"
+              >
+                Stop Campaign
+              </button>
+            )}
+            {activeCampaign.isFinished && (
+              <button
+                type="button"
+                onClick={() => setActiveCampaign(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* TOP SHEET CONNECT BAR & METRIC CARDS (LIGHT THEME) */}
       <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
@@ -1446,35 +1340,19 @@ function doPost(e) {
                 </span>
               </label>
 
-              {/* Anti-Spam Cycle Interval Selector */}
-              <div className="mt-2.5 space-y-1">
+              {/* Anti-Spam Cadence Info */}
+              <div className="mt-2.5 p-2.5 rounded-xl bg-slate-100 border border-slate-200 text-[10px] text-slate-700 space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-slate-800 flex items-center gap-1">
+                  <span className="font-bold text-slate-900 flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5 text-blue-600" />
-                    Anti-Spam Sending Interval:
+                    2 - 3 Min Anti-Spam Interval
                   </span>
-                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                  <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
                     0% Spam Guard
                   </span>
                 </div>
-                <select
-                  value={sendingCadence}
-                  onChange={(e) => setSendingCadence(e.target.value as any)}
-                  className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-[11px] font-semibold text-slate-800 focus:outline-none focus:border-blue-500 shadow-xs cursor-pointer"
-                >
-                  <option value="human_2_3m">2 - 3 Minutes (Anti-Spam Human Cycle — Recommended)</option>
-                  <option value="standard_1_2m">1 - 2 Minutes (Standard Outreach Cadence)</option>
-                  <option value="fast_30s">30 - 45 Seconds (Fast Queue)</option>
-                  <option value="instant">Instant Burst (No Delay — High Spam Risk)</option>
-                </select>
-                <p className="text-[10px] text-slate-500 leading-tight">
-                  {sendingCadence === 'human_2_3m'
-                    ? 'Dispatches 2-3 mins apart. Updates Sheet row immediately on each send to prevent Gmail spam triggers.'
-                    : sendingCadence === 'standard_1_2m'
-                    ? 'Dispatches 1-2 mins apart. Updates Sheet row immediately on each send.'
-                    : sendingCadence === 'fast_30s'
-                    ? 'Dispatches every 30s. Moderate spam risk for un-warmed inboxes.'
-                    : 'Sends all at once. High risk of landing in recipient spam folder.'}
+                <p className="text-slate-500 leading-relaxed">
+                  Emails will automatically send one-by-one with 2-3 minute intervals, and each row in your Google Sheet will update to &quot;SENT&quot; automatically.
                 </p>
               </div>
             </div>
@@ -1489,10 +1367,25 @@ function doPost(e) {
                 executeDispatch();
               }}
               disabled={isDispatching || leads.length === 0}
-              className="mt-3 w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs tracking-wide shadow-xs transition-colors disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-1.5"
+              className={`mt-3 w-full py-2.5 rounded-xl font-bold text-xs tracking-wide shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer ${
+                isDispatching
+                  ? 'bg-emerald-600 text-white cursor-not-allowed opacity-90'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:pointer-events-none'
+              }`}
             >
-              <Send className="w-3.5 h-3.5" />
-              {selectedRows.length === 0 ? `Select & Send All (${filteredLeads.length})` : `Verify & Send (${selectedRows.length})`}
+              {isDispatching ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  Campaign Running ({activeCampaign?.sentCount || 0}/{activeCampaign?.totalCount || selectedRows.length} Sent)...
+                </>
+              ) : (
+                <>
+                  <Send className="w-3.5 h-3.5" />
+                  {selectedRows.length === 0
+                    ? `Select & Send All (${filteredLeads.length})`
+                    : `Verify & Send (${selectedRows.length})`}
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -1695,226 +1588,6 @@ function doPost(e) {
                 {copiedCode ? 'Copied' : 'Copy Script'}
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Execution Progress Modal with Anti-Spam Human Cycle Cooldown */}
-      {showDispatchModal && !isModalMinimized && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-2xl max-w-xl w-full p-6 shadow-2xl relative space-y-4 animate-in fade-in zoom-in-95 duration-150">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center shrink-0">
-                  <ShieldCheck className={`w-5 h-5 ${isDispatching ? 'animate-pulse text-blue-600' : 'text-emerald-600'}`} />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-base font-bold text-slate-900">Campaign Dispatch</h3>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                      Anti-Spam Human Cycle
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-500 line-clamp-1">{dispatchProgress.step}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {isDispatching && (
-                  <button
-                    onClick={() => setIsModalMinimized(true)}
-                    title="Minimize modal to watch table in background"
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                  >
-                    <Minimize2 className="w-4 h-4" />
-                  </button>
-                )}
-                {!isDispatching && (
-                  <button
-                    onClick={() => setShowDispatchModal(false)}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Overall Progress Bar */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs font-semibold">
-                <span className="text-slate-600">Overall Progress</span>
-                <span className="text-blue-600 font-bold">{dispatchProgress.percent}%</span>
-              </div>
-              <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
-                <div
-                  className="h-full bg-blue-600 transition-all duration-500 rounded-full"
-                  style={{ width: `${dispatchProgress.percent}%` }}
-                ></div>
-              </div>
-            </div>
-
-            {/* Active Cooldown Timer Card (Anti-Spam Cycle) */}
-            {isDispatching && currentQueueTarget?.status === 'cooldown' && (
-              <div className="bg-gradient-to-br from-blue-50/90 to-indigo-50/70 border border-blue-200/90 rounded-2xl p-4 space-y-3 shadow-xs">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-                    <span className="text-xs font-bold text-slate-900">
-                      Anti-Spam Cooldown Active
-                    </span>
-                  </div>
-                  <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-md border border-emerald-200">
-                    0% Spam Placement Shield
-                  </span>
-                </div>
-
-                <div className="flex items-baseline justify-between pt-1">
-                  <div>
-                    <div className="text-3xl font-extrabold text-slate-900 tracking-tight font-mono">
-                      {Math.floor(cycleCountdown / 60)}:
-                      {cycleCountdown % 60 < 10 ? `0${cycleCountdown % 60}` : cycleCountdown % 60}
-                    </div>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      Waiting 2-3 minutes to mimic human sending velocity. Prevents Gmail automated spam flagging.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Next Recipient Card */}
-                <div className="bg-white border border-blue-200/70 rounded-xl p-2.5 flex items-center justify-between text-xs shadow-2xs">
-                  <div className="flex items-center gap-2 truncate">
-                    <span className="font-bold text-slate-900 truncate">
-                      Next up: {currentQueueTarget.lead.name}
-                    </span>
-                    <span className="text-slate-500 text-[11px] truncate">
-                      &lt;{currentQueueTarget.lead.email}&gt;
-                    </span>
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-500 shrink-0 bg-slate-100 px-2 py-0.5 rounded">
-                    Row {currentQueueTarget.lead.row}
-                  </span>
-                </div>
-
-                {/* Queue Controls during Cooldown */}
-                <div className="flex items-center justify-between pt-1 gap-2 flex-wrap">
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={handleSkipWait}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
-                    >
-                      <FastForward className="w-3.5 h-3.5" />
-                      Skip Wait &amp; Send Now
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleTogglePause}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-all shadow-xs cursor-pointer"
-                    >
-                      {isCyclePaused ? <Play className="w-3.5 h-3.5 text-emerald-600" /> : <Pause className="w-3.5 h-3.5 text-amber-600" />}
-                      {isCyclePaused ? 'Resume Cycle' : 'Pause Cycle'}
-                    </button>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleStopCampaign}
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-rose-600 hover:bg-rose-50 text-xs font-semibold transition-all cursor-pointer"
-                  >
-                    <Square className="w-3.5 h-3.5" />
-                    Stop Queue
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Live Event Log Stream */}
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 font-mono text-[11px] max-h-48 overflow-y-auto space-y-1 text-slate-200">
-              {dispatchProgress.log.map((line, idx) => (
-                <div
-                  key={idx}
-                  className={`leading-relaxed ${
-                    line.includes('SENT ✅')
-                      ? 'text-emerald-400 font-semibold'
-                      : line.includes('INVALID ❌')
-                      ? 'text-rose-400 font-semibold'
-                      : line.includes('Anti-Spam Safety') || line.includes('Cooldown')
-                      ? 'text-cyan-300 font-medium'
-                      : line.includes('Summary') || line.includes('=====')
-                      ? 'text-amber-300 font-bold'
-                      : 'text-slate-300'
-                  }`}
-                >
-                  {line}
-                </div>
-              ))}
-            </div>
-
-            {/* Action Buttons when done */}
-            {!isDispatching && (
-              <div className="flex items-center justify-between pt-2">
-                <span className="text-emerald-700 text-xs font-bold flex items-center gap-1">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  All leads processed &amp; Google Sheet updated!
-                </span>
-                <div className="flex items-center gap-2">
-                  <Link
-                    href="/dashboard/inbox"
-                    className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
-                  >
-                    View Lead Inbox
-                  </Link>
-                  <button
-                    onClick={() => setShowDispatchModal(false)}
-                    className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors shadow-xs cursor-pointer"
-                  >
-                    Done
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Minimized Floating Widget at Bottom-Right */}
-      {showDispatchModal && isModalMinimized && (
-        <div className="fixed bottom-6 right-6 z-50 bg-white border border-slate-200 rounded-2xl p-4 shadow-xl flex items-center gap-4 animate-in slide-in-from-bottom-5 duration-200">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center">
-              <ShieldCheck className={`w-5 h-5 ${isDispatching ? 'animate-pulse' : 'text-emerald-600'}`} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-900">Campaign Running</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-              </div>
-              <div className="text-[11px] text-slate-500 font-mono">
-                {currentQueueTarget?.status === 'cooldown'
-                  ? `Next send in ${Math.floor(cycleCountdown / 60)}:${cycleCountdown % 60 < 10 ? '0' : ''}${cycleCountdown % 60}`
-                  : dispatchProgress.step}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5 border-l border-slate-200 pl-3">
-            {isDispatching && currentQueueTarget?.status === 'cooldown' && (
-              <button
-                onClick={handleSkipWait}
-                title="Skip wait and send now"
-                className="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold cursor-pointer"
-              >
-                <FastForward className="w-4 h-4" />
-              </button>
-            )}
-            <button
-              onClick={() => setIsModalMinimized(false)}
-              className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold cursor-pointer"
-            >
-              Expand
-            </button>
           </div>
         </div>
       )}
