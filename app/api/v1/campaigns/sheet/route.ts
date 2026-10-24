@@ -6,6 +6,7 @@ import {
   setDemoLeadsStore,
   updateInMemoryLeadStatuses,
 } from '@/lib/campaigns/sheet-leads';
+import { isSafeWebhookUrl } from '@/lib/security/url-validator';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest) {
     }
 
     // 1. If user provided a real Google Apps Script Web App URL, fetch live data from the sheet!
-    if (webhookUrl && webhookUrl.trim().startsWith('http')) {
+    if (webhookUrl && isSafeWebhookUrl(webhookUrl)) {
       try {
         const fetchUrl = webhookUrl.includes('?') 
           ? `${webhookUrl}&action=getLeads` 

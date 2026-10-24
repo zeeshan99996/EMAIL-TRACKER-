@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/utils';
 import { WARMUP_LEVELS, calculateWarmupProgressPercent } from '@/lib/warmup/levels';
+import { Header } from '@/components/header';
 
 function AccountsContent() {
   const searchParams = useSearchParams();
@@ -326,7 +327,9 @@ function AccountsContent() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      <Header title="Connected Mailboxes" />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

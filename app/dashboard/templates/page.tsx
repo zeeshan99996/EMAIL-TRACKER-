@@ -23,6 +23,7 @@ import {
   Maximize2,
   HelpCircle,
 } from 'lucide-react';
+import { Header } from '@/components/header';
 import {
   CustomTemplate,
   PRESET_TEMPLATES,
@@ -292,6 +293,8 @@ export default function TemplatesPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
+      <Header title="Email Templates" />
+
       {/* ========================================================= */}
       {/* HEADER SECTION - DYNAMIC & RESPONSIVE                    */}
       {/* ========================================================= */}
