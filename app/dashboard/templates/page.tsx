@@ -293,37 +293,50 @@ export default function TemplatesPage() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* ========================================================= */}
-      {/* HEADER SECTION (LIGHT THEME)                             */}
+      {/* HEADER SECTION - DYNAMIC & RESPONSIVE                    */}
       {/* ========================================================= */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 md:p-6 shadow-xs">
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0 shadow-2xs">
-            <LayoutTemplate className="w-6 h-6" />
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0 shadow-2xs">
+            <LayoutTemplate className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                Email Templates &amp; Creative Studio
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
+                Email Templates
               </h1>
               <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
-                {templates.length} Templates
+                {templates.length} Total
               </span>
+              {templates.filter((t) => t.isCustom).length > 0 && (
+                <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  {templates.filter((t) => t.isCustom).length} Custom
+                </span>
+              )}
+              {templates.filter((t) => t.imageUrl || t.body.includes('<img')).length > 0 && (
+                <span className="text-xs font-semibold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200 flex items-center gap-1">
+                  <ImageIcon className="w-3 h-3" />
+                  {templates.filter((t) => t.imageUrl || t.body.includes('<img')).length} With Images
+                </span>
+              )}
             </div>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              Create, edit, and upload pictures directly from your PC into custom cold outreach templates.
-            </p>
+
+            {/* Dynamic & Responsive Subtitle */}
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500 mt-1">
+              <span>
+                {filteredTemplates.length === templates.length
+                  ? `All ${templates.length} templates available for cold outreach`
+                  : `Showing ${filteredTemplates.length} of ${templates.length} templates`}
+              </span>
+              <span className="text-slate-300 hidden sm:inline">•</span>
+              <span className="text-emerald-700 font-medium">Direct sync with Campaign Studio</span>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0">
-          <Link
-            href="/dashboard/campaigns"
-            className="px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200 transition-colors flex items-center gap-1.5"
-          >
-            <Send className="w-3.5 h-3.5 text-blue-600" />
-            <span>Campaign Studio</span>
-          </Link>
+        <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
           <button
+            type="button"
             onClick={handleOpenCreateModal}
             className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
           >
