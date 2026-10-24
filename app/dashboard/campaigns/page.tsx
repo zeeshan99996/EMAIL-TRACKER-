@@ -1034,34 +1034,55 @@ export default function CampaignsPage() {
       {/* SECTION 1: GOOGLE SHEET LEADS (FULL SCREEN / LIGHT THEME) */}
       {/* ========================================================= */}
       <div className="w-full bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
-        {/* Section Header */}
+        {/* Section Header - Dynamic & Responsive */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center font-bold text-xs">
+            <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0">
               1
             </div>
             <div>
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                Google Sheet Leads
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+                  Google Sheet Leads
+                </h3>
                 <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
                   {leads.length} Loaded
                 </span>
-              </h3>
-              <p className="text-xs text-slate-500">
-                Select leads individually or use batch controls below
-              </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500 mt-0.5">
+                {selectedRows.length > 0 ? (
+                  <>
+                    <span className="font-semibold text-blue-600">
+                      {selectedRows.length} of {leads.length} leads selected
+                    </span>
+                    <span className="text-slate-300 hidden sm:inline">•</span>
+                    <span className="text-emerald-700 font-medium">
+                      {pendingCount} pending outreach
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span>Select leads individually via checkboxes or type number in Step 1</span>
+                    <span className="text-slate-300 hidden sm:inline">•</span>
+                    <span className="text-emerald-700 font-medium">
+                      {pendingCount} pending
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Quick Selection Status */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
             <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 border border-blue-200">
               {selectedRows.length} Leads Selected
             </span>
             {selectedRows.length > 0 && (
               <button
+                type="button"
                 onClick={() => setSelectedRows([])}
-                className="text-xs text-slate-500 hover:text-rose-600 px-2 py-1 transition-colors font-semibold"
+                className="text-xs text-slate-500 hover:text-rose-600 px-2 py-1 rounded-lg hover:bg-rose-50 transition-colors font-semibold cursor-pointer"
               >
                 Clear
               </button>
@@ -1302,30 +1323,38 @@ export default function CampaignsPage() {
       {/* SECTION 2: SEQUENTIAL DISPATCH CONSOLE (LIGHT THEME)      */}
       {/* ========================================================= */}
       <div className="w-full bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs space-y-6">
-        {/* Stepper Header */}
+        {/* Stepper Header - Dynamic & Responsive */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center font-bold text-xs">
+            <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0">
               2
             </div>
             <div>
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-                Automated Outreach Dispatcher
-              </h3>
-              <p className="text-xs text-slate-500">
-                1. Select Batch &rarr; 2. Sender Email &rarr; 3. Template &rarr; 4. Verify &amp; Send
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+                  Automated Outreach Dispatcher
+                </h3>
+                {selectedRows.length > 0 && (
+                  <span className="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                    {selectedRows.length} Leads Ready
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                1. Select Leads &rarr; 2. Sender Email &rarr; 3. Template &rarr; 4. Verify &amp; Send
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs">
+          <div className="flex items-center gap-2 text-xs shrink-0 self-start sm:self-center">
             <span className="text-slate-500 font-semibold">Step:</span>
             <div className="flex items-center gap-1">
               {[1, 2, 3, 4].map((step) => (
                 <button
                   key={step}
+                  type="button"
                   onClick={() => setActiveStep(step)}
-                  className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs transition-all ${
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs transition-all cursor-pointer ${
                     activeStep === step
                       ? 'bg-blue-600 text-white shadow-xs'
                       : activeStep > step
@@ -1616,26 +1645,7 @@ export default function CampaignsPage() {
           </div>
         </div>
 
-        {/* Human Anti-Spam Interval & Realtime Sheet Sync Info Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600">
-          <div className="flex items-center gap-1.5">
-            <span className="inline-flex items-center gap-1 font-bold text-slate-900">
-              <Clock className="w-3.5 h-3.5 text-blue-600" />
-              Human 2–3 Min Interval:
-            </span>
-            <span className="text-slate-500">
-              Emails dispatch one-by-one with natural gaps to protect inbox deliverability.
-            </span>
-          </div>
-          <div className="flex items-center gap-2 text-[10px]">
-            <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-              0% Spam Guard
-            </span>
-            <span className="text-slate-500">
-              Google Sheet row status updates to &quot;SENT&quot; automatically.
-            </span>
-          </div>
-        </div>
+
 
         {/* TEMPLATE PREVIEW & INLINE EDITOR (COLLAPSIBLE / LIGHT THEME) */}
         {showTemplateEditor && (
