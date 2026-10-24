@@ -10,8 +10,8 @@
  */
 
 // 1. Configuration
-const API_KEY = "ek_live_demo123456789"; // Generated API Key
-const API_URL = "https://email-tracker-teal-phi.vercel.app/api/v1/emails"; // Live Vercel Domain
+const API_KEY = "ek_live_demo123456789"; // Generated API Key from Dashboard Settings
+const API_URL = "https://mailify-pro.vercel.app/api/v1/emails"; // Live Vercel Production Domain
 
 /**
  * Sends an email from your Gmail account with tracking pixel & tracked links.
