@@ -21,7 +21,6 @@ import {
   Sparkles,
   Info,
   Link2,
-  MousePointerClick,
   Loader2,
   ArrowRight,
   Sliders,
@@ -60,8 +59,6 @@ export default function TemplatesPage() {
   const [showAiModal, setShowAiModal] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiTone, setAiTone] = useState<'professional' | 'direct' | 'friendly' | 'value-first'>('professional');
-  const [aiCtaText, setAiCtaText] = useState('Schedule a 10-Minute Call');
-  const [aiCtaUrl, setAiCtaUrl] = useState('https://calendly.com/your-team');
   const [aiImageUrl, setAiImageUrl] = useState('');
   const [aiImageLinkUrl, setAiImageLinkUrl] = useState('');
   const [showAdvancedAi, setShowAdvancedAi] = useState(false);
@@ -75,14 +72,14 @@ export default function TemplatesPage() {
     imageLinkUrl?: string;
   } | null>(null);
 
-  // Quick Insert Modals (Text Link & CTA Button)
+  // Quick Insert Modals (Text Link)
   const [showInsertLinkModal, setShowInsertLinkModal] = useState(false);
   const [customLinkText, setCustomLinkText] = useState('');
   const [customLinkUrl, setCustomLinkUrl] = useState('');
 
-  const [showInsertButtonModal, setShowInsertButtonModal] = useState(false);
-  const [customBtnText, setCustomBtnText] = useState('View Our Portfolio & Case Studies');
-  const [customBtnUrl, setCustomBtnUrl] = useState('https://example.com/services');
+  // Interactive Visual Editor Refs (contentEditable direct editing)
+  const visualEditorRef = useRef<HTMLDivElement>(null);
+  const aiPreviewRef = useRef<HTMLDivElement>(null);
 
   // Preview Simulation with Sample Lead
   const [previewWithLead, setPreviewWithLead] = useState(true);
@@ -108,6 +105,34 @@ export default function TemplatesPage() {
     setTemplates(list);
   };
 
+  // Sync modalBody to visual editor on modal open or tab switch
+  useEffect(() => {
+    if (showEditorModal && editorTab === 'visual' && visualEditorRef.current) {
+      if (visualEditorRef.current.innerHTML !== modalBody) {
+        visualEditorRef.current.innerHTML = modalBody;
+      }
+    }
+  }, [showEditorModal, editorTab, editingTemplateId]);
+
+  // Sync generatedResult to AI preview on generation
+  useEffect(() => {
+    if (showAiModal && generatedResult && aiPreviewRef.current) {
+      if (aiPreviewRef.current.innerHTML !== generatedResult.body) {
+        aiPreviewRef.current.innerHTML = generatedResult.body;
+      }
+    }
+  }, [showAiModal, generatedResult?.name, generatedResult?.subject]);
+
+  const handleVisualEditorInput = (e: React.FormEvent<HTMLDivElement>) => {
+    const html = e.currentTarget.innerHTML;
+    setModalBody(html);
+  };
+
+  const handleAiPreviewInput = (e: React.FormEvent<HTMLDivElement>) => {
+    const html = e.currentTarget.innerHTML;
+    setGeneratedResult((prev) => (prev ? { ...prev, body: html } : null));
+  };
+
   // Filter templates
   const filteredTemplates = templates.filter((tmpl) => {
     const matchesSearch =
@@ -130,17 +155,12 @@ export default function TemplatesPage() {
     setModalTitle(`My Outreach Template ${templates.filter((t) => t.isCustom).length + 1}`);
     setModalSubject('Quick question regarding {{company}}');
     setModalBody(
-      `<div style="font-family: Arial, sans-serif; color: #1e293b; max-width: 600px; line-height: 1.6; font-size: 14px;">
-  <p>Hi {{first_name}},</p>
-  <p>I came across {{company}} and really liked what your team is building.</p>
-  <p>We help growing companies scale their outbound sales pipeline and optimize web conversion by over 38%.</p>
-  <div style="margin: 22px 0;">
-    <a href="https://example.com" target="_blank" rel="noopener noreferrer" style="background-color: #2563eb; color: #ffffff; padding: 11px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 13px; display: inline-block;">
-      View Our Case Studies & Scope
-    </a>
-  </div>
-  <p>Would you be open to a quick 10-minute chat this Thursday to see if this could be relevant for {{company}}?</p>
-  <p>Best regards,<br><strong>Outreach Team</strong></p>
+      `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #0f172a; max-width: 580px; line-height: 1.6; font-size: 14px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px;">
+  <p style="font-size: 15px; font-weight: 600; color: #0f172a; margin: 0 0 12px 0;">Hi {{first_name}},</p>
+  <p style="color: #334155; margin: 0 0 14px 0;">I came across {{company}} and really liked what your team is building.</p>
+  <p style="color: #334155; margin: 0 0 14px 0;">We help growing companies scale their outbound sales pipeline and optimize conversion rates efficiently.</p>
+  <p style="color: #334155; margin: 0 0 16px 0;">Would you be open to a quick 10-minute chat this Thursday to see if this could be relevant for {{company}}?</p>
+  <p style="color: #334155; margin: 20px 0 0 0;">Best regards,<br><strong style="color: #0f172a;">Outreach Lead</strong></p>
 </div>`
     );
     setModalImageUrl('');
@@ -257,7 +277,7 @@ export default function TemplatesPage() {
     }
   };
 
-  // Insert Text Link
+  // Insert Text Link (Supports direct cursor insertion in visual editor)
   const handleInsertLink = () => {
     if (!customLinkUrl.trim()) {
       alert('Please provide a URL.');
@@ -265,24 +285,16 @@ export default function TemplatesPage() {
     }
     const text = customLinkText.trim() || customLinkUrl.trim();
     const linkHtml = `<a href="${customLinkUrl.trim()}" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: underline; font-weight: 600;">${text}</a>`;
-    setModalBody((prev) => `${prev} ${linkHtml}`);
+    if (editorTab === 'visual' && visualEditorRef.current) {
+      visualEditorRef.current.focus();
+      document.execCommand('insertHTML', false, linkHtml);
+      setModalBody(visualEditorRef.current.innerHTML);
+    } else {
+      setModalBody((prev) => `${prev} ${linkHtml}`);
+    }
     setShowInsertLinkModal(false);
     setCustomLinkText('');
     setCustomLinkUrl('');
-  };
-
-  // Insert CTA Button
-  const handleInsertButton = () => {
-    if (!customBtnUrl.trim()) {
-      alert('Please provide a button URL.');
-      return;
-    }
-    const text = customBtnText.trim() || 'Click Here';
-    const btnHtml = `\n<div style="margin: 20px 0; text-align: left;">\n  <a href="${customBtnUrl.trim()}" target="_blank" rel="noopener noreferrer" style="background-color: #2563eb; color: #ffffff; padding: 11px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 13px; display: inline-block;">\n    ${text}\n  </a>\n</div>\n`;
-    setModalBody((prev) => `${prev}\n${btnHtml}`);
-    setShowInsertButtonModal(false);
-    setCustomBtnText('View Our Portfolio & Case Studies');
-    setCustomBtnUrl('https://example.com/services');
   };
 
   // Construct Final HTML with Image & Clickable Link embedded
@@ -370,8 +382,6 @@ export default function TemplatesPage() {
         body: JSON.stringify({
           prompt: aiPrompt.trim(),
           tone: aiTone,
-          ctaText: aiCtaText.trim() || undefined,
-          ctaUrl: aiCtaUrl.trim() || undefined,
           imageUrl: aiImageUrl.trim() || undefined,
           imageLinkUrl: aiImageLinkUrl.trim() || undefined,
         }),
@@ -788,39 +798,24 @@ export default function TemplatesPage() {
                 </div>
               </div>
 
-              {/* Tone & Style Options */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                <div>
-                  <label className="block text-xs font-bold text-slate-900 mb-1">
-                    Tone of Voice:
-                  </label>
-                  <select
-                    value={aiTone}
-                    onChange={(e) => setAiTone(e.target.value as any)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-semibold focus:outline-none focus:border-blue-500 cursor-pointer"
-                  >
-                    <option value="professional">Professional &amp; Authoritative</option>
-                    <option value="direct">Direct &amp; Concise (Under 75 words)</option>
-                    <option value="friendly">Friendly &amp; Conversational</option>
-                    <option value="value-first">Value-First &amp; Consultative</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-900 mb-1">
-                    Call-to-Action Button Label:
-                  </label>
-                  <input
-                    type="text"
-                    value={aiCtaText}
-                    onChange={(e) => setAiCtaText(e.target.value)}
-                    placeholder="e.g. Schedule a 10-Minute Call"
-                    className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-slate-900 font-semibold focus:outline-none transition-all shadow-2xs"
-                  />
-                </div>
+              {/* Tone of Voice */}
+              <div className="pt-1">
+                <label className="block text-xs font-bold text-slate-900 mb-1">
+                  Tone of Voice:
+                </label>
+                <select
+                  value={aiTone}
+                  onChange={(e) => setAiTone(e.target.value as any)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-semibold focus:outline-none focus:border-blue-500 cursor-pointer"
+                >
+                  <option value="professional">Professional &amp; Authoritative</option>
+                  <option value="direct">Direct &amp; Concise (Under 75 words)</option>
+                  <option value="friendly">Friendly &amp; Conversational</option>
+                  <option value="value-first">Value-First &amp; Consultative</option>
+                </select>
               </div>
 
-              {/* Advanced Link & Clickable Image Options Toggle */}
+              {/* Clickable Image & Graphic Settings */}
               <div className="border border-slate-200 rounded-xl p-3 bg-slate-50/50">
                 <button
                   type="button"
@@ -828,42 +823,27 @@ export default function TemplatesPage() {
                   className="w-full flex items-center justify-between text-xs font-bold text-slate-800 cursor-pointer"
                 >
                   <span className="flex items-center gap-1.5">
-                    <Link2 className="w-3.5 h-3.5 text-blue-600" />
-                    <span>Links &amp; Clickable Image Settings</span>
+                    <ImageIcon className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Clickable Image &amp; Graphic Settings</span>
                   </span>
                   <span className="text-[10px] text-blue-600 font-semibold">
-                    {showAdvancedAi ? 'Hide Settings' : 'Configure Links & Image'}
+                    {showAdvancedAi ? 'Hide Settings' : 'Add Image / Banner'}
                   </span>
                 </button>
 
                 {showAdvancedAi && (
                   <div className="mt-3 pt-3 border-t border-slate-200/80 space-y-3">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                          CTA Button Destination URL:
-                        </label>
-                        <input
-                          type="url"
-                          value={aiCtaUrl}
-                          onChange={(e) => setAiCtaUrl(e.target.value)}
-                          placeholder="https://calendly.com/your-team"
-                          className="w-full bg-white border border-slate-200 focus:border-blue-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-medium focus:outline-none"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                          Clickable Image Link (Opens when image clicked):
-                        </label>
-                        <input
-                          type="url"
-                          value={aiImageLinkUrl}
-                          onChange={(e) => setAiImageLinkUrl(e.target.value)}
-                          placeholder="https://yourwebsite.com/portfolio"
-                          className="w-full bg-white border border-slate-200 focus:border-blue-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-medium focus:outline-none"
-                        />
-                      </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                        Clickable Image Link (Opens when image clicked):
+                      </label>
+                      <input
+                        type="url"
+                        value={aiImageLinkUrl}
+                        onChange={(e) => setAiImageLinkUrl(e.target.value)}
+                        placeholder="https://yourwebsite.com/portfolio"
+                        className="w-full bg-white border border-slate-200 focus:border-blue-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-medium focus:outline-none"
+                      />
                     </div>
 
                     <div>
@@ -975,17 +955,21 @@ export default function TemplatesPage() {
                     </div>
                   </div>
 
-                  {/* Simulated Lead View for Generated Template */}
+                  {/* Clickable Live Preview for Generated Template */}
                   <div className="bg-white border border-slate-200 rounded-xl p-4">
                     <div className="text-xs font-semibold text-slate-400 pb-2 mb-3 border-b border-slate-100 flex items-center justify-between">
-                      <span>Recipient Inbox Simulation</span>
+                      <span>Clickable Live Preview (Click text to edit directly)</span>
+                      <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-medium border border-emerald-200">
+                        Clickable Editing Active
+                      </span>
                     </div>
 
                     <div
-                      className="overflow-x-auto text-slate-800 text-xs sm:text-sm leading-relaxed"
-                      dangerouslySetInnerHTML={{
-                        __html: renderSimulatedPreview(generatedResult.body, generatedResult.subject).previewHtml,
-                      }}
+                      ref={aiPreviewRef}
+                      contentEditable
+                      suppressContentEditableWarning
+                      onInput={handleAiPreviewInput}
+                      className="overflow-x-auto text-slate-800 text-xs sm:text-sm leading-relaxed outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 rounded-lg p-2 min-h-[220px] cursor-text bg-white"
                     />
                   </div>
                 </div>
@@ -1226,11 +1210,40 @@ export default function TemplatesPage() {
               </div>
 
               {/* ========================================================= */}
-              {/* QUICK INSERT TOOLS (LINK, BUTTON)                         */}
+              {/* CLICKABLE FORMATTING TOOLBAR                              */}
               {/* ========================================================= */}
-              <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl">
-                <div className="flex items-center gap-1 flex-wrap">
-                  <span className="text-[11px] font-bold text-slate-700 mr-1">Insert Tools:</span>
+              <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[11px] font-bold text-slate-700 mr-1">Format:</span>
+
+                  <button
+                    type="button"
+                    onClick={() => document.execCommand('bold')}
+                    className="w-7 h-7 rounded-lg text-xs font-bold text-slate-700 hover:text-blue-700 bg-white hover:bg-blue-50 border border-slate-200 transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
+                    title="Bold"
+                  >
+                    B
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => document.execCommand('italic')}
+                    className="w-7 h-7 rounded-lg text-xs font-serif italic text-slate-700 hover:text-blue-700 bg-white hover:bg-blue-50 border border-slate-200 transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
+                    title="Italic"
+                  >
+                    I
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => document.execCommand('underline')}
+                    className="w-7 h-7 rounded-lg text-xs underline text-slate-700 hover:text-blue-700 bg-white hover:bg-blue-50 border border-slate-200 transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
+                    title="Underline"
+                  >
+                    U
+                  </button>
+
+                  <div className="h-4 w-px bg-slate-200 mx-1" />
 
                   <button
                     type="button"
@@ -1240,19 +1253,15 @@ export default function TemplatesPage() {
                     <Link2 className="w-3 h-3 text-blue-600" />
                     <span>Insert Link</span>
                   </button>
+                </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setShowInsertButtonModal(true)}
-                    className="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-700 hover:text-blue-700 bg-white hover:bg-blue-50 border border-slate-200 transition-colors flex items-center gap-1 cursor-pointer shadow-2xs"
-                  >
-                    <MousePointerClick className="w-3 h-3 text-blue-600" />
-                    <span>Insert CTA Button</span>
-                  </button>
+                <div className="flex items-center gap-1.5 text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg font-medium">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Clickable Visual Editing Active (Click any text below to edit directly)</span>
                 </div>
               </div>
 
-              {/* Editor Tabs: Visual Preview vs HTML Code */}
+              {/* Editor Tabs: Visual Editor vs HTML Code */}
               <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-2xs">
                 <div className="flex items-center justify-between px-3.5 py-2.5 bg-slate-50 border-b border-slate-200">
                   <div className="flex items-center gap-1">
@@ -1266,7 +1275,7 @@ export default function TemplatesPage() {
                       }`}
                     >
                       <Eye className="w-3.5 h-3.5" />
-                      <span>Live Visual Preview</span>
+                      <span>Clickable Visual Editor</span>
                     </button>
                     <button
                       type="button"
@@ -1281,25 +1290,13 @@ export default function TemplatesPage() {
                       <span>HTML Source Code</span>
                     </button>
                   </div>
-
-                  <div className="flex items-center gap-2">
-                    <label className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={previewWithLead}
-                        onChange={(e) => setPreviewWithLead(e.target.checked)}
-                        className="w-3.5 h-3.5 rounded text-blue-600 bg-white border-slate-300 focus:ring-blue-500"
-                      />
-                      <span>Sample Lead Fill</span>
-                    </label>
-                  </div>
                 </div>
 
                 {/* Editor Content Area */}
                 {editorTab === 'code' ? (
                   <div className="p-3">
                     <textarea
-                      rows={12}
+                      rows={14}
                       value={modalBody}
                       onChange={(e) => setModalBody(e.target.value)}
                       className="w-full font-mono text-xs text-slate-800 bg-slate-900/5 p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 leading-relaxed resize-y"
@@ -1307,18 +1304,22 @@ export default function TemplatesPage() {
                     />
                   </div>
                 ) : (
-                  <div className="p-4 sm:p-5 bg-white min-h-[220px]">
-                    <div className="border border-slate-100 rounded-xl p-4 bg-slate-50/50 shadow-inner">
+                  <div className="p-4 sm:p-5 bg-white min-h-[300px]">
+                    <div className="border border-slate-200 rounded-xl p-3 bg-slate-50/50 shadow-inner">
                       <div className="text-xs font-semibold text-slate-400 pb-2 mb-3 border-b border-slate-200 flex items-center justify-between">
-                        <span>Recipient Inbox Simulation</span>
+                        <span>Interactive Email Canvas (Click text to edit directly)</span>
+                        <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-medium border border-emerald-200">
+                          Direct Clickable Editing
+                        </span>
                       </div>
 
-                      {/* Rendered Live HTML */}
+                      {/* Directly Clickable and Editable Visual Canvas */}
                       <div
-                        className="overflow-x-auto text-slate-800 text-xs sm:text-sm leading-relaxed"
-                        dangerouslySetInnerHTML={{
-                          __html: renderSimulatedPreview(getCombinedHtml(), modalSubject).previewHtml,
-                        }}
+                        ref={visualEditorRef}
+                        contentEditable
+                        suppressContentEditableWarning
+                        onInput={handleVisualEditorInput}
+                        className="overflow-x-auto text-slate-800 text-xs sm:text-sm leading-relaxed outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 rounded-lg p-2 min-h-[250px] cursor-text bg-white"
                       />
                     </div>
                   </div>
@@ -1422,74 +1423,6 @@ export default function TemplatesPage() {
                 className="px-4 py-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-xs"
               >
                 Insert Link
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================= */}
-      {/* 4. QUICK INSERT CTA BUTTON MODAL                          */}
-      {/* ========================================================= */}
-      {showInsertButtonModal && (
-        <div className="fixed inset-0 z-60 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-md p-5 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-              <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                <MousePointerClick className="w-4 h-4 text-blue-600" />
-                <span>Insert Call-to-Action Button</span>
-              </h4>
-              <button
-                type="button"
-                onClick={() => setShowInsertButtonModal(false)}
-                className="text-slate-400 hover:text-slate-600 p-1"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  Button Label Text:
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Schedule a 10-Minute Call"
-                  value={customBtnText}
-                  onChange={(e) => setCustomBtnText(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  Button Destination Link (URL):
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://calendly.com/your-team"
-                  value={customBtnUrl}
-                  onChange={(e) => setCustomBtnUrl(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setShowInsertButtonModal(false)}
-                className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleInsertButton}
-                className="px-4 py-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-xs"
-              >
-                Insert Button
               </button>
             </div>
           </div>

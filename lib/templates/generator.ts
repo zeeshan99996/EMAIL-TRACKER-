@@ -3,8 +3,6 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 export interface GenerateTemplateRequest {
   prompt: string;
   tone?: 'professional' | 'direct' | 'friendly' | 'value-first';
-  ctaText?: string;
-  ctaUrl?: string;
   imageUrl?: string;
   imageLinkUrl?: string;
   targetAudience?: string;
@@ -31,14 +29,13 @@ function getGeminiClient(): GoogleGenerativeAI | null {
 /**
  * World-Class Executive Email Template Synthesizer
  * Produces enterprise-grade, theme-aligned (Slate & Blue), responsive email HTML in < 5ms.
+ * No CTA buttons - clean conversational outreach.
  */
 export function synthesizeTemplateHeuristically(req: GenerateTemplateRequest): GeneratedTemplateResponse {
   const promptLower = req.prompt.toLowerCase();
   const tone = req.tone || 'professional';
-  const ctaText = req.ctaText?.trim() || 'Schedule a 10-Minute Call';
-  const ctaUrl = req.ctaUrl?.trim() || 'https://example.com/demo';
   const imageUrl = req.imageUrl?.trim() || '';
-  const imageLinkUrl = req.imageLinkUrl?.trim() || ctaUrl || 'https://example.com';
+  const imageLinkUrl = req.imageLinkUrl?.trim() || '';
 
   // Determine Industry / Category
   type CategoryType =
@@ -175,19 +172,7 @@ export function synthesizeTemplateHeuristically(req: GenerateTemplateRequest): G
     </div>`;
   }
 
-  // Construct CTA Button with Theme Colors (#2563eb, Slate-900 accents)
-  const ctaSection = `
-    <!-- Call-to-Action Section -->
-    <div style="margin: 26px 0 20px 0; text-align: left;">
-      <a href="${ctaUrl}" target="_blank" rel="noopener noreferrer" style="background-color: #2563eb; color: #ffffff !important; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 13px; display: inline-block; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25); letter-spacing: 0.02em;">
-        ${ctaText} &rarr;
-      </a>
-      <div style="font-size: 11px; color: #64748b; margin-top: 6px; font-weight: 500;">
-        Direct calendar access &bull; No obligation &bull; 10-minute scope review
-      </div>
-    </div>`;
-
-  // Final Professional Executive HTML Template
+  // Final Professional Executive HTML Template (without CTA buttons)
   const body = `
 <div style="background-color: #f8fafc; padding: 24px 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0f172a; line-height: 1.6;">
   <div style="max-width: 580px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);">
@@ -247,11 +232,9 @@ export function synthesizeTemplateHeuristically(req: GenerateTemplateRequest): G
         </p>
       </div>
 
-      <p style="font-size: 14px; color: #334155; margin: 16px 0 0 0;">
+      <p style="font-size: 14px; color: #334155; margin: 18px 0 0 0; line-height: 1.6;">
         Would you have 10 minutes this week to see how this could move the needle for {{company}}?
       </p>
-
-      ${ctaSection}
 
       <!-- Sign-off -->
       <p style="font-size: 13px; color: #334155; margin: 22px 0 0 0; line-height: 1.5;">
@@ -282,7 +265,7 @@ export function synthesizeTemplateHeuristically(req: GenerateTemplateRequest): G
 
 /**
  * Main Template Generator:
- * Uses a tight 1.8-second race with Gemini AI, immediately resolving with our
+ * Uses a tight 1.2-second race with Gemini AI, immediately resolving with our
  * executive heuristic engine on timeout or error to guarantee instant response time.
  */
 export async function generateTemplate(req: GenerateTemplateRequest): Promise<GeneratedTemplateResponse> {
@@ -296,6 +279,7 @@ You are an expert enterprise cold email copywriter and HTML email architect.
 Your mission is to generate high-converting, spam-free, responsive HTML email templates based on user requirements.
 THEME: Slate & Royal Blue (colors: text #0f172a / #334155, primary brand #2563eb, light card background #f8fafc, borders #e2e8f0).
 No tacky emojis or rainbow colors. Clean, executive, modern layout.
+DO NOT include any Call to Action buttons or CTA button boxes.
 
 STRICT FORMAT REQUIREMENTS:
 1. You MUST respond with ONLY a valid, parseable JSON object with these EXACT keys:
@@ -306,12 +290,12 @@ STRICT FORMAT REQUIREMENTS:
        <div style="max-width: 580px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
          <div style="height: 4px; background: #2563eb; width: 100%;"></div>
          <div style="padding: 28px 24px;">
-           ...content with {{first_name}}, {{company}}, {{website}}, feature deliverable cards, and CTA button...
+           ...content with {{first_name}}, {{company}}, {{website}}, feature deliverable cards, and polite closing inquiry...
          </div>
        </div>
      </div>
 2. If image is provided or requested:
-   Embed: <div style="margin: 18px 0; text-align: center;"><a href="${req.imageLinkUrl || req.ctaUrl || 'https://example.com'}"><img src="${req.imageUrl || 'https://placehold.co/600x200/eff6ff/2563eb?text=Feature+Graphic'}" alt="Preview" style="max-width: 100%; height: auto; border-radius: 8px; border: 1px solid #e2e8f0;" /></a></div>
+   Embed: <div style="margin: 18px 0; text-align: center;"><a href="${req.imageLinkUrl || 'https://example.com'}"><img src="${req.imageUrl || 'https://placehold.co/600x200/eff6ff/2563eb?text=Feature+Graphic'}" alt="Preview" style="max-width: 100%; height: auto; border-radius: 8px; border: 1px solid #e2e8f0;" /></a></div>
 3. NO markdown fences like \`\`\`json or \`\`\`. Output ONLY raw valid JSON.
 `;
 
@@ -319,8 +303,6 @@ STRICT FORMAT REQUIREMENTS:
 User Requirement / Command: "${req.prompt}"
 Requested Tone: ${req.tone || 'professional'}
 Target Audience: ${req.targetAudience || 'Decision Makers, Founders, Executives'}
-CTA Button Text: "${req.ctaText || 'Schedule a 10-Minute Call'}"
-CTA URL: "${req.ctaUrl || 'https://example.com'}"
 ${req.imageUrl ? `Image URL to include: "${req.imageUrl}"` : ''}
 ${req.imageLinkUrl ? `Image Click / Destination URL: "${req.imageLinkUrl}"` : ''}
 
