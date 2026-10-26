@@ -22,8 +22,6 @@ interface NavItem {
   name: string;
   href: string;
   icon: any;
-  badge?: string;
-  badgeColor?: string;
 }
 
 interface NavSection {
@@ -39,15 +37,11 @@ const cleanOutreachNavSections: NavSection[] = [
         name: 'Campaign Studio',
         href: '/dashboard/campaigns',
         icon: Send,
-        badge: 'Main',
-        badgeColor: 'bg-blue-600 text-white font-bold',
       },
       {
         name: 'Email Templates',
         href: '/dashboard/templates',
         icon: LayoutTemplate,
-        badge: 'New',
-        badgeColor: 'bg-emerald-600 text-white font-bold',
       },
       {
         name: 'Overview & Graph',
@@ -63,8 +57,6 @@ const cleanOutreachNavSections: NavSection[] = [
         name: 'Prospect Replies',
         href: '/dashboard/inbox',
         icon: Inbox,
-        badge: 'Live',
-        badgeColor: 'bg-emerald-600 text-white font-bold',
       },
       {
         name: 'Email Verifier',
@@ -85,8 +77,6 @@ const cleanOutreachNavSections: NavSection[] = [
         name: 'Connected Mailboxes',
         href: '/dashboard/accounts',
         icon: Sliders,
-        badge: 'Fleet',
-        badgeColor: 'bg-slate-900 text-white font-bold',
       },
       {
         name: 'Settings & Sync',
@@ -163,24 +153,8 @@ export function Sidebar({
             )}
           </div>
 
-          {/* Quick Campaign Studio Shortcut */}
-          <div className="p-3 shrink-0">
-            <Link
-              href="/dashboard/campaigns"
-              prefetch={false}
-              onClick={() => setMobileOpen && setMobileOpen(false)}
-              className="flex items-center justify-between p-2.5 rounded-xl bg-blue-50 hover:bg-blue-100/80 border border-blue-200 text-blue-900 text-xs font-bold transition-all shadow-xs group"
-            >
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
-                <span>Campaign Studio</span>
-              </div>
-              <ArrowUpRight className="w-3.5 h-3.5 text-blue-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-            </Link>
-          </div>
-
           {/* Unified Nav Sections */}
-          <nav className="px-3 py-1 space-y-4 flex-1">
+          <nav className="px-3 py-3 space-y-4 flex-1">
             {cleanOutreachNavSections.map((section) => (
               <div key={section.title}>
                 <div className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
@@ -198,7 +172,7 @@ export function Sidebar({
                         href={item.href}
                         prefetch={false}
                         onClick={() => setMobileOpen && setMobileOpen(false)}
-                        className={`flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-xl transition-colors ${
+                        className={`flex items-center px-3 py-2 text-xs font-semibold rounded-xl transition-colors ${
                           isActive
                             ? 'bg-blue-600 text-white shadow-xs font-bold'
                             : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -212,17 +186,6 @@ export function Sidebar({
                           />
                           <span className="truncate">{item.name}</span>
                         </div>
-                        {item.badge && (
-                          <span
-                            className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md shrink-0 ${
-                              isActive
-                                ? 'bg-white/20 text-white'
-                                : item.badgeColor || 'bg-slate-100 text-slate-600 border border-slate-200'
-                            }`}
-                          >
-                            {item.badge}
-                          </span>
-                        )}
                       </Link>
                     );
                   })}
