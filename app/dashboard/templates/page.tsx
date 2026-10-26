@@ -481,16 +481,6 @@ export default function TemplatesPage() {
                 </span>
               )}
             </div>
-
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500 mt-1">
-              <span>
-                {filteredTemplates.length === templates.length
-                  ? `All ${templates.length} templates available for cold outreach`
-                  : `Showing ${filteredTemplates.length} of ${templates.length} templates`}
-              </span>
-              <span className="text-slate-300 hidden sm:inline">•</span>
-              <span className="text-slate-600 font-medium">Direct sync with Campaign Studio</span>
-            </div>
           </div>
         </div>
 
@@ -988,10 +978,7 @@ export default function TemplatesPage() {
                   {/* Simulated Lead View for Generated Template */}
                   <div className="bg-white border border-slate-200 rounded-xl p-4">
                     <div className="text-xs font-semibold text-slate-400 pb-2 mb-3 border-b border-slate-100 flex items-center justify-between">
-                      <span>Simulated Recipient Inbox</span>
-                      <span className="font-mono text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded">
-                        To: {sampleLead.email} ({sampleLead.name})
-                      </span>
+                      <span>Recipient Inbox Simulation</span>
                     </div>
 
                     <div
@@ -1063,26 +1050,12 @@ export default function TemplatesPage() {
                 />
               </div>
 
-              {/* Subject Line & Dynamic Variable Chips */}
+              {/* Subject Line */}
               <div>
-                <div className="flex items-center justify-between mb-1">
+                <div className="mb-1">
                   <label className="text-xs font-bold text-slate-900">
                     Subject Line:
                   </label>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[10px] text-slate-500 font-medium">Add tag:</span>
-                    {['first_name', 'company', 'website', 'phone'].map((tag) => (
-                      <button
-                        key={tag}
-                        type="button"
-                        onClick={() => insertVariable(tag, 'subject')}
-                        className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition-colors cursor-pointer"
-                        title={`Insert {{${tag}}} tag`}
-                      >
-                        +{`{{${tag}}}`}
-                      </button>
-                    ))}
-                  </div>
                 </div>
                 <input
                   type="text"
@@ -1253,9 +1226,9 @@ export default function TemplatesPage() {
               </div>
 
               {/* ========================================================= */}
-              {/* QUICK INSERT TOOLS (LINK, BUTTON, VARIABLES)              */}
+              {/* QUICK INSERT TOOLS (LINK, BUTTON)                         */}
               {/* ========================================================= */}
-              <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl">
+              <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl">
                 <div className="flex items-center gap-1 flex-wrap">
                   <span className="text-[11px] font-bold text-slate-700 mr-1">Insert Tools:</span>
 
@@ -1276,21 +1249,6 @@ export default function TemplatesPage() {
                     <MousePointerClick className="w-3 h-3 text-blue-600" />
                     <span>Insert CTA Button</span>
                   </button>
-                </div>
-
-                <div className="flex items-center gap-1 flex-wrap">
-                  <span className="text-[10px] text-slate-400 font-medium">Tags:</span>
-                  {['first_name', 'company', 'website'].map((tag) => (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => setModalBody((prev) => `${prev} {{${tag}}}`)}
-                      className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors cursor-pointer"
-                      title={`Insert {{${tag}}} tag`}
-                    >
-                      +{`{{${tag}}}`}
-                    </button>
-                  ))}
                 </div>
               </div>
 
@@ -1353,9 +1311,6 @@ export default function TemplatesPage() {
                     <div className="border border-slate-100 rounded-xl p-4 bg-slate-50/50 shadow-inner">
                       <div className="text-xs font-semibold text-slate-400 pb-2 mb-3 border-b border-slate-200 flex items-center justify-between">
                         <span>Recipient Inbox Simulation</span>
-                        <span className="font-mono text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded">
-                          To: {sampleLead.email}
-                        </span>
                       </div>
 
                       {/* Rendered Live HTML */}
