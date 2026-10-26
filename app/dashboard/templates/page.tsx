@@ -748,9 +748,6 @@ export default function TemplatesPage() {
                   <h3 className="text-base font-bold text-slate-900">
                     AI Template Studio
                   </h3>
-                  <p className="text-[11px] text-slate-500">
-                    Type your requirements or command to automatically generate a complete outreach template.
-                  </p>
                 </div>
               </div>
 
@@ -767,11 +764,10 @@ export default function TemplatesPage() {
             <div className="p-5 sm:p-6 space-y-5 max-h-[75vh] overflow-y-auto">
               {/* Command Input Area */}
               <div>
-                <div className="flex items-center justify-between mb-1.5">
+                <div className="mb-1.5">
                   <label className="text-xs font-bold text-slate-900">
                     Template Requirements / Command:
                   </label>
-                  <span className="text-[10px] text-slate-500">Plain text or instructions</span>
                 </div>
                 <textarea
                   rows={4}
@@ -915,11 +911,7 @@ export default function TemplatesPage() {
               </div>
 
               {/* Generate Action Button */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
-                <span className="text-[11px] text-slate-500">
-                  Instant AI synthesis (&lt; 1s) with <code>{`{{first_name}}`}</code>, <code>{`{{company}}`}</code>, and <code>{`{{website}}`}</code>.
-                </span>
-
+              <div className="flex items-center justify-end pt-1">
                 <button
                   type="button"
                   onClick={handleGenerateTemplate}
@@ -1014,10 +1006,7 @@ export default function TemplatesPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="px-5 py-3 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between">
-              <span className="text-[11px] text-slate-500">
-                Generated templates can be edited, saved, or launched in campaigns anytime.
-              </span>
+            <div className="px-5 py-3 border-t border-slate-100 bg-slate-50/70 flex items-center justify-end">
               <button
                 type="button"
                 onClick={() => setShowAiModal(false)}
@@ -1046,9 +1035,6 @@ export default function TemplatesPage() {
                   <h3 className="text-base font-bold text-slate-900">
                     {editingTemplateId ? 'Edit Outreach Template' : 'Design New Template'}
                   </h3>
-                  <p className="text-[11px] text-slate-500">
-                    Add clickable images, custom buttons, links, and personalization variables.
-                  </p>
                 </div>
               </div>
 
@@ -1386,11 +1372,7 @@ export default function TemplatesPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-t border-slate-100 bg-slate-50/70">
-              <span className="text-[11px] text-slate-500">
-                Templates auto-sync across Campaigns and Cold Outreach Dispatcher.
-              </span>
-
+            <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-slate-100 bg-slate-50/70">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
