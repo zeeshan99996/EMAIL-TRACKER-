@@ -397,7 +397,8 @@ export default function TemplatesPage() {
     setModalTitle(generatedResult.name);
     setModalSubject(generatedResult.subject);
     setModalBody(generatedResult.body);
-    setModalImageUrl(generatedResult.imageUrl || '');
+    // Body already has structured layout and image embedded inside the card
+    setModalImageUrl('');
     setModalImageLinkUrl(generatedResult.imageLinkUrl || '');
     setModalImagePosition('top');
     setModalImageAlignment('center');
@@ -914,21 +915,21 @@ export default function TemplatesPage() {
               </div>
 
               {/* Generate Action Button */}
-              <div className="flex items-center justify-between pt-1">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
                 <span className="text-[11px] text-slate-500">
-                  Embeds <code>{`{{first_name}}`}</code>, <code>{`{{company}}`}</code>, and <code>{`{{website}}`}</code> automatically.
+                  Instant AI synthesis (&lt; 1s) with <code>{`{{first_name}}`}</code>, <code>{`{{company}}`}</code>, and <code>{`{{website}}`}</code>.
                 </span>
 
                 <button
                   type="button"
                   onClick={handleGenerateTemplate}
                   disabled={isGenerating || !aiPrompt.trim()}
-                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {isGenerating ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin text-white" />
-                      <span>Generating Template...</span>
+                      <span>Generating Executive Template...</span>
                     </>
                   ) : (
                     <>
@@ -1002,7 +1003,7 @@ export default function TemplatesPage() {
                     </div>
 
                     <div
-                      className="prose prose-sm max-w-none text-slate-800 text-xs sm:text-sm leading-relaxed"
+                      className="overflow-x-auto text-slate-800 text-xs sm:text-sm leading-relaxed"
                       dangerouslySetInnerHTML={{
                         __html: renderSimulatedPreview(generatedResult.body, generatedResult.subject).previewHtml,
                       }}
@@ -1373,7 +1374,7 @@ export default function TemplatesPage() {
 
                       {/* Rendered Live HTML */}
                       <div
-                        className="prose prose-sm max-w-none text-slate-800 text-xs sm:text-sm leading-relaxed"
+                        className="overflow-x-auto text-slate-800 text-xs sm:text-sm leading-relaxed"
                         dangerouslySetInnerHTML={{
                           __html: renderSimulatedPreview(getCombinedHtml(), modalSubject).previewHtml,
                         }}
