@@ -5,6 +5,7 @@ export interface CustomTemplate {
   body: string;
   isCustom?: boolean;
   imageUrl?: string;
+  imageLinkUrl?: string;
   imagePosition?: 'top' | 'middle' | 'bottom';
   updatedAt?: string;
 }
