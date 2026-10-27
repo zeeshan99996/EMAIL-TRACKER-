@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Header } from '@/components/header';
+import { recordSentEmailLocally, saveSheetStatsLocally } from '@/lib/client/tracker-store';
 import {
   FileSpreadsheet,
   Send,
@@ -477,6 +478,12 @@ export default function CampaignsPage() {
         });
 
         setLeads(mergedLeads);
+        saveSheetStatsLocally({
+          totalLeads: mergedLeads.length,
+          pendingCount: mergedLeads.filter((l: LeadItem) => !l.status || !l.status.toLowerCase().includes('sent')).length,
+          sentCount: mergedLeads.filter((l: LeadItem) => l.status && l.status.toLowerCase().includes('sent')).length,
+          invalidCount: 0,
+        });
         if (targetUrl.trim()) {
           try {
             localStorage.setItem('erha_sheet_webhook_url', targetUrl.trim());
@@ -946,6 +953,14 @@ export default function CampaignsPage() {
               )
             );
             saveLeadStatusLocally(targetLead.row, targetLead.email, 'SENT ✅', timeFormatted);
+            recordSentEmailLocally({
+              recipient_email: targetLead.email,
+              recipient_name: targetLead.name,
+              subject: subject,
+              tracking_id: resultItem?.trackingId,
+              sent_at: new Date().toISOString(),
+              row: targetLead.row,
+            });
           } else {
             failedSoFar++;
             const failStatus = resultItem?.status || 'FAILED ⚠️';

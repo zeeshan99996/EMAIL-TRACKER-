@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/header';
+import { getUnifiedDashboardData, getSheetStatsLocally } from '@/lib/client/tracker-store';
 import {
   Mail,
   Eye,
@@ -43,22 +44,32 @@ export default function DashboardPage() {
     if (manual) setRefreshing(true);
     try {
       // 1. Fetch dashboard email tracking metrics
-      const dashRes = await fetch('/api/v1/dashboard', { cache: 'no-store' });
-      const dashData = await dashRes.json();
-      if (dashData && dashData.summary) {
-        setData(dashData);
-      }
+      let serverDash: any = null;
+      try {
+        const dashRes = await fetch('/api/v1/dashboard', { cache: 'no-store' });
+        serverDash = await dashRes.json();
+      } catch {}
 
-      // 2. Fetch sheet leads stats
-      const sheetRes = await fetch('/api/v1/campaigns/sheet', { cache: 'no-store' });
-      const sheetData = await sheetRes.json();
-      if (sheetData && sheetData.success) {
-        setSheetStats({
-          totalLeads: sheetData.totalLeads || 0,
-          pendingCount: sheetData.pendingCount || 0,
-          sentCount: sheetData.sentCount || 0,
-          invalidCount: sheetData.invalidCount || 0,
-        });
+      const unifiedData = getUnifiedDashboardData(serverDash);
+      setData(unifiedData);
+
+      // 2. Fetch sheet leads stats (local prioritized, fallback to API)
+      const localSheet = getSheetStatsLocally();
+      if (localSheet && localSheet.totalLeads > 0) {
+        setSheetStats(localSheet);
+      } else {
+        try {
+          const sheetRes = await fetch('/api/v1/campaigns/sheet', { cache: 'no-store' });
+          const sheetData = await sheetRes.json();
+          if (sheetData && sheetData.success) {
+            setSheetStats({
+              totalLeads: sheetData.totalLeads || 0,
+              pendingCount: sheetData.pendingCount || 0,
+              sentCount: sheetData.sentCount || 0,
+              invalidCount: sheetData.invalidCount || 0,
+            });
+          }
+        } catch {}
       }
     } catch (err) {
       console.error('Failed to load tracker overview:', err);

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Email, EmailEvent, EmailLink } from '@/lib/types';
+import { getDispatchedEmailsLocally } from '@/lib/client/tracker-store';
 import {
   ArrowLeft,
   Eye,
@@ -59,11 +60,33 @@ export default function EmailDetailsPage({ params }: { params: { id: string } })
           setEmail(data.email);
           setEvents(data.events || []);
           setLinks(data.links || []);
+        } else {
+          const localEmails = getDispatchedEmailsLocally();
+          const found = localEmails.find(e => e.id === params.id || e.tracking_id === params.id);
+          if (found) {
+            setEmail(found as any);
+            setEvents([{
+              id: `evt_${found.id}`,
+              email_id: found.id,
+              link_id: null,
+              event_type: 'SENT',
+              occurred_at: found.sent_at,
+              ip_address: null,
+              user_agent: null,
+              referer: null,
+              metadata: null,
+            }]);
+          }
         }
         setLoading(false);
       })
       .catch(err => {
         console.error('Failed to load email details:', err);
+        const localEmails = getDispatchedEmailsLocally();
+        const found = localEmails.find(e => e.id === params.id || e.tracking_id === params.id);
+        if (found) {
+          setEmail(found as any);
+        }
         setLoading(false);
       });
   };

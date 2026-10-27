@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/header';
+import { getUnifiedEmailsList } from '@/lib/client/tracker-store';
 import { Email } from '@/lib/types';
 import {
   Search,
@@ -30,11 +31,17 @@ export default function EmailsPage() {
   const loadData = async (manual = false) => {
     if (manual) setIsRefreshing(true);
     try {
-      const res = await fetch('/api/v1/dashboard', { cache: 'no-store' });
-      const data = await res.json();
-      if (data && data.emails) {
-        setEmails(data.emails);
-      }
+      let serverEmails: any[] = [];
+      try {
+        const res = await fetch('/api/v1/dashboard', { cache: 'no-store' });
+        const data = await res.json();
+        if (data && data.emails) {
+          serverEmails = data.emails;
+        }
+      } catch {}
+
+      const unified = getUnifiedEmailsList(serverEmails);
+      setEmails(unified);
     } catch (err) {
       console.error('Failed to refresh emails:', err);
     } finally {

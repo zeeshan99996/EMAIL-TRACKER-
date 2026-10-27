@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/header';
+import { getUnifiedDashboardData } from '@/lib/client/tracker-store';
 import {
   Calendar,
   ArrowUpRight,
@@ -32,11 +33,13 @@ export default function AnalyticsPage() {
     fetch('/api/v1/dashboard', { cache: 'no-store' })
       .then(r => r.json())
       .then(res => {
-        if (res && res.summary) {
-          setData(res);
-        }
+        const unified = getUnifiedDashboardData(res);
+        setData(unified);
       })
-      .catch(console.error)
+      .catch(() => {
+        const unified = getUnifiedDashboardData(null);
+        setData(unified);
+      })
       .finally(() => setLoading(false));
   }, [dateRange]);
 
