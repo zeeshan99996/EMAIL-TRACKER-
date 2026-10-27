@@ -34,6 +34,11 @@ const cleanOutreachNavSections: NavSection[] = [
     title: 'Cold Outreach Engine',
     items: [
       {
+        name: 'Overview & Graph',
+        href: '/dashboard',
+        icon: LayoutDashboard,
+      },
+      {
         name: 'Campaign Studio',
         href: '/dashboard/campaigns',
         icon: Send,
@@ -42,11 +47,6 @@ const cleanOutreachNavSections: NavSection[] = [
         name: 'Email Templates',
         href: '/dashboard/templates',
         icon: LayoutTemplate,
-      },
-      {
-        name: 'Overview & Graph',
-        href: '/dashboard',
-        icon: LayoutDashboard,
       },
       {
         name: 'Tracked Emails',
@@ -154,17 +154,17 @@ export function Sidebar({
           </div>
 
           {/* Unified Nav Sections */}
-          <nav className="px-3 py-3 space-y-4 flex-1">
+          <nav className="px-3 py-4 space-y-6 flex-1">
             {cleanOutreachNavSections.map((section) => (
               <div key={section.title}>
-                <div className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <div className="px-3.5 pb-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                   {section.title}
                 </div>
-                <div className="space-y-0.5">
+                <div className="space-y-1.5">
                   {section.items.map((item) => {
                     const isActive =
                       pathname === item.href ||
-                      (item.href !== '/dashboard' && pathname.startsWith(item.href));
+                      (item.href !== '/dashboard' && pathname?.startsWith(item.href));
                     const Icon = item.icon;
                     return (
                       <Link
@@ -172,16 +172,16 @@ export function Sidebar({
                         href={item.href}
                         prefetch={false}
                         onClick={() => setMobileOpen && setMobileOpen(false)}
-                        className={`flex items-center px-3 py-2 text-xs font-semibold rounded-xl transition-colors ${
+                        className={`flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition-all ${
                           isActive
-                            ? 'bg-blue-600 text-white shadow-xs font-bold'
-                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                            ? 'bg-blue-600 text-white shadow-sm font-bold'
+                            : 'text-black hover:text-blue-600 hover:bg-slate-100/90'
                         }`}
                       >
-                        <div className="flex items-center space-x-2.5 truncate">
+                        <div className="flex items-center space-x-3 truncate">
                           <Icon
-                            className={`w-4 h-4 shrink-0 ${
-                              isActive ? 'text-white' : 'text-slate-500'
+                            className={`w-4.5 h-4.5 shrink-0 ${
+                              isActive ? 'text-white' : 'text-slate-800'
                             }`}
                           />
                           <span className="truncate">{item.name}</span>
