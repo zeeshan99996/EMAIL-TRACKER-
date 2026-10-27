@@ -340,7 +340,7 @@ function AccountsContent() {
             </span>
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Connect and manage multiple Gmail accounts using instant App Passwords or OAuth.
+            Connect and manage multiple Gmail accounts using instant App Passwords.
           </p>
         </div>
 
@@ -375,34 +375,6 @@ function AccountsContent() {
           >
             <Server className="w-4 h-4" />
             <span>+ Other SMTP</span>
-          </button>
-
-          <button
-            onClick={handleConnectOAuth}
-            disabled={connectingOAuth}
-            title="Connect via Google OAuth browser consent"
-            className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-xs transition-all disabled:opacity-50 cursor-pointer"
-          >
-            {connectingOAuth ? (
-              <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-            ) : (
-              <Plus className="w-4 h-4 text-slate-500" />
-            )}
-            <span>OAuth</span>
-          </button>
-
-          <button
-            onClick={() => handleGlobalWarmupAction('pause')}
-            disabled={actionLoading === 'global_pause'}
-            className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-lg border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50"
-            title="Pause warmup across all accounts"
-          >
-            {actionLoading === 'global_pause' ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-700" />
-            ) : (
-              <Pause className="w-3.5 h-3.5" />
-            )}
-            <span>Pause All</span>
           </button>
         </div>
       </div>
