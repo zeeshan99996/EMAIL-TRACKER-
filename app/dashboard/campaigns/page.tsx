@@ -32,6 +32,7 @@ import {
   Edit3,
   Globe,
   Phone,
+  Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -322,6 +323,10 @@ export default function CampaignsPage() {
   const [customBatchInput, setCustomBatchInput] = useState<string>('10');
   const [filterTab, setFilterTab] = useState<'pending' | 'all' | 'sent' | 'invalid'>('pending');
   const [searchQuery, setSearchQuery] = useState('');
+  const [sheetSyncStatus, setSheetSyncStatus] = useState<{
+    type: 'success' | 'error' | 'warning';
+    message: string;
+  } | null>(null);
 
   // Workflow Active Step (1: Batch Leads -> 2: Sender -> 3: Template -> 4: Send)
   const [activeStep, setActiveStep] = useState<number>(1);
@@ -374,9 +379,10 @@ export default function CampaignsPage() {
 
   const cancelDispatchRef = useRef(false);
 
-  // Load leads from Sheet Webhook or Demo Data
+  // Load leads from Direct Google Sheet, Webhook, or Demo Data
   const fetchLeads = async (url?: string) => {
     setRefreshing(true);
+    setSheetSyncStatus(null);
     try {
       const targetUrl = url !== undefined ? url : sheetUrl;
       const endpoint = targetUrl.trim()
@@ -385,12 +391,18 @@ export default function CampaignsPage() {
 
       const res = await fetch(endpoint, { cache: 'no-store' });
       const data = await res.json();
-      if (data && data.leads) {
+      if (res.ok && data && data.success && Array.isArray(data.leads)) {
         setLeads(data.leads);
         if (targetUrl.trim()) {
           try {
             localStorage.setItem('erha_sheet_webhook_url', targetUrl.trim());
           } catch {}
+          setSheetSyncStatus({
+            type: 'success',
+            message: data.source === 'google_sheet_direct'
+              ? `Connected directly! Synced ${data.leads.length} leads directly from your Google Sheet.`
+              : `Connected! Synced ${data.leads.length} leads.`,
+          });
         }
         // Auto-select pending leads based on batchCount (or all leads if none marked sent)
         const pendingLeads = data.leads.filter(
@@ -398,9 +410,19 @@ export default function CampaignsPage() {
         );
         const toSelect = pendingLeads.length > 0 ? pendingLeads : data.leads;
         setSelectedRows(toSelect.slice(0, batchCount).map((l: LeadItem) => l.row));
+      } else {
+        const errorMsg = data?.error || 'Unable to connect or sync leads from this URL.';
+        setSheetSyncStatus({
+          type: data?.isPrivate ? 'warning' : 'error',
+          message: errorMsg,
+        });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load leads:', err);
+      setSheetSyncStatus({
+        type: 'error',
+        message: err.message || 'Network error connecting to Google Sheet.',
+      });
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -964,7 +986,7 @@ export default function CampaignsPage() {
           </div>
         </div>
 
-        {/* Sheet Webhook URL Input */}
+        {/* Sheet Webhook / Direct URL Input */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-2 border-t border-slate-100">
           <div className="relative flex-1">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -972,32 +994,88 @@ export default function CampaignsPage() {
             </div>
             <input
               type="text"
-              placeholder="Paste Google Apps Script Web App URL (e.g., https://script.google.com/macros/s/.../exec)"
+              placeholder="Paste direct Google Sheet URL (https://docs.google.com/spreadsheets/d/...) or Apps Script URL"
               value={sheetUrl}
-              onChange={(e) => setSheetUrl(e.target.value)}
+              onChange={(e) => {
+                setSheetUrl(e.target.value);
+                if (sheetSyncStatus) setSheetSyncStatus(null);
+              }}
               className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-xl text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500/20"
             />
           </div>
           <button
+            type="button"
             onClick={() => fetchLeads(sheetUrl)}
-            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-xs shrink-0"
+            disabled={refreshing}
+            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-xs shrink-0 disabled:opacity-50 cursor-pointer"
           >
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            Connect
+            {refreshing ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Connecting...</span>
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Connect</span>
+              </>
+            )}
           </button>
           <button
+            type="button"
             onClick={() => {
               try {
                 localStorage.removeItem('erha_sheet_webhook_url');
               } catch {}
               setSheetUrl('');
+              setSheetSyncStatus(null);
               fetchLeads('');
             }}
-            className="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-900 text-xs font-medium border border-slate-200 transition-colors shrink-0 text-center"
+            className="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-900 text-xs font-medium border border-slate-200 transition-colors shrink-0 text-center cursor-pointer"
           >
             Load Sample Sheet
           </button>
         </div>
+
+        {/* Direct Sync Helper Note */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-[11px] text-slate-500 pt-1">
+          <div className="flex items-center gap-1.5">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            <span>
+              <strong>Zero-Setup Direct Sync:</strong> Paste your Google Sheet URL (ensure Sheet Share is set to <em>&quot;Anyone with the link can view&quot;</em>).
+            </span>
+          </div>
+          <span className="text-slate-400">Auto-detects Name, Email, Company &amp; Phone columns</span>
+        </div>
+
+        {/* Sync Status Banner */}
+        {sheetSyncStatus && (
+          <div
+            className={`p-2.5 rounded-xl border text-xs font-semibold flex items-start sm:items-center justify-between gap-2 animate-in fade-in duration-200 ${
+              sheetSyncStatus.type === 'success'
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                : sheetSyncStatus.type === 'warning'
+                ? 'bg-amber-50 border-amber-200 text-amber-800'
+                : 'bg-rose-50 border-rose-200 text-rose-800'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              {sheetSyncStatus.type === 'success' ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              ) : (
+                <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" />
+              )}
+              <span>{sheetSyncStatus.message}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSheetSyncStatus(null)}
+              className="text-slate-400 hover:text-slate-600 p-0.5"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
 
         {/* 4 Metric Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2">

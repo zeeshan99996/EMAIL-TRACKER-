@@ -7,6 +7,11 @@ import {
   updateInMemoryLeadStatuses,
 } from '@/lib/campaigns/sheet-leads';
 import { isSafeWebhookUrl } from '@/lib/security/url-validator';
+import {
+  isGoogleSheetUrl,
+  getGoogleSheetCsvUrl,
+  convertCsvToLeads,
+} from '@/lib/campaigns/google-sheet-parser';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,8 +25,61 @@ export async function GET(req: NextRequest) {
       resetDemoLeadsStore();
     }
 
-    // 1. If user provided a real Google Apps Script Web App URL, fetch live data from the sheet!
     if (webhookUrl && isSafeWebhookUrl(webhookUrl)) {
+      // Direct Google Sheet Link Detection (No Apps Script required!)
+      if (isGoogleSheetUrl(webhookUrl)) {
+        const csvExportUrl = getGoogleSheetCsvUrl(webhookUrl);
+        if (csvExportUrl) {
+          try {
+            const csvResponse = await fetch(csvExportUrl, {
+              method: 'GET',
+              headers: { Accept: 'text/csv, text/plain, */*' },
+              redirect: 'follow',
+              cache: 'no-store',
+              signal: AbortSignal.timeout(10000),
+            });
+
+            const csvText = await csvResponse.text();
+            const parsedResult = convertCsvToLeads(csvText);
+
+            if (!parsedResult.success) {
+              return NextResponse.json(
+                {
+                  success: false,
+                  error: parsedResult.error || 'Failed to read Google Sheet.',
+                  isPrivate: parsedResult.isPrivate || false,
+                  leads: [],
+                },
+                { status: 400 }
+              );
+            }
+
+            setDemoLeadsStore(parsedResult.leads);
+
+            return NextResponse.json({
+              success: true,
+              source: 'google_sheet_direct',
+              sheetTitle: parsedResult.sheetTitle || 'Google Sheet (Direct Link)',
+              totalLeads: parsedResult.leads.length,
+              pendingCount: parsedResult.leads.filter((l) => l.status === 'PENDING').length,
+              sentCount: parsedResult.leads.filter((l) => l.status === 'SENT').length,
+              invalidCount: 0,
+              leads: parsedResult.leads,
+            });
+          } catch (err: any) {
+            return NextResponse.json(
+              {
+                success: false,
+                error: `Unable to connect to Google Sheet: ${err.message || 'Network timeout'}`,
+                leads: [],
+              },
+              { status: 502 }
+            );
+          }
+        }
+      }
+
+      // Google Apps Script Web App URL fallback
       try {
         const fetchUrl = webhookUrl.includes('?') 
           ? `${webhookUrl}&action=getLeads` 

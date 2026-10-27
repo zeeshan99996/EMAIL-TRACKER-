@@ -5,6 +5,7 @@ import { DEFAULT_PROJECT } from '@/lib/store';
 import { unifiedSendEmail } from '@/lib/mail/unified';
 import { updateInMemoryLeadStatuses } from '@/lib/campaigns/sheet-leads';
 import { isSafeWebhookUrl } from '@/lib/security/url-validator';
+import { isGoogleSheetUrl } from '@/lib/campaigns/google-sheet-parser';
 
 export const dynamic = 'force-dynamic';
 
@@ -246,7 +247,7 @@ export async function POST(req: NextRequest) {
       updateInMemoryLeadStatuses(sheetUpdates);
 
       // If user provided a real Google Apps Script Web App URL, notify sheet directly with 6s timeout
-      if (sheetWebhookUrl && isSafeWebhookUrl(sheetWebhookUrl)) {
+      if (sheetWebhookUrl && isSafeWebhookUrl(sheetWebhookUrl) && !isGoogleSheetUrl(sheetWebhookUrl)) {
         try {
           await fetch(sheetWebhookUrl, {
             method: 'POST',
