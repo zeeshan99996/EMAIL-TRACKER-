@@ -61,6 +61,9 @@ export default function TemplatesPage() {
   const [aiTone, setAiTone] = useState<'professional' | 'direct' | 'friendly' | 'value-first'>('professional');
   const [aiImageUrl, setAiImageUrl] = useState('');
   const [aiImageLinkUrl, setAiImageLinkUrl] = useState('');
+  const [isUploadingAiImage, setIsUploadingAiImage] = useState(false);
+  const [aiButtonText, setAiButtonText] = useState('');
+  const [aiButtonUrl, setAiButtonUrl] = useState('');
   const [showAdvancedAi, setShowAdvancedAi] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
@@ -70,12 +73,18 @@ export default function TemplatesPage() {
     body: string;
     imageUrl?: string;
     imageLinkUrl?: string;
+    buttonText?: string;
+    buttonUrl?: string;
   } | null>(null);
 
-  // Quick Insert Modals (Text Link)
+  // Quick Insert Modals (Text Link & Custom Action Button)
   const [showInsertLinkModal, setShowInsertLinkModal] = useState(false);
   const [customLinkText, setCustomLinkText] = useState('');
   const [customLinkUrl, setCustomLinkUrl] = useState('');
+
+  const [showInsertButtonModal, setShowInsertButtonModal] = useState(false);
+  const [customButtonText, setCustomButtonText] = useState('');
+  const [customButtonUrl, setCustomButtonUrl] = useState('');
 
   // Interactive Visual Editor Refs (contentEditable direct editing)
   const visualEditorRef = useRef<HTMLDivElement>(null);
@@ -254,17 +263,47 @@ export default function TemplatesPage() {
     }
   };
 
-  // Select Image File From PC for AI Generator
+  // Select Image File From PC for AI Generator (Instant Visual Display & Upload)
   const handleAiFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64 = event.target?.result as string;
-      setAiImageUrl(base64);
-    };
-    reader.readAsDataURL(file);
+    if (!file.type.startsWith('image/')) {
+      alert('Please select a valid image file (PNG, JPG, JPEG, WEBP, or GIF).');
+      return;
+    }
+
+    setIsUploadingAiImage(true);
+
+    try {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const base64Data = event.target?.result as string;
+        // Instantly display the image in the UI card
+        setAiImageUrl(base64Data);
+
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+          const res = await fetch('/api/v1/templates/upload-image', {
+            method: 'POST',
+            body: formData,
+          });
+          const json = await res.json();
+          if (json.success && json.url) {
+            setAiImageUrl(json.url);
+          }
+        } catch {
+          // Keep base64Data on fallback
+        } finally {
+          setIsUploadingAiImage(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (err: any) {
+      alert('Failed to read image file: ' + err.message);
+      setIsUploadingAiImage(false);
+    }
   };
 
   // Insert Variable into Subject or Body
@@ -295,6 +334,24 @@ export default function TemplatesPage() {
     setShowInsertLinkModal(false);
     setCustomLinkText('');
     setCustomLinkUrl('');
+  };
+
+  // Insert Custom Action Button (e.g. "Our Services", "Book a Demo") into Visual Editor
+  const handleInsertCustomButton = () => {
+    const text = customButtonText.trim() || 'Our Services';
+    const url = customButtonUrl.trim() || '#';
+    const buttonHtml = `<div style="margin: 16px 0; text-align: center;"><a href="${url}" target="_blank" rel="noopener noreferrer" style="background-color: #2563eb; color: #ffffff; padding: 10px 22px; border-radius: 8px; font-weight: 700; font-size: 13.5px; text-decoration: none; display: inline-block; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);">${text} &rarr;</a></div>`;
+
+    if (editorTab === 'visual' && visualEditorRef.current) {
+      visualEditorRef.current.focus();
+      document.execCommand('insertHTML', false, buttonHtml);
+      setModalBody(visualEditorRef.current.innerHTML);
+    } else {
+      setModalBody((prev) => `${prev}\n${buttonHtml}`);
+    }
+    setShowInsertButtonModal(false);
+    setCustomButtonText('');
+    setCustomButtonUrl('');
   };
 
   // Construct Final HTML with Image & Clickable Link embedded
@@ -384,6 +441,8 @@ export default function TemplatesPage() {
           tone: aiTone,
           imageUrl: aiImageUrl.trim() || undefined,
           imageLinkUrl: aiImageLinkUrl.trim() || undefined,
+          buttonText: aiButtonText.trim() || undefined,
+          buttonUrl: aiButtonUrl.trim() || undefined,
         }),
       });
 
@@ -434,6 +493,10 @@ export default function TemplatesPage() {
     setShowAiModal(false);
     setGeneratedResult(null);
     setAiPrompt('');
+    setAiImageUrl('');
+    setAiImageLinkUrl('');
+    setAiButtonText('');
+    setAiButtonUrl('');
 
     if (andOpenCampaign) {
       try {
@@ -815,7 +878,7 @@ export default function TemplatesPage() {
                 </select>
               </div>
 
-              {/* Clickable Image & Graphic Settings */}
+              {/* Clickable Image & Custom Action Button Settings */}
               <div className="border border-slate-200 rounded-xl p-2.5 sm:p-3 bg-slate-50/50">
                 <button
                   type="button"
@@ -824,15 +887,23 @@ export default function TemplatesPage() {
                 >
                   <span className="flex items-center gap-1.5">
                     <ImageIcon className="w-3.5 h-3.5 text-blue-600" />
-                    <span>Clickable Image &amp; Graphic Settings</span>
+                    <span>Clickable Image &amp; Custom Action Button</span>
                   </span>
-                  <span className="text-[10px] text-blue-600 font-semibold">
-                    {showAdvancedAi ? 'Hide Settings' : 'Add Image / Banner'}
+                  <span className="text-[10px] text-blue-600 font-semibold flex items-center gap-1">
+                    {(aiImageUrl || aiButtonText.trim()) && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                    )}
+                    {showAdvancedAi
+                      ? 'Hide Settings'
+                      : (aiImageUrl || aiButtonText.trim())
+                      ? 'Configured'
+                      : 'Add Image or Button'}
                   </span>
                 </button>
 
                 {showAdvancedAi && (
-                  <div className="mt-2.5 pt-2.5 border-t border-slate-200/80 space-y-2.5">
+                  <div className="mt-2.5 pt-2.5 border-t border-slate-200/80 space-y-3">
+                    {/* 1. Clickable Image Destination Link */}
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 mb-1">
                         Clickable Image Link (Opens when image clicked):
@@ -841,23 +912,27 @@ export default function TemplatesPage() {
                         type="url"
                         value={aiImageLinkUrl}
                         onChange={(e) => setAiImageLinkUrl(e.target.value)}
-                        placeholder="https://yourwebsite.com/portfolio"
+                        placeholder="https://yourwebsite.com/portfolio (e.g. Portfolio or case study)"
                         className="w-full bg-white border border-slate-200 focus:border-blue-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-medium focus:outline-none"
                       />
                     </div>
 
+                    {/* 2. Image Selector & Live Preview Card */}
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <label className="text-[11px] font-bold text-slate-700">
                           Template Graphic / Image:
                         </label>
-                        <button
-                          type="button"
-                          onClick={() => aiFileInputRef.current?.click()}
-                          className="text-[10px] font-bold text-blue-600 hover:text-blue-800 cursor-pointer"
-                        >
-                          Browse from PC...
-                        </button>
+                        {!aiImageUrl && (
+                          <button
+                            type="button"
+                            onClick={() => aiFileInputRef.current?.click()}
+                            disabled={isUploadingAiImage}
+                            className="text-[10px] font-bold text-blue-600 hover:text-blue-800 cursor-pointer disabled:opacity-50"
+                          >
+                            {isUploadingAiImage ? 'Reading...' : 'Browse from PC...'}
+                          </button>
+                        )}
                       </div>
 
                       <input
@@ -868,13 +943,136 @@ export default function TemplatesPage() {
                         className="hidden"
                       />
 
-                      <input
-                        type="text"
-                        value={aiImageUrl}
-                        onChange={(e) => setAiImageUrl(e.target.value)}
-                        placeholder="Paste image URL or browse from PC above"
-                        className="w-full bg-white border border-slate-200 focus:border-blue-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-medium focus:outline-none"
-                      />
+                      {aiImageUrl ? (
+                        /* Live Image Preview Card showing the exact image! */
+                        <div className="border border-slate-200 rounded-xl p-2.5 bg-white flex items-center justify-between gap-3 shadow-2xs">
+                          <div className="flex items-center gap-2.5 overflow-hidden">
+                            <div className="w-16 h-12 bg-slate-100 rounded-lg border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center relative">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={aiImageUrl}
+                                alt="Selected Graphic"
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                                <span>Image Attached</span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                              </div>
+                              <p className="text-[11px] text-slate-500 truncate">
+                                {aiImageLinkUrl ? `Click link: ${aiImageLinkUrl}` : 'Image will be embedded in template'}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => aiFileInputRef.current?.click()}
+                              disabled={isUploadingAiImage}
+                              className="px-2.5 py-1 rounded-lg text-[10px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
+                            >
+                              {isUploadingAiImage ? 'Reading...' : 'Change'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setAiImageUrl('');
+                                if (aiFileInputRef.current) aiFileInputRef.current.value = '';
+                              }}
+                              className="p-1 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer"
+                              title="Remove image"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={aiImageUrl}
+                            onChange={(e) => setAiImageUrl(e.target.value)}
+                            placeholder="Paste image URL or browse from PC..."
+                            className="flex-1 bg-white border border-slate-200 focus:border-blue-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-medium focus:outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => aiFileInputRef.current?.click()}
+                            disabled={isUploadingAiImage}
+                            className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer shrink-0 disabled:opacity-50"
+                          >
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>{isUploadingAiImage ? 'Reading...' : 'Browse PC...'}</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 3. Custom Action Button (e.g. "Our Services", "Book Demo") */}
+                    <div className="pt-2.5 border-t border-slate-200/80 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
+                          <Sliders className="w-3.5 h-3.5 text-blue-600" />
+                          <span>Custom Action Button (Optional):</span>
+                        </label>
+                        {aiButtonText.trim() && (
+                          <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                            Button Active
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">
+                            Button Text (Label):
+                          </label>
+                          <input
+                            type="text"
+                            value={aiButtonText}
+                            onChange={(e) => setAiButtonText(e.target.value)}
+                            placeholder="e.g. Our Services, Book a Demo, View Pricing"
+                            className="w-full bg-white border border-slate-200 focus:border-blue-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-medium focus:outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">
+                            Button Destination URL (Link):
+                          </label>
+                          <input
+                            type="url"
+                            value={aiButtonUrl}
+                            onChange={(e) => setAiButtonUrl(e.target.value)}
+                            placeholder="https://yourwebsite.com/services"
+                            className="w-full bg-white border border-slate-200 focus:border-blue-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-medium focus:outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Live Button Preview */}
+                      {aiButtonText.trim() && (
+                        <div className="bg-slate-100/80 border border-slate-200 rounded-lg p-2 flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-slate-500 font-semibold">Button Preview:</span>
+                            <span className="inline-block px-3 py-1 bg-blue-600 text-white font-bold text-[11px] rounded-md shadow-2xs">
+                              {aiButtonText.trim()} &rarr;
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAiButtonText('');
+                              setAiButtonUrl('');
+                            }}
+                            className="text-[10px] text-rose-500 hover:text-rose-700 font-semibold cursor-pointer"
+                          >
+                            Clear Button
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1253,6 +1451,20 @@ export default function TemplatesPage() {
                     <Link2 className="w-3 h-3 text-blue-600" />
                     <span>Insert Link</span>
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomButtonText('Our Services');
+                      setCustomButtonUrl('https://');
+                      setShowInsertButtonModal(true);
+                    }}
+                    className="px-2.5 py-1 rounded-lg text-xs font-bold text-blue-700 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors flex items-center gap-1 cursor-pointer shadow-2xs"
+                    title="Insert Custom Action Button into template"
+                  >
+                    <ExternalLink className="w-3 h-3 text-blue-600" />
+                    <span>Insert Button</span>
+                  </button>
                 </div>
 
                 <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 sm:px-2.5 py-1 rounded-lg font-medium">
@@ -1422,6 +1634,82 @@ export default function TemplatesPage() {
                 className="px-4 py-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-xs cursor-pointer"
               >
                 Insert Link
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* 4. QUICK INSERT CUSTOM BUTTON MODAL                       */}
+      {/* ========================================================= */}
+      {showInsertButtonModal && (
+        <div className="fixed inset-0 z-60 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm sm:max-w-md p-4 sm:p-5 shadow-2xl space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                <ExternalLink className="w-4 h-4 text-blue-600" />
+                <span>Insert Custom Action Button</span>
+              </h4>
+              <button
+                type="button"
+                onClick={() => setShowInsertButtonModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="space-y-2.5">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Button Label / Text (e.g. Our Services, Book a Demo):
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Our Services"
+                  value={customButtonText}
+                  onChange={(e) => setCustomButtonText(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-medium focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Button Destination Link (URL):
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://yourwebsite.com/services"
+                  value={customButtonUrl}
+                  onChange={(e) => setCustomButtonUrl(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-medium focus:outline-none"
+                />
+              </div>
+
+              {/* Live Preview in Modal */}
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-center">
+                <div className="text-[10px] text-slate-400 font-semibold mb-1.5">Preview:</div>
+                <span className="inline-block px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-lg shadow-xs">
+                  {customButtonText.trim() || 'Our Services'} &rarr;
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setShowInsertButtonModal(false)}
+                className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleInsertCustomButton}
+                className="px-4 py-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-xs cursor-pointer"
+              >
+                Insert Button
               </button>
             </div>
           </div>

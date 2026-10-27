@@ -5,6 +5,8 @@ export interface GenerateTemplateRequest {
   tone?: 'professional' | 'direct' | 'friendly' | 'value-first';
   imageUrl?: string;
   imageLinkUrl?: string;
+  buttonText?: string;
+  buttonUrl?: string;
   targetAudience?: string;
 }
 
@@ -14,6 +16,8 @@ export interface GeneratedTemplateResponse {
   body: string;
   imageUrl?: string;
   imageLinkUrl?: string;
+  buttonText?: string;
+  buttonUrl?: string;
 }
 
 function getGeminiClient(): GoogleGenerativeAI | null {
@@ -159,17 +163,31 @@ export function synthesizeTemplateHeuristically(req: GenerateTemplateRequest): G
   // Construct Image Tag if requested or provided
   let imageSection = '';
   if (imageUrl) {
-    const imgTag = `<img src="${imageUrl}" alt="Feature Showcase" style="max-width: 100%; height: auto; border-radius: 8px; border: 1px solid #e2e8f0; display: block; margin: 0 auto;" />`;
+    const imgTag = `<img src="${imageUrl}" alt="Campaign Graphic" style="max-width: 100%; height: auto; border-radius: 8px; border: 1px solid #e2e8f0; display: block; margin: 0 auto; box-shadow: 0 2px 6px rgba(0,0,0,0.06);" />`;
     const clickableImg = imageLinkUrl
-      ? `<a href="${imageLinkUrl}" target="_blank" rel="noopener noreferrer" style="display: block; text-decoration: none;">${imgTag}</a>`
+      ? `<a href="${imageLinkUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; text-decoration: none;">\n        ${imgTag}\n      </a>`
       : imgTag;
 
     imageSection = `
-    <!-- Image Media Section -->
-    <div style="margin: 20px 0; text-align: center;">
-      ${clickableImg}
-      ${imageLinkUrl ? '<div style="font-size: 11px; color: #64748b; margin-top: 6px; font-weight: 500;">Click image to explore demo &rarr;</div>' : ''}
-    </div>`;
+      <!-- Attached Graphic Section -->
+      <div style="margin: 16px 0; text-align: center;">
+        ${clickableImg}
+        ${imageLinkUrl ? `<div style="font-size: 11px; margin-top: 6px;"><a href="${imageLinkUrl}" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: underline; font-weight: 600;">Open image link &rarr;</a></div>` : ''}
+      </div>`;
+  }
+
+  // Construct Custom Action Button if requested or provided
+  let buttonSection = '';
+  const buttonText = req.buttonText?.trim() || (req.buttonUrl?.trim() ? 'Our Services' : '');
+  const buttonUrl = req.buttonUrl?.trim() || '#';
+  if (buttonText) {
+    buttonSection = `
+      <!-- Custom Action Button -->
+      <div style="margin: 16px 0; text-align: center;">
+        <a href="${buttonUrl}" target="_blank" rel="noopener noreferrer" style="background-color: #2563eb; color: #ffffff; padding: 10px 22px; border-radius: 8px; font-weight: 700; font-size: 13.5px; text-decoration: none; display: inline-block; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);">
+          ${buttonText} &rarr;
+        </a>
+      </div>`;
   }
 
   // Final Professional Executive HTML Template (without CTA buttons) - 100% Fluid & Mobile-Responsive
@@ -232,6 +250,8 @@ export function synthesizeTemplateHeuristically(req: GenerateTemplateRequest): G
         </p>
       </div>
 
+      ${buttonSection}
+
       <p style="font-size: 13.5px; color: #334155; margin: 14px 0 0 0; line-height: 1.55;">
         Would you have 10 minutes this week to see how this could move the needle for {{company}}?
       </p>
@@ -260,6 +280,8 @@ export function synthesizeTemplateHeuristically(req: GenerateTemplateRequest): G
     body,
     imageUrl: imageUrl || undefined,
     imageLinkUrl: imageLinkUrl || undefined,
+    buttonText: buttonText || undefined,
+    buttonUrl: buttonUrl !== '#' ? buttonUrl : undefined,
   };
 }
 
@@ -279,7 +301,7 @@ You are an expert enterprise cold email copywriter and HTML email architect.
 Your mission is to generate high-converting, spam-free, responsive HTML email templates based on user requirements.
 THEME: Slate & Royal Blue (colors: text #0f172a / #334155, primary brand #2563eb, light card background #f8fafc, borders #e2e8f0).
 No tacky emojis or rainbow colors. Clean, executive, modern layout.
-DO NOT include any Call to Action buttons or CTA button boxes.
+DO NOT include any CTA button boxes unless a custom button is explicitly specified in the prompt.
 
 STRICT FORMAT REQUIREMENTS:
 1. You MUST respond with ONLY a valid, parseable JSON object with these EXACT keys:
@@ -295,8 +317,10 @@ STRICT FORMAT REQUIREMENTS:
        </div>
      </div>
 2. If image is provided or requested:
-   Embed: <div style="margin: 18px 0; text-align: center;"><a href="${req.imageLinkUrl || 'https://example.com'}"><img src="${req.imageUrl || 'https://placehold.co/600x200/eff6ff/2563eb?text=Feature+Graphic'}" alt="Preview" style="max-width: 100%; height: auto; border-radius: 8px; border: 1px solid #e2e8f0;" /></a></div>
-3. NO markdown fences like \`\`\`json or \`\`\`. Output ONLY raw valid JSON.
+   Embed: <div style="margin: 16px 0; text-align: center;"><a href="${req.imageLinkUrl || 'https://example.com'}"><img src="${req.imageUrl || 'https://placehold.co/600x200/eff6ff/2563eb?text=Feature+Graphic'}" alt="Preview" style="max-width: 100%; height: auto; border-radius: 8px; border: 1px solid #e2e8f0;" /></a></div>
+3. If custom button is requested:
+   Embed: <div style="margin: 16px 0; text-align: center;"><a href="${req.buttonUrl || '#'}" style="background-color: #2563eb; color: #ffffff; padding: 10px 22px; border-radius: 8px; font-weight: 700; font-size: 13.5px; text-decoration: none; display: inline-block;">${req.buttonText || 'Our Services'} &rarr;</a></div>
+4. NO markdown fences like \`\`\`json or \`\`\`. Output ONLY raw valid JSON.
 `;
 
     const prompt = `
@@ -305,6 +329,8 @@ Requested Tone: ${req.tone || 'professional'}
 Target Audience: ${req.targetAudience || 'Decision Makers, Founders, Executives'}
 ${req.imageUrl ? `Image URL to include: "${req.imageUrl}"` : ''}
 ${req.imageLinkUrl ? `Image Click / Destination URL: "${req.imageLinkUrl}"` : ''}
+${req.buttonText ? `Custom Button Label: "${req.buttonText}"` : ''}
+${req.buttonUrl ? `Custom Button Destination URL: "${req.buttonUrl}"` : ''}
 
 Generate the JSON template now.
 `;
@@ -338,6 +364,8 @@ Generate the JSON template now.
             body: String(parsed.body).trim(),
             imageUrl: req.imageUrl || undefined,
             imageLinkUrl: req.imageLinkUrl || undefined,
+            buttonText: req.buttonText || undefined,
+            buttonUrl: req.buttonUrl || undefined,
           };
         }
         return null;
