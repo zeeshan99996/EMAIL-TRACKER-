@@ -17,7 +17,6 @@ import {
   X,
   Eye,
   Code2,
-  Sparkles,
   Info,
   Link2,
   Loader2,
@@ -566,7 +565,6 @@ export default function TemplatesPage() {
             }}
             className="w-full sm:w-auto px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer text-center"
           >
-            <Sparkles className="w-3.5 h-3.5 text-blue-400 shrink-0" />
             <span className="truncate">AI Prompt</span>
           </button>
 
@@ -646,7 +644,6 @@ export default function TemplatesPage() {
               onClick={() => setShowAiModal(true)}
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5 text-blue-400" />
               <span>Generate with Prompt</span>
             </button>
             <button
@@ -801,15 +798,10 @@ export default function TemplatesPage() {
           <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-3xl sm:max-w-4xl shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col animate-in fade-in zoom-in-95 duration-200">
             {/* Modal Header */}
             <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-3.5 border-b border-slate-100 bg-slate-50/70 shrink-0">
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center font-bold">
-                  <Sparkles className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm sm:text-base font-bold text-slate-900">
-                    AI Template Studio
-                  </h3>
-                </div>
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-slate-900">
+                  AI Template Studio
+                </h3>
               </div>
 
               <button
@@ -1090,10 +1082,7 @@ export default function TemplatesPage() {
                       <span>Generating Executive Template...</span>
                     </>
                   ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 text-white" />
-                      <span>Generate Template</span>
-                    </>
+                    <span>Generate Template</span>
                   )}
                 </button>
               </div>

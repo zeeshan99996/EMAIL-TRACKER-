@@ -28,7 +28,6 @@ import {
   ExternalLink,
   Eye,
   EyeOff,
-  Sparkles,
 } from 'lucide-react';
 
 interface InboxThread {
@@ -728,7 +727,6 @@ export default function InboxPage() {
                     onClick={generateAiReply}
                     className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-semibold transition-all cursor-pointer"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-blue-600" />
                     Draft AI Follow-up
                   </button>
                 </div>
