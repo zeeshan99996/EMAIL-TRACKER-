@@ -69,18 +69,18 @@ export function synthesizeTemplateHeuristically(req: GenerateTemplateRequest): G
       .filter((s) => s.length > 3 && !s.startsWith('http') && !s.includes('link') && !s.includes('button'));
   }
 
-  // Detect domain & intent from user instruction
-  const isDiscount = /discount|promo|coupon|deal|sale|offer|\d+%/i.test(promptLower);
-  const isInvite = /invite|invitation|webinar|event|summit|conference|workshop|meetup|podcast|masterclass/i.test(promptLower);
-  const isHiring = /hire|hiring|job|recruiting|talent|engineer|developer|designer|position|role|vacancy/i.test(promptLower);
-  const isLaunch = /launch|announcing|new product|feature|update|version|introducing/i.test(promptLower);
-  const isFollowup = /follow[\s-]?up|checking in|bump|reconnect|floating/i.test(promptLower);
-  const isFitness = /gym|fitness|workout|trainer|health|wellness|nutrition|yoga/i.test(promptLower);
-  const isDesignWeb = /website|web|design|ux|ui|redesign|frontend|agency|seo|branding/i.test(promptLower);
-  const isEcommerce = /store|shop|ecommerce|e-com|cart|products|retail|shopify/i.test(promptLower);
-  const isRealEstate = /real estate|property|properties|realtor|broker|housing|commercial lease/i.test(promptLower);
-  const isSoftware = /software|saas|app|platform|cloud|api|tech|automation|ai/i.test(promptLower);
-  const isConsulting = /consult|advis|audit|strategy|finance|accounting|legal/i.test(promptLower);
+  // Detect domain & intent from user instruction with strict word boundaries
+  const isRealEstate = /\b(real estate|property|properties|villa|villas|mansion|condo|apartment|apartments|realtor|broker|housing|lease)\b/i.test(promptLower);
+  const isFitness = /\b(gym|fitness|workout|trainer|wellness|nutrition|yoga|crossfit)\b/i.test(promptLower);
+  const isInvite = /\b(invite|invitation|webinar|summit|conference|workshop|meetup|podcast|masterclass)\b/i.test(promptLower);
+  const isHiring = /\b(hire|hiring|recruiting|talent|engineer|developer|designer|vacancy)\b/i.test(promptLower);
+  const isLaunch = /\b(launch|announcing|new product|feature update|introducing)\b/i.test(promptLower);
+  const isFollowup = /\b(follow[\s-]?up|checking in|bump|reconnect)\b/i.test(promptLower);
+  const isEcommerce = /\b(store|shop|ecommerce|e-com|cart|retail|shopify)\b/i.test(promptLower);
+  const isDesignWeb = /\b(website|redesign|frontend|branding|seo)\b/i.test(promptLower);
+  const isSoftware = /\b(software|saas|platform|cloud|api|automation)\b/i.test(promptLower);
+  const isConsulting = /\b(consulting|advisory|audit|accounting)\b/i.test(promptLower);
+  const isDiscount = !isRealEstate && /\b(discount|promo|coupon|deal|sale|special offer|\d+%\s*(?:off|discount)?)\b/i.test(promptLower);
 
   // Template Title
   const cleanTitle = coreTopic.length > 40 ? coreTopic.slice(0, 40) + '...' : coreTopic;
@@ -88,16 +88,19 @@ export function synthesizeTemplateHeuristically(req: GenerateTemplateRequest): G
 
   // Dynamic Subject Line directly tied to user's instruction
   let subject = '';
-  if (isDiscount) {
+  if (isRealEstate) {
+    subject = `Prime property opportunity for {{company}}: ${cleanTitle.slice(0, 28)}`;
+  } else if (isDiscount) {
     const discountMatch = promptRaw.match(/(\d+%\s*(?:off|discount)?)/i);
-    const disc = discountMatch ? discountMatch[1] : 'Special offer';
+    let disc = discountMatch ? discountMatch[1].trim() : 'Special promotional offer';
+    if (/^\d+%$/.test(disc)) disc = `${disc} discount`;
     subject = `${disc} for {{company}}`;
   } else if (isInvite) {
-    subject = `Invitation for {{company}}: ${cleanTitle}`;
+    subject = `Invitation for {{company}}: ${cleanTitle.slice(0, 32)}`;
   } else if (isHiring) {
     subject = `Career opportunity regarding {{company}}`;
   } else if (isLaunch) {
-    subject = `Introducing ${cleanTitle} for {{company}}`;
+    subject = `Introducing ${cleanTitle.slice(0, 30)} for {{company}}`;
   } else if (isFollowup) {
     subject = `Following up regarding {{company}}`;
   } else if (isFitness) {
@@ -110,18 +113,24 @@ export function synthesizeTemplateHeuristically(req: GenerateTemplateRequest): G
 
   // Preheader Badge Text
   let badgeText = `${cleanTitle.slice(0, 22).toUpperCase()} • {{company}}`;
-  if (isDiscount) badgeText = `SPECIAL PROMOTION • {{company}}`;
+  if (isRealEstate) badgeText = `EXCLUSIVE PROPERTY • {{company}}`;
+  else if (isDiscount) badgeText = `SPECIAL PROMOTION • {{company}}`;
   else if (isInvite) badgeText = `EXCLUSIVE INVITATION • {{company}}`;
   else if (isHiring) badgeText = `CAREER OPPORTUNITY • {{company}}`;
+  else if (isFitness) badgeText = `WELLNESS INITIATIVE • {{company}}`;
 
   // Dynamic Executive Heading
   let heading = '';
-  if (isDiscount) {
+  if (isRealEstate) {
+    heading = `Exclusive luxury portfolio & investment terms for {{company}}`;
+  } else if (isDiscount) {
     heading = `Exclusive promotional terms & value for {{company}}`;
   } else if (isInvite) {
     heading = `You are cordially invited: Connecting industry leaders at {{company}}`;
   } else if (isHiring) {
     heading = `High-impact opportunity tailored for leaders at {{company}}`;
+  } else if (isFitness) {
+    heading = `Elevating team wellness & high performance at {{company}}`;
   } else {
     heading = `Accelerating results through ${coreTopic.slice(0, 50)} for {{company}}`;
   }
@@ -187,19 +196,19 @@ export function synthesizeTemplateHeuristically(req: GenerateTemplateRequest): G
 
   // Domain-Specific Proof Quote
   let proofQuote = `"Achieved a +42% reply rate and measurable return within the first two weeks of sequence rollout."`;
-  if (isFitness) proofQuote = `"Participants reported a +65% boost in daily energy and wellness within 30 days of joining."`;
+  if (isRealEstate) proofQuote = `"Successfully closed over $24M in strategic prime property transactions over the last two quarters."`;
+  else if (isFitness) proofQuote = `"Participants reported a +65% boost in daily energy and wellness within 30 days of joining."`;
   else if (isEcommerce) proofQuote = `"Recovered over $140,000 in monthly lost checkout revenue for modern online brands."`;
-  else if (isDesignWeb) proofQuote = `"Boosted inbound consultation bookings by 38% following our responsive overhaul."`;
-  else if (isHiring) proofQuote = `"Ranked among the top 10 fastest-growing tech workplaces with 98% team retention."`;
-  else if (isRealEstate) proofQuote = `"Successfully closed over $24M in strategic commercial acquisitions over the last two quarters."`;
+  else if (isDesignWeb) proofQuote = `"Boosted inbound consultation bookings by 38% following our responsive redesign."`;
+  else if (isHiring) proofQuote = `"Ranked among the top 10 fastest-growing workplaces with 98% team retention."`;
 
   // Sender Role
   let signoffTitle = 'Strategic Partnerships Lead';
-  if (isFitness) signoffTitle = 'Wellness & Program Director';
+  if (isRealEstate) signoffTitle = 'Principal Broker & Portfolio Lead';
+  else if (isFitness) signoffTitle = 'Wellness & Program Director';
   else if (isDesignWeb) signoffTitle = 'Creative & Technical Director';
   else if (isEcommerce) signoffTitle = 'E-Commerce Growth Specialist';
   else if (isHiring) signoffTitle = 'Head of Talent & People';
-  else if (isRealEstate) signoffTitle = 'Principal Broker & Portfolio Lead';
   else if (isSoftware) signoffTitle = 'VP of Outbound Growth';
 
   // Construct Image Tag if requested or provided
