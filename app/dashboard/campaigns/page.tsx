@@ -945,7 +945,7 @@ export default function CampaignsPage() {
                 {activeCampaign.isRunning && (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                     <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
-                    {dispatchMode === 'instant' ? '⚡ Fast Cloud Server Dispatch' : '☁️ 24/7 Cloud Queue (Safe to close PC)'}
+                    ☁️ 24/7 Cloud Background Queue (Safe to close PC / Laptop)
                   </span>
                 )}
                 <span className="text-[10px] font-bold text-slate-700 bg-white px-2.5 py-0.5 rounded-md border border-slate-200 shadow-2xs">
@@ -1706,43 +1706,10 @@ export default function CampaignsPage() {
                 </span>
                 Verify &amp; Send
               </label>
-              {dispatchMode === 'instant' ? (
-                <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200 flex items-center gap-0.5">
-                  ⚡ Fast Cloud (~5s)
-                </span>
-              ) : (
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 flex items-center gap-0.5">
-                  ☁️ 24/7 Cloud Drip
-                </span>
-              )}
-            </div>
-
-            {/* Cloud Dispatch Mode Selector */}
-            <div className="grid grid-cols-2 gap-1 bg-slate-200/60 p-0.5 rounded-lg mb-2 text-[10px] font-bold">
-              <button
-                type="button"
-                onClick={() => setDispatchMode('instant')}
-                className={`py-1 px-1.5 rounded-md transition-all text-center cursor-pointer ${
-                  dispatchMode === 'instant'
-                    ? 'bg-white text-blue-700 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="Dispatches all leads in ~5-10s right on server. Safe to close PC immediately!"
-              >
-                ⚡ Fast Cloud
-              </button>
-              <button
-                type="button"
-                onClick={() => setDispatchMode('cloud_drip')}
-                className={`py-1 px-1.5 rounded-md transition-all text-center cursor-pointer ${
-                  dispatchMode === 'cloud_drip'
-                    ? 'bg-white text-blue-700 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="Runs in 2m cadence 24/7 in cloud. Close laptop anytime, server continues!"
-              >
-                ☁️ 24/7 Drip Queue
-              </button>
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                24/7 Cloud Engine
+              </span>
             </div>
 
             {/* Launch CTA */}
@@ -1755,7 +1722,7 @@ export default function CampaignsPage() {
                 executeDispatch();
               }}
               disabled={isDispatching || leads.length === 0}
-              className={`w-full py-1.5 px-3 rounded-lg font-bold text-xs tracking-wide shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`w-full py-2 px-3 rounded-xl font-bold text-xs tracking-wide shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
                 isDispatching
                   ? 'bg-emerald-600 text-white cursor-not-allowed opacity-90'
                   : 'bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:pointer-events-none'
@@ -1764,19 +1731,15 @@ export default function CampaignsPage() {
               {isDispatching ? (
                 <>
                   <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span className="truncate">
-                    {dispatchMode === 'instant'
-                      ? 'Dispatching in Cloud...'
-                      : `Queued (${activeCampaign?.sentCount || 0}/${activeCampaign?.totalCount || selectedRows.length})...`}
-                  </span>
+                  <span className="truncate">Sending in Cloud...</span>
                 </>
               ) : (
                 <>
                   <Send className="w-3.5 h-3.5" />
                   <span className="truncate">
                     {selectedRows.length === 0
-                      ? `Send All (${filteredLeads.length})`
-                      : `Verify & Send (${selectedRows.length})`}
+                      ? `Start Cloud Campaign (${filteredLeads.length})`
+                      : `Start Cloud Campaign (${selectedRows.length})`}
                   </span>
                 </>
               )}
@@ -1805,9 +1768,7 @@ export default function CampaignsPage() {
                   Drop Fakes
                 </span>
               </label>
-              <span className="text-[10px] text-slate-400 font-medium">
-                {dispatchMode === 'instant' ? 'Safe to close PC in ~5s' : '24/7 Cloud Worker'}
-              </span>
+              <span className="text-[10px] text-emerald-600 font-bold">Safe to close PC / Laptop</span>
             </div>
           </div>
         </div>
