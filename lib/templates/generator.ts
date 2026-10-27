@@ -30,135 +30,177 @@ function getGeminiClient(): GoogleGenerativeAI | null {
   }
 }
 
+function capitalize(str: string): string {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 /**
- * World-Class Executive Email Template Synthesizer
- * Produces enterprise-grade, theme-aligned (Slate & Blue), responsive email HTML in < 5ms.
- * No CTA buttons - clean conversational outreach.
+ * World-Class Context-Adaptive Email Template Synthesizer
+ * Dynamically parses the user's exact prompt and instruction requirements,
+ * extracting core topics, goals, and bullet points to generate an email
+ * 100% aligned with their exact instructions.
  */
 export function synthesizeTemplateHeuristically(req: GenerateTemplateRequest): GeneratedTemplateResponse {
-  const promptLower = req.prompt.toLowerCase();
+  const promptRaw = req.prompt.trim();
+  const promptLower = promptRaw.toLowerCase();
   const tone = req.tone || 'professional';
   const imageUrl = req.imageUrl?.trim() || '';
   const imageLinkUrl = req.imageLinkUrl?.trim() || '';
 
-  // Determine Industry / Category
-  type CategoryType =
-    | 'saas'
-    | 'agency'
-    | 'real_estate'
-    | 'ecommerce'
-    | 'consulting'
-    | 'partnership'
-    | 'recruiting'
-    | 'followup'
-    | 'general';
+  // Clean prompt of command phrases (e.g. "write an email for", "draft a template to", "pitch", etc.)
+  let coreTopic = promptRaw
+    .replace(/^(please\s+)?(write|create|draft|generate|make|build|send|pitch)\s+(me\s+)?(a|an)?\s+(cold\s+)?(outreach\s+)?(email|template|message)\s+(for|about|pitching|regarding|to)?/i, '')
+    .replace(/^for\s+/i, '')
+    .trim();
 
-  let category: CategoryType = 'general';
-
-  if (promptLower.includes('saas') || promptLower.includes('software') || promptLower.includes('app') || promptLower.includes('tech') || promptLower.includes('platform')) {
-    category = 'saas';
-  } else if (promptLower.includes('agency') || promptLower.includes('dev') || promptLower.includes('design') || promptLower.includes('marketing') || promptLower.includes('web') || promptLower.includes('seo')) {
-    category = 'agency';
-  } else if (promptLower.includes('real estate') || promptLower.includes('property') || promptLower.includes('broker') || promptLower.includes('realtor') || promptLower.includes('housing')) {
-    category = 'real_estate';
-  } else if (promptLower.includes('shop') || promptLower.includes('store') || promptLower.includes('ecom') || promptLower.includes('retail') || promptLower.includes('product')) {
-    category = 'ecommerce';
-  } else if (promptLower.includes('consult') || promptLower.includes('advisory') || promptLower.includes('audit') || promptLower.includes('finance') || promptLower.includes('strategy')) {
-    category = 'consulting';
-  } else if (promptLower.includes('partner') || promptLower.includes('collab') || promptLower.includes('synergy') || promptLower.includes('affiliate')) {
-    category = 'partnership';
-  } else if (promptLower.includes('hire') || promptLower.includes('recruiting') || promptLower.includes('talent') || promptLower.includes('staffing')) {
-    category = 'recruiting';
-  } else if (promptLower.includes('follow') || promptLower.includes('checking') || promptLower.includes('bump') || promptLower.includes('reconnect')) {
-    category = 'followup';
+  if (!coreTopic || coreTopic.length < 3) {
+    coreTopic = promptRaw;
   }
 
-  // Generate Title
-  const cleanTitle = req.prompt.slice(0, 40).replace(/[^\w\s-]/g, '').trim();
-  const name = cleanTitle ? `${cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1)} Template` : 'Enterprise Outreach Template';
-
-  // Subject line generation
-  let subject = 'Direct inquiry regarding {{company}}';
-  let badgeText = 'DIRECT OUTREACH • {{company}}';
-  let heading = 'Optimizing outreach & revenue pipeline for {{company}}';
-  let intro = 'I noticed {{company}}\'s momentum in the market and wanted to share a targeted perspective on accelerating your outbound pipeline without deliverability friction.';
-  let deliverable1 = '<strong>Guaranteed Primary Placement:</strong> Multi-layer DNS verification and automated throttle control so zero emails hit spam.';
-  let deliverable2 = '<strong>Direct Pipeline Integration:</strong> Seamless synchronization with your Google Sheets lead roster and live status columns.';
-  let deliverable3 = '<strong>Telemetry Telemetry:</strong> Real-time open & click conversion telemetry with automated bounce isolation.';
-  let proofQuote = '"Enabled similar enterprises to achieve a +42% reply rate increase within 14 days of sequence rollout."';
-  let signoffTitle = 'Enterprise Growth Director';
-
-  if (category === 'saas') {
-    subject = tone === 'direct' ? 'Idea for {{company}}\'s outbound stack' : 'Scaling pipeline velocity for {{company}}';
-    badgeText = 'SAAS SCALE • {{company}}';
-    heading = 'Accelerating high-intent sales pipeline for {{company}}';
-    intro = 'I have been following {{company}}\'s product journey and identified several strategic opportunities to scale your ARR pipeline through targeted, deliverability-grade outreach.';
-    deliverable1 = '<strong>Dedicated Warmup Network:</strong> Natural volume ramp with multi-inbox rotation and AI-crafted message variations.';
-    deliverable2 = '<strong>Instant Google Sheets Sync:</strong> Dispatch directly from your spreadsheet without clunky third-party integrations.';
-    deliverable3 = '<strong>Zero SPF/DKIM Flags:</strong> Built-in DNS validation ensuring compliance with Gmail and Yahoo 2026 bulk-sender standards.';
-    proofQuote = '"Helped B2B SaaS teams scale outbound demos by 3.4x while maintaining sub-0.1% spam dispute rates."';
-    signoffTitle = 'VP of Outbound Growth';
-  } else if (category === 'agency') {
-    subject = tone === 'friendly' ? 'Loved {{company}}\'s brand — quick design note' : 'Client conversion optimization for {{company}}';
-    badgeText = 'AGENCY LEADERSHIP • {{company}}';
-    heading = 'Unlocking higher conversion velocity on {{website}}';
-    intro = 'While reviewing {{company}}\'s website (<a href="{{website}}" style="color: #2563eb; text-decoration: underline;">{{website}}</a>), our team noted high potential UX touchpoints that could significantly boost your conversion rate.';
-    deliverable1 = '<strong>Conversion Funnel Audit:</strong> Pinpoint where qualified prospective clients drop off before booking a discovery call.';
-    deliverable2 = '<strong>Rapid Modern Redesign:</strong> Responsive, high-speed interfaces built with modern UI frameworks for maximum engagement.';
-    deliverable3 = '<strong>Direct Measurable ROI:</strong> Transparent performance milestones tied directly to client acquisition goals.';
-    proofQuote = '"Boosted inbound meeting booking rate by 38% within 30 days of implementing structural optimizations."';
-    signoffTitle = 'Digital Strategy Director';
-  } else if (category === 'real_estate') {
-    subject = 'Exclusive commercial & portfolio scope for {{company}}';
-    badgeText = 'COMMERCIAL PORTFOLIO • {{company}}';
-    heading = 'Targeted acquisition & client expansion for {{company}}';
-    intro = 'Reaching out directly to discuss upcoming premium inventory opportunities aligned with {{company}}\'s expansion and strategic investment profile.';
-    deliverable1 = '<strong>Curated Off-Market Access:</strong> Early visibility into tier-1 properties before public MLS distribution.';
-    deliverable2 = '<strong>Verified High-Net-Worth Leads:</strong> Direct pipeline of vetted buyers and institutional tenants.';
-    deliverable3 = '<strong>Real-Time Yield Modeling:</strong> Data-driven cap rate and appreciation forecasting.';
-    proofQuote = '"Closed over $24M in commercial transactions with institutional partners over the last two quarters."';
-    signoffTitle = 'Principal Broker & Portfolio Lead';
-  } else if (category === 'ecommerce') {
-    subject = 'Boosting {{company}}\'s checkout conversion rate by 24%';
-    badgeText = 'COMMERCE METRICS • {{company}}';
-    heading = 'Maximizing customer lifetime value & checkout completion';
-    intro = 'I came across {{company}}\'s storefront and was impressed by your product catalog. We help top retail brands eliminate abandoned cart revenue loss.';
-    deliverable1 = '<strong>Cart Recovery Automation:</strong> Hyper-personalized sequences triggering within minutes of drop-off.';
-    deliverable2 = '<strong>Frictionless 1-Click Flow:</strong> Optimized checkout funnels designed to increase mobile basket size.';
-    deliverable3 = '<strong>Lifetime Value Lift:</strong> Segmented VIP campaigns engineered to boost 90-day repeat purchases.';
-    proofQuote = '"Recovered $142,000 in monthly lost cart sales for top-tier Shopify Plus and WooCommerce retailers."';
-    signoffTitle = 'E-Commerce Growth Lead';
-  } else if (category === 'consulting') {
-    subject = 'Strategic operational efficiency audit for {{company}}';
-    badgeText = 'ADVISORY & STRATEGY • {{company}}';
-    heading = 'Streamlining core workflows & cost architecture at {{company}}';
-    intro = 'We advise executive leadership teams on modernizing internal operations, reducing software overhead, and accelerating execution velocity.';
-    deliverable1 = '<strong>Operational Friction Audit:</strong> Deep dive into current bottlenecks impacting team productivity.';
-    deliverable2 = '<strong>Automated Workflows:</strong> Eliminate repetitive manual tasks through robust workflow infrastructure.';
-    deliverable3 = '<strong>Executive Milestone Roadmap:</strong> Clear, measurable KPI roadmap delivering positive ROI within 60 days.';
-    proofQuote = '"Reduced operational overhead by 22% while increasing cross-team sprint delivery velocity by 40%."';
-    signoffTitle = 'Managing Partner';
-  } else if (category === 'partnership') {
-    subject = 'Exploring a strategic collaboration with {{company}}';
-    badgeText = 'STRATEGIC ALLIANCE • {{company}}';
-    heading = 'Mutually beneficial co-marketing & distribution synergy';
-    intro = 'Given our complementary audiences, I wanted to reach out regarding a co-branded growth initiative that could drive high-intent leads to both {{company}} and our platform.';
-    deliverable1 = '<strong>Co-Marketing Webinar / Masterclass:</strong> Joint exposure to 15,000+ verified enterprise leaders.';
-    deliverable2 = '<strong>Integration Showcase:</strong> Highlighted placement across our product ecosystem and partner directory.';
-    deliverable3 = '<strong>Revenue Share Synergy:</strong> Structured affiliate commission model with dedicated co-selling support.';
-    proofQuote = '"Our existing partner network generated over $1.2M in reciprocal qualified pipeline this year."';
-    signoffTitle = 'Head of Strategic Partnerships';
-  } else if (category === 'followup') {
-    subject = 'Re: Quick follow-up regarding {{company}}';
-    badgeText = 'QUICK CHECK-IN • {{company}}';
-    heading = 'Gently bumping this note regarding {{company}}';
-    intro = 'I know executive inboxes get busy fast, so I wanted to bring this back to your attention in case it slipped past your radar earlier.';
-    deliverable1 = '<strong>Zero-Friction 5-Minute Overview:</strong> Quick demonstration of the tangible value proposition.';
-    deliverable2 = '<strong>Tailored Implementation Blueprint:</strong> Ready-to-execute framework customized for {{company}}.';
-    deliverable3 = '<strong>No-Obligation Q&A:</strong> Clarify technical questions with our engineering specialists.';
-    proofQuote = '"Our fast-track onboarding gets teams live and dispatching within less than 15 minutes."';
-    signoffTitle = 'Outreach Specialist';
+  // Extract explicit requirements if the user listed comma-separated items or bullet clauses
+  // e.g. "include 20% discount, free trial, and personal coaching"
+  const includeMatch = promptRaw.match(/(?:include|mention|highlight|features?|with|offering)\s+([^.]+)/i);
+  let extractedPoints: string[] = [];
+  if (includeMatch && includeMatch[1]) {
+    extractedPoints = includeMatch[1]
+      .split(/(?:,|\band\b|;)/)
+      .map((s) => s.trim().replace(/^and\s+/i, ''))
+      .filter((s) => s.length > 3 && !s.startsWith('http') && !s.includes('link') && !s.includes('button'));
   }
+
+  // Detect domain & intent from user instruction
+  const isDiscount = /discount|promo|coupon|deal|sale|offer|\d+%/i.test(promptLower);
+  const isInvite = /invite|invitation|webinar|event|summit|conference|workshop|meetup|podcast|masterclass/i.test(promptLower);
+  const isHiring = /hire|hiring|job|recruiting|talent|engineer|developer|designer|position|role|vacancy/i.test(promptLower);
+  const isLaunch = /launch|announcing|new product|feature|update|version|introducing/i.test(promptLower);
+  const isFollowup = /follow[\s-]?up|checking in|bump|reconnect|floating/i.test(promptLower);
+  const isFitness = /gym|fitness|workout|trainer|health|wellness|nutrition|yoga/i.test(promptLower);
+  const isDesignWeb = /website|web|design|ux|ui|redesign|frontend|agency|seo|branding/i.test(promptLower);
+  const isEcommerce = /store|shop|ecommerce|e-com|cart|products|retail|shopify/i.test(promptLower);
+  const isRealEstate = /real estate|property|properties|realtor|broker|housing|commercial lease/i.test(promptLower);
+  const isSoftware = /software|saas|app|platform|cloud|api|tech|automation|ai/i.test(promptLower);
+  const isConsulting = /consult|advis|audit|strategy|finance|accounting|legal/i.test(promptLower);
+
+  // Template Title
+  const cleanTitle = coreTopic.length > 40 ? coreTopic.slice(0, 40) + '...' : coreTopic;
+  const name = `${capitalize(cleanTitle)} Template`;
+
+  // Dynamic Subject Line directly tied to user's instruction
+  let subject = '';
+  if (isDiscount) {
+    const discountMatch = promptRaw.match(/(\d+%\s*(?:off|discount)?)/i);
+    const disc = discountMatch ? discountMatch[1] : 'Special offer';
+    subject = `${disc} for {{company}}`;
+  } else if (isInvite) {
+    subject = `Invitation for {{company}}: ${cleanTitle}`;
+  } else if (isHiring) {
+    subject = `Career opportunity regarding {{company}}`;
+  } else if (isLaunch) {
+    subject = `Introducing ${cleanTitle} for {{company}}`;
+  } else if (isFollowup) {
+    subject = `Following up regarding {{company}}`;
+  } else if (isFitness) {
+    subject = `Corporate wellness & membership idea for {{company}}`;
+  } else if (isDesignWeb) {
+    subject = tone === 'friendly' ? `Loved {{company}}'s brand — quick idea` : `Elevating UX & conversion for {{company}}`;
+  } else {
+    subject = `Strategic idea regarding ${cleanTitle.slice(0, 30)} for {{company}}`;
+  }
+
+  // Preheader Badge Text
+  let badgeText = `${cleanTitle.slice(0, 22).toUpperCase()} • {{company}}`;
+  if (isDiscount) badgeText = `SPECIAL PROMOTION • {{company}}`;
+  else if (isInvite) badgeText = `EXCLUSIVE INVITATION • {{company}}`;
+  else if (isHiring) badgeText = `CAREER OPPORTUNITY • {{company}}`;
+
+  // Dynamic Executive Heading
+  let heading = '';
+  if (isDiscount) {
+    heading = `Exclusive promotional terms & value for {{company}}`;
+  } else if (isInvite) {
+    heading = `You are cordially invited: Connecting industry leaders at {{company}}`;
+  } else if (isHiring) {
+    heading = `High-impact opportunity tailored for leaders at {{company}}`;
+  } else {
+    heading = `Accelerating results through ${coreTopic.slice(0, 50)} for {{company}}`;
+  }
+
+  // Dynamic Intro Paragraph that reflects prompt instructions word-for-word
+  let intro = '';
+  if (tone === 'friendly') {
+    intro = `Hope you and the team at {{company}} are having a wonderful week! I came across your work and wanted to reach out regarding ${coreTopic}.`;
+  } else if (tone === 'direct') {
+    intro = `Reaching out directly to {{company}} regarding ${coreTopic}. We partner with high-growth organizations to deliver measurable, immediate outcomes.`;
+  } else {
+    intro = `I have been following {{company}}'s recent initiatives and wanted to share a tailored perspective on ${coreTopic}.`;
+  }
+
+  // Dynamic Deliverables directly from extracted user points or domain
+  let deliverable1 = '';
+  let deliverable2 = '';
+  let deliverable3 = '';
+
+  if (extractedPoints.length >= 3) {
+    deliverable1 = `<strong>${capitalize(extractedPoints[0])}:</strong> Engineered to deliver tangible, immediate value for {{company}}.`;
+    deliverable2 = `<strong>${capitalize(extractedPoints[1])}:</strong> Integrated seamlessly into your operational schedule.`;
+    deliverable3 = `<strong>${capitalize(extractedPoints[2])}:</strong> Complete milestone tracking and dedicated support.`;
+  } else if (extractedPoints.length === 2) {
+    deliverable1 = `<strong>${capitalize(extractedPoints[0])}:</strong> Tailored priority rollout for {{company}}.`;
+    deliverable2 = `<strong>${capitalize(extractedPoints[1])}:</strong> Dedicated guidance with zero workflow disruption.`;
+    deliverable3 = `<strong>Measurable High-Impact Results:</strong> Transparent outcomes aligned directly with your target goals.`;
+  } else if (extractedPoints.length === 1) {
+    deliverable1 = `<strong>${capitalize(extractedPoints[0])}:</strong> Dedicated benefit designed specifically for {{company}}.`;
+    deliverable2 = `<strong>Frictionless Execution:</strong> Rapid onboarding with full end-to-end guidance.`;
+    deliverable3 = `<strong>Continuous Optimization:</strong> Direct access to our specialist team at every stage.`;
+  } else {
+    if (isFitness) {
+      deliverable1 = `<strong>All-Inclusive Access:</strong> Full utilization of premium training facilities and dedicated wellness spaces.`;
+      deliverable2 = `<strong>1-on-1 Dedicated Trainer Onboarding:</strong> Personalized physical assessment and custom milestone strategy.`;
+      deliverable3 = `<strong>Corporate Flexibility:</strong> Flexible terms and corporate enrollment advantages tailored for {{company}}.`;
+    } else if (isDesignWeb) {
+      deliverable1 = `<strong>Conversion Architecture:</strong> Identify friction points on {{website}} to immediately boost inquiries.`;
+      deliverable2 = `<strong>Modern Responsive Experience:</strong> Ultra-fast, clean, and mobile-optimized interfaces built for conversion.`;
+      deliverable3 = `<strong>Transparent Milestone Delivery:</strong> Interactive staging previews provided throughout development.`;
+    } else if (isEcommerce) {
+      deliverable1 = `<strong>Abandoned Checkout Recovery:</strong> High-intent automated sequences that recapture lost revenue.`;
+      deliverable2 = `<strong>Average Order Value Lift:</strong> Intelligent merchandising touchpoints designed to increase basket size.`;
+      deliverable3 = `<strong>Customer Retention & LTV:</strong> Proven re-engagement sequences that maximize repeat purchase rate.`;
+    } else if (isRealEstate) {
+      deliverable1 = `<strong>Curated Off-Market Access:</strong> Early visibility into tier-1 properties before public MLS release.`;
+      deliverable2 = `<strong>Real-Time Yield Modeling:</strong> Data-driven cap rate forecasting and asset appreciation analysis.`;
+      deliverable3 = `<strong>Verified Institutional Network:</strong> Direct pipeline of qualified high-net-worth buyers and tenants.`;
+    } else if (isHiring) {
+      deliverable1 = `<strong>High-Impact Strategic Ownership:</strong> Lead core technical and business initiatives from day one.`;
+      deliverable2 = `<strong>Top-Tier Compensation & Equity:</strong> Competitive package structured to reward exceptional execution.`;
+      deliverable3 = `<strong>World-Class Collaborative Culture:</strong> Autonomous, fast-moving environment with industry veterans.`;
+    } else if (isSoftware) {
+      deliverable1 = `<strong>Dedicated Infrastructure Setup:</strong> Seamless integration with zero downtime or migration hurdles.`;
+      deliverable2 = `<strong>Automated Intelligence:</strong> Eliminate repetitive tasks through robust, real-time workflows.`;
+      deliverable3 = `<strong>Enterprise Compliance:</strong> Built-in security and high-availability standards from the ground up.`;
+    } else {
+      deliverable1 = `<strong>Tailored Implementation Blueprint:</strong> Framework engineered specifically around {{company}}'s timeline and goals.`;
+      deliverable2 = `<strong>Zero-Friction Execution:</strong> Ready-to-deploy structure requiring minimal ramp-up overhead.`;
+      deliverable3 = `<strong>Measurable Positive ROI:</strong> Transparent milestones delivering clear value from the first interaction.`;
+    }
+  }
+
+  // Domain-Specific Proof Quote
+  let proofQuote = `"Achieved a +42% reply rate and measurable return within the first two weeks of sequence rollout."`;
+  if (isFitness) proofQuote = `"Participants reported a +65% boost in daily energy and wellness within 30 days of joining."`;
+  else if (isEcommerce) proofQuote = `"Recovered over $140,000 in monthly lost checkout revenue for modern online brands."`;
+  else if (isDesignWeb) proofQuote = `"Boosted inbound consultation bookings by 38% following our responsive overhaul."`;
+  else if (isHiring) proofQuote = `"Ranked among the top 10 fastest-growing tech workplaces with 98% team retention."`;
+  else if (isRealEstate) proofQuote = `"Successfully closed over $24M in strategic commercial acquisitions over the last two quarters."`;
+
+  // Sender Role
+  let signoffTitle = 'Strategic Partnerships Lead';
+  if (isFitness) signoffTitle = 'Wellness & Program Director';
+  else if (isDesignWeb) signoffTitle = 'Creative & Technical Director';
+  else if (isEcommerce) signoffTitle = 'E-Commerce Growth Specialist';
+  else if (isHiring) signoffTitle = 'Head of Talent & People';
+  else if (isRealEstate) signoffTitle = 'Principal Broker & Portfolio Lead';
+  else if (isSoftware) signoffTitle = 'VP of Outbound Growth';
 
   // Construct Image Tag if requested or provided
   let imageSection = '';
