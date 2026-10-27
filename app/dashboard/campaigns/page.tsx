@@ -619,8 +619,12 @@ export default function CampaignsPage() {
           setMailboxes((prev) => {
             const ids = new Set(prev.map((m) => m.id));
             const newItems = fleetBoxes.filter((f) => !ids.has(f.id));
-            return [...prev, ...newItems];
+            return [...newItems, ...prev];
           });
+          // Auto-select the authenticated fleet mailbox
+          if (fleetBoxes[0]?.id) {
+            setSenderAccount(fleetBoxes[0].id);
+          }
         }
       })
       .catch(() => {});
