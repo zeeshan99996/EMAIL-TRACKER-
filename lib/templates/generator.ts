@@ -172,7 +172,6 @@ export function synthesizeTemplateHeuristically(req: GenerateTemplateRequest): G
       <!-- Attached Graphic Section -->
       <div style="margin: 16px 0; text-align: center;">
         ${clickableImg}
-        ${imageLinkUrl ? `<div style="font-size: 11px; margin-top: 6px;"><a href="${imageLinkUrl}" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: underline; font-weight: 600;">Open image link &rarr;</a></div>` : ''}
       </div>`;
   }
 
