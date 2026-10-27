@@ -431,6 +431,26 @@ export default function CampaignsPage() {
     });
   };
 
+  // Retrieve persisted lead statuses from localStorage
+  const getSavedLeadStatuses = (): Record<string, { status: string; sentAt?: string }> => {
+    try {
+      const raw = localStorage.getItem('erha_lead_statuses');
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  };
+
+  // Persist updated lead status locally across refreshes
+  const saveLeadStatusLocally = (row: number, email: string, status: string, sentAt?: string) => {
+    try {
+      const existing = getSavedLeadStatuses();
+      if (email) existing[email.toLowerCase().trim()] = { status, sentAt };
+      existing[`row_${row}`] = { status, sentAt };
+      localStorage.setItem('erha_lead_statuses', JSON.stringify(existing));
+    } catch {}
+  };
+
   const cancelDispatchRef = useRef(false);
 
   // Load leads from Direct Google Sheet, Webhook, or Demo Data
@@ -446,7 +466,23 @@ export default function CampaignsPage() {
       const res = await fetch(endpoint, { cache: 'no-store' });
       const data = await res.json();
       if (res.ok && data && data.success && Array.isArray(data.leads)) {
-        setLeads(data.leads);
+        // Merge with persisted statuses so sent leads NEVER revert to PENDING on refresh
+        const savedStatuses = getSavedLeadStatuses();
+        const mergedLeads = data.leads.map((l: LeadItem) => {
+          const byEmail = l.email ? savedStatuses[l.email.toLowerCase().trim()] : null;
+          const byRow = savedStatuses[`row_${l.row}`];
+          const matched = byEmail || byRow;
+          if (matched && matched.status) {
+            return {
+              ...l,
+              status: matched.status,
+              sentAt: matched.sentAt || l.sentAt,
+            };
+          }
+          return l;
+        });
+
+        setLeads(mergedLeads);
         if (targetUrl.trim()) {
           try {
             localStorage.setItem('erha_sheet_webhook_url', targetUrl.trim());
@@ -459,10 +495,10 @@ export default function CampaignsPage() {
           });
         }
         // Auto-select pending leads based on batchCount (or all leads if none marked sent)
-        const pendingLeads = data.leads.filter(
+        const pendingLeads = mergedLeads.filter(
           (l: LeadItem) => !l.status || !l.status.toLowerCase().includes('sent')
         );
-        const toSelect = pendingLeads.length > 0 ? pendingLeads : data.leads;
+        const toSelect = pendingLeads.length > 0 ? pendingLeads : mergedLeads;
         setSelectedRows(toSelect.slice(0, batchCount).map((l: LeadItem) => l.row));
       } else {
         const errorMsg = data?.error || 'Unable to connect or sync leads from this URL.';
@@ -849,100 +885,101 @@ export default function CampaignsPage() {
     });
 
     if (dispatchMode === 'instant') {
-      // ⚡ FAST CLOUD DISPATCH: Dispatches all selected leads directly on server in seconds
+      // ⚡ FAST CLOUD PROGRESSIVE DISPATCH: Updates each row live in table as each email is sent!
+      let sentSoFar = 0;
+      let failedSoFar = 0;
+      const totalLeads = selectedLeadObjects.length;
+
       setActiveCampaign({
         isRunning: true,
         sentCount: 0,
         totalCount: totalLeads,
-        message: `⚡ Cloud Dispatching ${totalLeads} lead(s) directly on server... Safe to close laptop once complete in ~5s!`,
+        message: `⚡ Dispatching ${totalLeads} lead(s) live... Updating table in real time!`,
       });
 
-      try {
-        const res = await fetch('/api/v1/campaigns/dispatch', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            leads: selectedLeadObjects,
-            senderAccountId: chosenSenderId,
-            senderName: activeMailbox?.name,
-            senderEmail: activeMailbox?.email,
-            template: { subject, bodyHtml },
-            sheetWebhookUrl: sheetUrl,
-            skipVerification: !verifyBeforeSend,
-          }),
-        });
+      for (let i = 0; i < selectedLeadObjects.length; i++) {
+        if (cancelDispatchRef.current) break;
+        const targetLead = selectedLeadObjects[i];
 
-        const data = await res.json();
-        if (data && data.success && Array.isArray(data.results)) {
-          const sentLeads = data.results.filter((r: any) => r.sent);
-          const nowFormatted = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        // 1. Mark this specific lead as SENDING... ⏳ in UI table
+        setLeads((prev) =>
+          prev.map((l) => (l.row === targetLead.row ? { ...l, status: 'SENDING... ⏳' } : l))
+        );
 
+        try {
+          const res = await fetch('/api/v1/campaigns/dispatch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              leads: [targetLead],
+              senderAccountId: chosenSenderId,
+              senderName: activeMailbox?.name,
+              senderEmail: activeMailbox?.email,
+              template: { subject, bodyHtml },
+              sheetWebhookUrl: sheetUrl,
+              skipVerification: !verifyBeforeSend,
+            }),
+          });
+
+          const data = await res.json();
+          const resultItem = data?.results?.[0];
+          const timeFormatted = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+          if (resultItem && resultItem.sent) {
+            sentSoFar++;
+            setLeads((prev) =>
+              prev.map((l) =>
+                l.row === targetLead.row
+                  ? { ...l, status: 'SENT ✅', sentAt: timeFormatted }
+                  : l
+              )
+            );
+            saveLeadStatusLocally(targetLead.row, targetLead.email, 'SENT ✅', timeFormatted);
+          } else {
+            failedSoFar++;
+            const failStatus = resultItem?.status || 'FAILED ⚠️';
+            setLeads((prev) =>
+              prev.map((l) =>
+                l.row === targetLead.row
+                  ? { ...l, status: failStatus }
+                  : l
+              )
+            );
+            saveLeadStatusLocally(targetLead.row, targetLead.email, failStatus, '');
+          }
+        } catch (err) {
+          failedSoFar++;
           setLeads((prev) =>
-            prev.map((l) => {
-              const matched = data.results.find(
-                (r: any) =>
-                  (r.row !== undefined && r.row === l.row) ||
-                  (r.lead?.row !== undefined && r.lead.row === l.row) ||
-                  (r.email && l.email && r.email.toLowerCase() === l.email.toLowerCase()) ||
-                  (r.lead?.email && l.email && r.lead.email.toLowerCase() === l.email.toLowerCase())
-              );
-              if (matched) {
-                return {
-                  ...l,
-                  status: matched.sent ? 'SENT ✅' : (matched.status || 'FAILED ⚠️'),
-                  sentAt: matched.sent ? (matched.sentAt || nowFormatted) : l.sentAt,
-                };
-              }
-              return l;
-            })
+            prev.map((l) =>
+              l.row === targetLead.row ? { ...l, status: 'FAILED ⚠️' } : l
+            )
           );
-
-          const successMsg = `🎉 All ${sentLeads.length} of ${totalLeads} emails processed successfully! Leads updated in table.`;
-          setActiveCampaign({
-            isRunning: false,
-            isFinished: true,
-            sentCount: sentLeads.length,
-            totalCount: totalLeads,
-            message: successMsg,
-          });
-          setToast({
-            type: 'success',
-            title: 'Campaign Dispatched 🎉',
-            message: successMsg,
-          });
-        } else {
-          const errMsg = data?.error || 'Failed to dispatch campaign.';
-          setActiveCampaign({
-            isRunning: false,
-            isFinished: true,
-            sentCount: 0,
-            totalCount: totalLeads,
-            message: errMsg,
-          });
-          setToast({
-            type: 'error',
-            title: 'Dispatch Notice',
-            message: errMsg,
-          });
         }
-      } catch (err: any) {
-        console.error('Dispatch error:', err);
-        const errMsg = err.message || 'Network error during dispatch.';
+
+        // Live progress update on each email
         setActiveCampaign({
-          isRunning: false,
-          isFinished: true,
-          sentCount: 0,
+          isRunning: i < totalLeads - 1,
+          isFinished: i === totalLeads - 1,
+          sentCount: sentSoFar,
           totalCount: totalLeads,
-          message: errMsg,
+          message: `Processed ${i + 1}/${totalLeads}: ${targetLead.name || targetLead.email} (${sentSoFar} sent)`,
         });
-        setToast({
-          type: 'error',
-          title: 'Dispatch Error',
-          message: errMsg,
-        });
-      } finally {
-        setIsDispatching(false);
       }
+
+      const finalMsg = `🎉 All done! ${sentSoFar} of ${totalLeads} emails dispatched successfully! Dashboard updated.`;
+      setActiveCampaign({
+        isRunning: false,
+        isFinished: true,
+        sentCount: sentSoFar,
+        totalCount: totalLeads,
+        message: finalMsg,
+      });
+      setToast({
+        type: sentSoFar > 0 ? 'success' : 'error',
+        title: sentSoFar > 0 ? 'Campaign Dispatched 🎉' : 'Dispatch Alert',
+        message: finalMsg,
+      });
+      setIsDispatching(false);
       return;
     }
 
