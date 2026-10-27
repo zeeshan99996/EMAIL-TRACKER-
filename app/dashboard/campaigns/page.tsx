@@ -328,6 +328,9 @@ export default function CampaignsPage() {
     message: string;
   } | null>(null);
 
+  // Dispatch Execution Mode: 'instant' (Fast Cloud ~5s) vs 'cloud_drip' (24/7 Cloud Background Queue)
+  const [dispatchMode, setDispatchMode] = useState<'instant' | 'cloud_drip'>('instant');
+
   // Workflow Active Step (1: Batch Leads -> 2: Sender -> 3: Template -> 4: Send)
   const [activeStep, setActiveStep] = useState<number>(1);
 
@@ -431,14 +434,71 @@ export default function CampaignsPage() {
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isDispatching) {
+      // Only warn if non-cloud task is pending
+      if (isDispatching && dispatchMode !== 'instant') {
         e.preventDefault();
         e.returnValue = '';
       }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isDispatching]);
+  }, [isDispatching, dispatchMode]);
+
+  // Synchronize Cloud Background Queue status (runs 24/7 even if user is offline)
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+
+    const syncCloudQueue = async () => {
+      try {
+        const res = await fetch('/api/v1/campaigns/queue', { cache: 'no-store' });
+        const data = await res.json();
+        if (data && data.campaign && data.campaign.status === 'running') {
+          const camp = data.campaign;
+          setIsDispatching(true);
+          setActiveCampaign({
+            isRunning: true,
+            sentCount: camp.sentCount,
+            totalCount: camp.totalLeads,
+            message: camp.lastMessage || `☁️ Cloud Queue Active: ${camp.sentCount}/${camp.totalLeads} sent. Safe to close laptop!`,
+          });
+
+          if (Array.isArray(camp.leads)) {
+            setLeads((prev) =>
+              prev.map((l) => {
+                const qLead = camp.leads.find((ql: any) => ql.row === l.row || ql.email === l.email);
+                if (qLead && qLead.status !== 'QUEUED') {
+                  return {
+                    ...l,
+                    status: qLead.status === 'SENT' ? 'SENT ✅' : qLead.status,
+                    sentAt: qLead.sentAt || l.sentAt,
+                  };
+                }
+                return l;
+              })
+            );
+          }
+        } else if (data && data.campaign && (data.campaign.status === 'completed' || data.campaign.status === 'cancelled')) {
+          if (isDispatching && dispatchMode === 'cloud_drip') {
+            setIsDispatching(false);
+            setActiveCampaign({
+              isRunning: false,
+              isFinished: true,
+              sentCount: data.campaign.sentCount,
+              totalCount: data.campaign.totalLeads,
+              message: data.campaign.lastMessage || `Cloud Campaign finished! Sent ${data.campaign.sentCount} emails.`,
+            });
+          }
+        }
+      } catch {}
+    };
+
+    syncCloudQueue();
+    interval = setInterval(syncCloudQueue, 6000);
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isDispatching, dispatchMode]);
 
   useEffect(() => {
     // 1. Load saved sheet URL
@@ -693,9 +753,12 @@ export default function CampaignsPage() {
     .replace(/\{\{\s*company\s*\}\}/gi, previewLead.company || 'your company')
     .replace(/\{\{\s*email\s*\}\}/gi, previewLead.email);
 
-  const handleStopCampaign = () => {
+  const handleStopCampaign = async () => {
     cancelDispatchRef.current = true;
     setIsDispatching(false);
+    try {
+      await fetch('/api/v1/campaigns/queue', { method: 'DELETE' });
+    } catch {}
     setActiveCampaign((prev) =>
       prev
         ? {
@@ -708,7 +771,7 @@ export default function CampaignsPage() {
     );
   };
 
-  // Automated background campaign execution (2-3 min intervals, zero countdown, instant Sheet updates)
+  // Automated Cloud Campaign Execution (Fast Server Send OR Autonomous 24/7 Cloud Queue)
   const executeDispatch = async () => {
     if (selectedLeadObjects.length === 0) return;
 
@@ -717,154 +780,117 @@ export default function CampaignsPage() {
 
     cancelDispatchRef.current = false;
     setIsDispatching(true);
+
+    if (dispatchMode === 'instant') {
+      // ⚡ FAST CLOUD DISPATCH: Dispatches all selected leads directly on server in seconds
+      setActiveCampaign({
+        isRunning: true,
+        sentCount: 0,
+        totalCount: totalLeads,
+        message: `⚡ Cloud Dispatching ${totalLeads} lead(s) directly on server... Safe to close laptop once complete in ~5s!`,
+      });
+
+      try {
+        const res = await fetch('/api/v1/campaigns/dispatch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            leads: selectedLeadObjects,
+            senderAccountId: senderAccount,
+            senderName: activeMailbox?.name,
+            senderEmail: activeMailbox?.email,
+            template: { subject, bodyHtml },
+            sheetWebhookUrl: sheetUrl,
+            skipVerification: !verifyBeforeSend,
+          }),
+        });
+
+        const data = await res.json();
+        if (data && data.success && Array.isArray(data.results)) {
+          const sentLeads = data.results.filter((r: any) => r.sent);
+          const nowFormatted = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+          setLeads((prev) =>
+            prev.map((l) => {
+              const matched = data.results.find((r: any) => r.lead?.row === l.row || r.lead?.email === l.email);
+              if (matched) {
+                return {
+                  ...l,
+                  status: matched.sent ? 'SENT ✅' : (matched.status || 'FAILED ⚠️'),
+                  sentAt: matched.sent ? nowFormatted : l.sentAt,
+                };
+              }
+              return l;
+            })
+          );
+
+          setActiveCampaign({
+            isRunning: false,
+            isFinished: true,
+            sentCount: sentLeads.length,
+            totalCount: totalLeads,
+            message: `🎉 All ${sentLeads.length} of ${totalLeads} emails dispatched successfully via Cloud Server! Google Sheet updated.`,
+          });
+        } else {
+          setActiveCampaign({
+            isRunning: false,
+            isFinished: true,
+            sentCount: 0,
+            totalCount: totalLeads,
+            message: data?.error || 'Failed to dispatch campaign.',
+          });
+        }
+      } catch (err: any) {
+        console.error('Dispatch error:', err);
+        setActiveCampaign({
+          isRunning: false,
+          isFinished: true,
+          sentCount: 0,
+          totalCount: totalLeads,
+          message: err.message || 'Network error during dispatch.',
+        });
+      } finally {
+        setIsDispatching(false);
+      }
+      return;
+    }
+
+    // ☁️ CLOUD DRIP QUEUE MODE: Starts persistent server queue so user can close laptop anytime!
     setActiveCampaign({
       isRunning: true,
       sentCount: 0,
       totalCount: totalLeads,
-      message: `Automated campaign started for ${totalLeads} lead(s). Emails will send with 2-3 minute intervals, and Google Sheet will update automatically on each send.`,
+      message: `☁️ Cloud Queue initialized for ${totalLeads} leads. Running 24/7 in cloud — you can safely close your laptop or browser anytime!`,
     });
 
-    let sentCount = 0;
-    let invalidCount = 0;
-    let failedCount = 0;
-
     try {
-      for (let i = 0; i < totalLeads; i++) {
-        if (cancelDispatchRef.current) break;
+      const res = await fetch('/api/v1/campaigns/queue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          leads: selectedLeadObjects,
+          senderAccountId: senderAccount,
+          senderName: activeMailbox?.name,
+          senderEmail: activeMailbox?.email,
+          template: { subject, bodyHtml },
+          sheetWebhookUrl: sheetUrl,
+          skipVerification: !verifyBeforeSend,
+          mode: 'drip',
+          cadenceSeconds: 120,
+        }),
+      });
 
-        const currentLead = selectedLeadObjects[i];
-
-        if (!currentLead.email || !currentLead.email.includes('@')) {
-          setLeads((prev) =>
-            prev.map((l) =>
-              l.row === currentLead.row ? { ...l, status: 'NO EMAIL ⚠️' } : l
-            )
-          );
-          setActiveCampaign({
-            isRunning: true,
-            sentCount,
-            totalCount: totalLeads,
-            message: `Skipped ${currentLead.name} (Row ${currentLead.row}) because no email address was found in sheet.`,
-          });
-          continue;
-        }
-
+      const data = await res.json();
+      if (data && data.success && data.campaign) {
         setActiveCampaign({
           isRunning: true,
-          sentCount,
-          totalCount: totalLeads,
-          message: `Sending email ${i + 1} of ${totalLeads} to ${currentLead.name} (${currentLead.email}) [Row ${currentLead.row}]...`,
-        });
-
-        // Dispatch single lead
-        let singleRes: any = null;
-        try {
-          const res = await fetch('/api/v1/campaigns/dispatch', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              leads: [currentLead],
-              senderAccountId: senderAccount,
-              senderName: activeMailbox?.name,
-              senderEmail: activeMailbox?.email,
-              template: { subject, bodyHtml },
-              sheetWebhookUrl: sheetUrl,
-              skipVerification: !verifyBeforeSend,
-            }),
-          });
-          singleRes = await res.json();
-        } catch (fetchErr: any) {
-          singleRes = { success: false, error: fetchErr.message };
-        }
-
-        const leadResult = singleRes?.results?.[0];
-        const nowFormatted = new Date().toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        });
-
-        if (singleRes && singleRes.success && leadResult) {
-          if (leadResult.sent) {
-            sentCount++;
-            // Update table row immediately in real time!
-            setLeads((prev) =>
-              prev.map((l) =>
-                l.row === currentLead.row ? { ...l, status: 'SENT ✅', sentAt: nowFormatted } : l
-              )
-            );
-
-            setActiveCampaign({
-              isRunning: true,
-              sentCount,
-              totalCount: totalLeads,
-              lastSentEmail: currentLead.email,
-              lastSentRow: currentLead.row,
-              message: `Email ${i + 1} of ${totalLeads} sent to ${currentLead.name} (${currentLead.email})! Google Sheet Row ${currentLead.row} updated to SENT ✅.${
-                i < totalLeads - 1 ? ' Next email will send automatically in 2-3 minutes.' : ''
-              }`,
-            });
-          } else if (leadResult.status?.includes('INVALID')) {
-            invalidCount++;
-            setLeads((prev) =>
-              prev.map((l) =>
-                l.row === currentLead.row ? { ...l, status: 'INVALID ❌', sentAt: '' } : l
-              )
-            );
-
-            setActiveCampaign({
-              isRunning: true,
-              sentCount,
-              totalCount: totalLeads,
-              message: `Lead ${currentLead.email} was flagged invalid by verifier. Google Sheet Row ${currentLead.row} marked INVALID ❌.${
-                i < totalLeads - 1 ? ' Next email will send automatically in 2-3 minutes.' : ''
-              }`,
-            });
-          } else {
-            failedCount++;
-            setLeads((prev) =>
-              prev.map((l) =>
-                l.row === currentLead.row ? { ...l, status: 'FAILED ⚠️', sentAt: '' } : l
-              )
-            );
-          }
-        } else {
-          failedCount++;
-        }
-
-        // If more leads remain, sleep in background for 2 to 3 minutes (120 to 180 seconds)!
-        // Quiet background delay with zero visual countdown clock
-        if (i < totalLeads - 1 && !cancelDispatchRef.current) {
-          const delaySec = Math.floor(120 + Math.random() * 60); // 2 to 3 minutes
-          for (let s = 0; s < delaySec; s++) {
-            if (cancelDispatchRef.current) break;
-            await new Promise((r) => setTimeout(r, 1000));
-          }
-        }
-      }
-
-      // Campaign finished
-      if (!cancelDispatchRef.current) {
-        setActiveCampaign({
-          isRunning: false,
-          sentCount,
-          totalCount: totalLeads,
-          message: `Campaign complete! All ${sentCount} emails were sent automatically with 2-3 minute intervals, and your Google Sheet has been updated.`,
-          isFinished: true,
+          sentCount: data.campaign.sentCount,
+          totalCount: data.campaign.totalLeads,
+          message: data.campaign.lastMessage || `Cloud Drip Queue started. Next email in ~2 minutes. Safe to close laptop!`,
         });
       }
-
-      await fetchLeads();
     } catch (err: any) {
-      setActiveCampaign({
-        isRunning: false,
-        sentCount,
-        totalCount: totalLeads,
-        message: `Campaign encountered an issue: ${err.message}`,
-        isFinished: true,
-      });
-    } finally {
+      console.error('Queue error:', err);
       setIsDispatching(false);
     }
   };
@@ -919,7 +945,7 @@ export default function CampaignsPage() {
                 {activeCampaign.isRunning && (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                     <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
-                    2 - 3 Min Anti-Spam Interval
+                    {dispatchMode === 'instant' ? '⚡ Fast Cloud Server Dispatch' : '☁️ 24/7 Cloud Queue (Safe to close PC)'}
                   </span>
                 )}
                 <span className="text-[10px] font-bold text-slate-700 bg-white px-2.5 py-0.5 rounded-md border border-slate-200 shadow-2xs">
@@ -1680,10 +1706,43 @@ export default function CampaignsPage() {
                 </span>
                 Verify &amp; Send
               </label>
-              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 flex items-center gap-0.5">
-                <Clock className="w-2.5 h-2.5" />
-                2-3m Cadence
-              </span>
+              {dispatchMode === 'instant' ? (
+                <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200 flex items-center gap-0.5">
+                  ⚡ Fast Cloud (~5s)
+                </span>
+              ) : (
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 flex items-center gap-0.5">
+                  ☁️ 24/7 Cloud Drip
+                </span>
+              )}
+            </div>
+
+            {/* Cloud Dispatch Mode Selector */}
+            <div className="grid grid-cols-2 gap-1 bg-slate-200/60 p-0.5 rounded-lg mb-2 text-[10px] font-bold">
+              <button
+                type="button"
+                onClick={() => setDispatchMode('instant')}
+                className={`py-1 px-1.5 rounded-md transition-all text-center cursor-pointer ${
+                  dispatchMode === 'instant'
+                    ? 'bg-white text-blue-700 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="Dispatches all leads in ~5-10s right on server. Safe to close PC immediately!"
+              >
+                ⚡ Fast Cloud
+              </button>
+              <button
+                type="button"
+                onClick={() => setDispatchMode('cloud_drip')}
+                className={`py-1 px-1.5 rounded-md transition-all text-center cursor-pointer ${
+                  dispatchMode === 'cloud_drip'
+                    ? 'bg-white text-blue-700 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="Runs in 2m cadence 24/7 in cloud. Close laptop anytime, server continues!"
+              >
+                ☁️ 24/7 Drip Queue
+              </button>
             </div>
 
             {/* Launch CTA */}
@@ -1705,7 +1764,11 @@ export default function CampaignsPage() {
               {isDispatching ? (
                 <>
                   <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span className="truncate">Sending ({activeCampaign?.sentCount || 0}/{activeCampaign?.totalCount || selectedRows.length})...</span>
+                  <span className="truncate">
+                    {dispatchMode === 'instant'
+                      ? 'Dispatching in Cloud...'
+                      : `Queued (${activeCampaign?.sentCount || 0}/${activeCampaign?.totalCount || selectedRows.length})...`}
+                  </span>
                 </>
               ) : (
                 <>
@@ -1718,6 +1781,16 @@ export default function CampaignsPage() {
                 </>
               )}
             </button>
+
+            {isDispatching && (
+              <button
+                type="button"
+                onClick={handleStopCampaign}
+                className="mt-1 text-[10px] text-rose-600 hover:text-rose-800 font-bold underline text-center w-full cursor-pointer"
+              >
+                Stop Campaign
+              </button>
+            )}
 
             <div className="mt-2 flex items-center justify-between text-[10px] text-slate-600 px-0.5">
               <label className="flex items-center gap-1.5 cursor-pointer">
@@ -1732,7 +1805,9 @@ export default function CampaignsPage() {
                   Drop Fakes
                 </span>
               </label>
-              <span className="text-[10px] text-slate-400 font-medium">Sheet auto-sync</span>
+              <span className="text-[10px] text-slate-400 font-medium">
+                {dispatchMode === 'instant' ? 'Safe to close PC in ~5s' : '24/7 Cloud Worker'}
+              </span>
             </div>
           </div>
         </div>
