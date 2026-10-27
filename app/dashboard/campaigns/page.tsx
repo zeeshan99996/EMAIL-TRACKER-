@@ -35,6 +35,7 @@ import {
   Phone,
   Loader2,
   Download,
+  Unlink,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -518,6 +519,20 @@ export default function CampaignsPage() {
       setLoading(false);
       setRefreshing(false);
     }
+  };
+
+  // Disconnect Google Sheet & clear current leads
+  const handleDisconnectSheet = () => {
+    try {
+      localStorage.removeItem('erha_sheet_webhook_url');
+    } catch {}
+    setSheetUrl('');
+    setSelectedRows([]);
+    setSheetSyncStatus({
+      type: 'warning',
+      message: 'Google Sheet disconnected. Paste another Google Sheet link to connect.',
+    });
+    fetchLeads('');
   };
 
   useEffect(() => {
@@ -1214,8 +1229,21 @@ export default function CampaignsPage() {
                 setSheetUrl(e.target.value);
                 if (sheetSyncStatus) setSheetSyncStatus(null);
               }}
-              className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-xl text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500/20"
+              className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-xl text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500/20"
             />
+            {sheetUrl && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSheetUrl('');
+                  if (sheetSyncStatus) setSheetSyncStatus(null);
+                }}
+                className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                title="Clear input"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
           <button
             type="button"
@@ -1234,6 +1262,16 @@ export default function CampaignsPage() {
                 <span>Connect</span>
               </>
             )}
+          </button>
+          <button
+            type="button"
+            onClick={handleDisconnectSheet}
+            disabled={refreshing}
+            className="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-800 border border-rose-200 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-xs shrink-0 cursor-pointer disabled:opacity-50"
+            title="Disconnect current Google Sheet to connect a new one"
+          >
+            <Unlink className="w-3.5 h-3.5 text-rose-600" />
+            <span>Disconnect Sheet</span>
           </button>
           <button
             type="button"
