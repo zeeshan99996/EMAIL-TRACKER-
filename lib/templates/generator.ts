@@ -172,80 +172,80 @@ export function synthesizeTemplateHeuristically(req: GenerateTemplateRequest): G
     </div>`;
   }
 
-  // Final Professional Executive HTML Template (without CTA buttons)
+  // Final Professional Executive HTML Template (without CTA buttons) - 100% Fluid & Mobile-Responsive
   const body = `
-<div style="background-color: #f8fafc; padding: 24px 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0f172a; line-height: 1.6;">
-  <div style="max-width: 580px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);">
+<div style="background-color: #f8fafc; padding: 12px 6px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0f172a; line-height: 1.6; width: 100%; box-sizing: border-box;">
+  <div style="width: 100%; max-width: 580px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-sizing: border-box; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);">
     
     <!-- Top Theme Accent Stripe -->
-    <div style="height: 4px; background: #2563eb; width: 100%;"></div>
+    <div style="height: 3px; background: #2563eb; width: 100%;"></div>
 
-    <!-- Main Container -->
-    <div style="padding: 28px 24px;">
+    <!-- Main Container - Compact Fluid Spacing -->
+    <div style="padding: 18px 16px; box-sizing: border-box;">
       
       <!-- Preheader Badge -->
-      <div style="display: inline-block; font-size: 11px; font-weight: 700; color: #2563eb; background-color: #eff6ff; border: 1px solid #dbeafe; padding: 3px 10px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px;">
+      <div style="display: inline-block; font-size: 10px; font-weight: 700; color: #2563eb; background-color: #eff6ff; border: 1px solid #dbeafe; padding: 2px 8px; border-radius: 5px; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 12px;">
         ${badgeText}
       </div>
 
       <!-- Heading -->
-      <h2 style="font-size: 17px; font-weight: 700; color: #0f172a; margin: 0 0 14px 0; line-height: 1.35;">
+      <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; line-height: 1.35;">
         ${heading}
       </h2>
 
       <!-- Salutation & Opening -->
-      <p style="font-size: 14px; color: #334155; margin: 0 0 12px 0;">
+      <p style="font-size: 13.5px; color: #334155; margin: 0 0 10px 0; line-height: 1.55;">
         Hi {{first_name}},
       </p>
       
-      <p style="font-size: 14px; color: #334155; margin: 0 0 16px 0;">
+      <p style="font-size: 13.5px; color: #334155; margin: 0 0 14px 0; line-height: 1.55;">
         ${intro}
       </p>
 
       ${imageSection}
 
       <!-- Structured Value Deliverables Card -->
-      <div style="margin: 20px 0; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px;">
-        <div style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;">
+      <div style="margin: 14px 0; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; box-sizing: border-box;">
+        <div style="font-size: 10.5px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px;">
           Key Operational Deliverables
         </div>
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <div style="font-size: 13px; color: #1e293b; line-height: 1.5; margin-bottom: 6px;">
-            <span style="color: #2563eb; font-weight: bold; margin-right: 6px;">&#10003;</span>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="font-size: 12.5px; color: #1e293b; line-height: 1.45; margin-bottom: 4px;">
+            <span style="color: #2563eb; font-weight: bold; margin-right: 5px;">&#10003;</span>
             ${deliverable1}
           </div>
-          <div style="font-size: 13px; color: #1e293b; line-height: 1.5; margin-bottom: 6px;">
-            <span style="color: #2563eb; font-weight: bold; margin-right: 6px;">&#10003;</span>
+          <div style="font-size: 12.5px; color: #1e293b; line-height: 1.45; margin-bottom: 4px;">
+            <span style="color: #2563eb; font-weight: bold; margin-right: 5px;">&#10003;</span>
             ${deliverable2}
           </div>
-          <div style="font-size: 13px; color: #1e293b; line-height: 1.5;">
-            <span style="color: #2563eb; font-weight: bold; margin-right: 6px;">&#10003;</span>
+          <div style="font-size: 12.5px; color: #1e293b; line-height: 1.45;">
+            <span style="color: #2563eb; font-weight: bold; margin-right: 5px;">&#10003;</span>
             ${deliverable3}
           </div>
         </div>
       </div>
 
       <!-- Social Proof / Metric Callout -->
-      <div style="border-left: 3px solid #2563eb; background-color: #eff6ff; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 20px 0;">
-        <p style="font-size: 12px; font-weight: 600; color: #1e40af; margin: 0; line-height: 1.5;">
+      <div style="border-left: 3px solid #2563eb; background-color: #eff6ff; padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 14px 0; box-sizing: border-box;">
+        <p style="font-size: 12px; font-weight: 600; color: #1e40af; margin: 0; line-height: 1.45;">
           ${proofQuote}
         </p>
       </div>
 
-      <p style="font-size: 14px; color: #334155; margin: 18px 0 0 0; line-height: 1.6;">
+      <p style="font-size: 13.5px; color: #334155; margin: 14px 0 0 0; line-height: 1.55;">
         Would you have 10 minutes this week to see how this could move the needle for {{company}}?
       </p>
 
       <!-- Sign-off -->
-      <p style="font-size: 13px; color: #334155; margin: 22px 0 0 0; line-height: 1.5;">
+      <p style="font-size: 13px; color: #334155; margin: 16px 0 0 0; line-height: 1.5;">
         Best regards,<br>
         <strong style="color: #0f172a;">Executive Outreach Lead</strong><br>
-        <span style="font-size: 12px; color: #64748b;">${signoffTitle}</span>
+        <span style="font-size: 11.5px; color: #64748b;">${signoffTitle}</span>
       </p>
 
       <!-- Minimalist Compliant Footer -->
-      <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0 14px 0;" />
-      <div style="font-size: 11px; color: #94a3b8; line-height: 1.5;">
+      <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 16px 0 10px 0;" />
+      <div style="font-size: 10.5px; color: #94a3b8; line-height: 1.45;">
         Sent to {{company}} (<a href="{{website}}" style="color: #64748b; text-decoration: underline;">{{website}}</a>).<br>
         To discontinue receiving direct communication, <a href="#" style="color: #64748b; text-decoration: underline;">click here to unsubscribe</a>.
       </div>
@@ -286,10 +286,10 @@ STRICT FORMAT REQUIREMENTS:
    - "name": Short, professional template title (e.g. "B2B SaaS Growth Template")
    - "subject": High-open-rate subject line incorporating variables like "{{company}}" or "{{first_name}}"
    - "body": Fully styled HTML email body contained inside:
-     <div style="background-color: #f8fafc; padding: 24px 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0f172a; line-height: 1.6;">
-       <div style="max-width: 580px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
-         <div style="height: 4px; background: #2563eb; width: 100%;"></div>
-         <div style="padding: 28px 24px;">
+     <div style="background-color: #f8fafc; padding: 12px 6px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0f172a; line-height: 1.6; width: 100%; box-sizing: border-box;">
+       <div style="width: 100%; max-width: 580px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-sizing: border-box;">
+         <div style="height: 3px; background: #2563eb; width: 100%;"></div>
+         <div style="padding: 18px 16px; box-sizing: border-box;">
            ...content with {{first_name}}, {{company}}, {{website}}, feature deliverable cards, and polite closing inquiry...
          </div>
        </div>

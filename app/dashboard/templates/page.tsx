@@ -155,12 +155,12 @@ export default function TemplatesPage() {
     setModalTitle(`My Outreach Template ${templates.filter((t) => t.isCustom).length + 1}`);
     setModalSubject('Quick question regarding {{company}}');
     setModalBody(
-      `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #0f172a; max-width: 580px; line-height: 1.6; font-size: 14px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px;">
-  <p style="font-size: 15px; font-weight: 600; color: #0f172a; margin: 0 0 12px 0;">Hi {{first_name}},</p>
-  <p style="color: #334155; margin: 0 0 14px 0;">I came across {{company}} and really liked what your team is building.</p>
-  <p style="color: #334155; margin: 0 0 14px 0;">We help growing companies scale their outbound sales pipeline and optimize conversion rates efficiently.</p>
-  <p style="color: #334155; margin: 0 0 16px 0;">Would you be open to a quick 10-minute chat this Thursday to see if this could be relevant for {{company}}?</p>
-  <p style="color: #334155; margin: 20px 0 0 0;">Best regards,<br><strong style="color: #0f172a;">Outreach Lead</strong></p>
+      `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #0f172a; width: 100%; max-width: 580px; line-height: 1.55; font-size: 13.5px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 16px; box-sizing: border-box;">
+  <p style="font-size: 14.5px; font-weight: 600; color: #0f172a; margin: 0 0 10px 0;">Hi {{first_name}},</p>
+  <p style="color: #334155; margin: 0 0 12px 0;">I came across {{company}} and really liked what your team is building.</p>
+  <p style="color: #334155; margin: 0 0 12px 0;">We help growing companies scale their outbound sales pipeline and optimize conversion rates efficiently.</p>
+  <p style="color: #334155; margin: 0 0 14px 0;">Would you be open to a quick 10-minute chat this Thursday to see if this could be relevant for {{company}}?</p>
+  <p style="color: #334155; margin: 16px 0 0 0;">Best regards,<br><strong style="color: #0f172a;">Outreach Lead</strong></p>
 </div>`
     );
     setModalImageUrl('');
@@ -460,61 +460,61 @@ export default function TemplatesPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+    <div className="space-y-3.5 sm:space-y-4 max-w-7xl mx-auto pb-8 sm:pb-12">
       <Header title="Email Templates" />
 
       {/* ========================================================= */}
-      {/* HEADER SECTION - CLEAN MINIMAL THEME                     */}
+      {/* HEADER SECTION - FULLY RESPONSIVE & COMPACT THEME        */}
       {/* ========================================================= */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 md:p-6 shadow-xs">
-        <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0 shadow-2xs">
-            <LayoutTemplate className="w-5 h-5 sm:w-6 sm:h-6" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 md:p-5 shadow-xs">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0 shadow-2xs">
+            <LayoutTemplate className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
           </div>
           <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <h1 className="text-base sm:text-lg md:text-xl font-bold text-slate-900 tracking-tight">
                 Email Templates
               </h1>
-              <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+              <span className="text-[11px] sm:text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
                 {templates.length} Total
               </span>
               {templates.filter((t) => t.isCustom).length > 0 && (
-                <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                <span className="text-[11px] sm:text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                   {templates.filter((t) => t.isCustom).length} Custom
                 </span>
               )}
               {templates.filter((t) => t.imageUrl || t.body.includes('<img')).length > 0 && (
-                <span className="text-xs font-semibold text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200 flex items-center gap-1">
+                <span className="text-[11px] sm:text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200 flex items-center gap-1">
                   <ImageIcon className="w-3 h-3 text-slate-500" />
-                  {templates.filter((t) => t.imageUrl || t.body.includes('<img')).length} With Images
+                  {templates.filter((t) => t.imageUrl || t.body.includes('<img')).length} Images
                 </span>
               )}
             </div>
           </div>
         </div>
 
-        {/* Action Buttons: Generate from Prompt + Create Manually */}
-        <div className="flex flex-wrap items-center gap-2 shrink-0 self-start sm:self-center">
+        {/* Action Buttons: Generate from Prompt + Create Manually (Grid on Mobile, Flex on Desktop) */}
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto shrink-0">
           <button
             type="button"
             onClick={() => {
               setShowAiModal(true);
               setGenerationError(null);
             }}
-            className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+            className="w-full sm:w-auto px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer text-center"
           >
-            <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-            <span>Generate with Prompt</span>
+            <Sparkles className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+            <span className="truncate">AI Prompt</span>
           </button>
 
           <button
             type="button"
             onClick={handleOpenCreateModal}
-            className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+            className="w-full sm:w-auto px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer text-center"
           >
-            <Plus className="w-4 h-4" />
-            <span>Create New Template</span>
+            <Plus className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">New Template</span>
           </button>
         </div>
       </div>
@@ -522,16 +522,16 @@ export default function TemplatesPage() {
       {/* ========================================================= */}
       {/* SEARCH & FILTER BAR                                       */}
       {/* ========================================================= */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-white border border-slate-200 rounded-2xl p-2.5 sm:p-3 shadow-xs">
         {/* Search Input */}
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             placeholder="Search templates by title, subject, or keywords..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-medium"
+            className="w-full pl-8.5 pr-8 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-medium"
           />
           {searchQuery && (
             <button
@@ -544,17 +544,17 @@ export default function TemplatesPage() {
         </div>
 
         {/* Filter Pills */}
-        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl overflow-x-auto shrink-0">
+        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl overflow-x-auto shrink-0 scrollbar-none">
           {[
             { id: 'all', label: `All (${templates.length})` },
             { id: 'custom', label: `Custom (${templates.filter((t) => t.isCustom).length})` },
-            { id: 'with-images', label: `With Images (${templates.filter((t) => t.imageUrl || t.body.includes('<img')).length})` },
+            { id: 'with-images', label: `Images (${templates.filter((t) => t.imageUrl || t.body.includes('<img')).length})` },
             { id: 'preset', label: `Presets (${PRESET_TEMPLATES.length})` },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setFilterCategory(tab.id as any)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                 filterCategory === tab.id
                   ? 'bg-white text-slate-900 shadow-xs border border-slate-200'
                   : 'text-slate-600 hover:text-slate-900'
@@ -598,18 +598,18 @@ export default function TemplatesPage() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {filteredTemplates.map((tmpl) => {
             const hasImage = tmpl.imageUrl || tmpl.body.includes('<img');
 
             return (
               <div
                 key={tmpl.id}
-                className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs hover:shadow-md hover:border-blue-300 transition-all flex flex-col justify-between group"
+                className="bg-white border border-slate-200 rounded-2xl p-3.5 sm:p-4 shadow-xs hover:shadow-md hover:border-blue-300 transition-all flex flex-col justify-between group"
               >
                 <div>
                   {/* Top Bar: Badges & Quick Action Icons */}
-                  <div className="flex items-center justify-between gap-2 mb-2.5">
+                  <div className="flex items-center justify-between gap-1.5 mb-2">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {tmpl.isCustom ? (
                         <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
@@ -622,21 +622,21 @@ export default function TemplatesPage() {
                       )}
 
                       {hasImage && (
-                        <span className="text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 flex items-center gap-1">
-                          <ImageIcon className="w-3 h-3 text-slate-500" />
-                          <span>Image Attached</span>
+                        <span className="text-[10px] font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded-md border border-slate-200 flex items-center gap-1">
+                          <ImageIcon className="w-2.5 h-2.5 text-slate-500" />
+                          <span>Image</span>
                         </span>
                       )}
 
                       {tmpl.imageLinkUrl && (
-                        <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200 flex items-center gap-1">
-                          <Link2 className="w-3 h-3 text-blue-600" />
-                          <span>Clickable Image</span>
+                        <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-md border border-blue-200 flex items-center gap-1">
+                          <Link2 className="w-2.5 h-2.5 text-blue-600" />
+                          <span>Link</span>
                         </span>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-0.5 shrink-0">
                       <button
                         type="button"
                         onClick={() => handleDuplicate(tmpl)}
@@ -672,14 +672,14 @@ export default function TemplatesPage() {
                   </h3>
 
                   {/* Subject Line */}
-                  <div className="mt-1.5 text-xs text-slate-600 bg-slate-50 p-2 rounded-xl border border-slate-100">
+                  <div className="mt-1.5 text-xs text-slate-600 bg-slate-50 p-1.5 sm:p-2 rounded-xl border border-slate-100">
                     <span className="font-semibold text-slate-800">Subject: </span>
                     <span className="line-clamp-1">{tmpl.subject}</span>
                   </div>
 
                   {/* Embedded Image Thumbnail Preview */}
                   {tmpl.imageUrl && (
-                    <div className="mt-2.5 h-24 w-full bg-slate-100 rounded-xl overflow-hidden border border-slate-200 flex items-center justify-center relative">
+                    <div className="mt-2 h-20 sm:h-24 w-full bg-slate-100 rounded-xl overflow-hidden border border-slate-200 flex items-center justify-center relative">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={tmpl.imageUrl}
@@ -696,13 +696,13 @@ export default function TemplatesPage() {
                   )}
 
                   {/* Body Text Snippet */}
-                  <div className="mt-2.5 text-xs text-slate-500 line-clamp-3 leading-relaxed">
+                  <div className="mt-2 text-xs text-slate-500 line-clamp-2 sm:line-clamp-3 leading-relaxed">
                     {tmpl.body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()}
                   </div>
                 </div>
 
                 {/* Card Footer: Action Buttons */}
-                <div className="pt-4 mt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <div className="pt-2.5 mt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
                   <button
                     type="button"
                     onClick={() => handleOpenEditModal(tmpl)}
@@ -720,7 +720,7 @@ export default function TemplatesPage() {
                       } catch {}
                       router.push('/dashboard/campaigns');
                     }}
-                    className="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                    className="px-2.5 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
                   >
                     <span>Use in Campaign</span>
                     <Send className="w-3 h-3" />
@@ -736,16 +736,16 @@ export default function TemplatesPage() {
       {/* 1. AI PROMPT-TO-TEMPLATE MODAL (THEME-ALIGNED)            */}
       {/* ========================================================= */}
       {showAiModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-3xl sm:max-w-4xl shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col animate-in fade-in zoom-in-95 duration-200">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/70">
+            <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-3.5 border-b border-slate-100 bg-slate-50/70 shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center font-bold">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center font-bold">
                   <Sparkles className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900">
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900">
                     AI Template Studio
                   </h3>
                 </div>
@@ -761,25 +761,25 @@ export default function TemplatesPage() {
             </div>
 
             {/* Modal Body */}
-            <div className="p-5 sm:p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+            <div className="p-3.5 sm:p-5 space-y-3 sm:space-y-3.5 overflow-y-auto flex-1">
               {/* Command Input Area */}
               <div>
-                <div className="mb-1.5">
+                <div className="mb-1">
                   <label className="text-xs font-bold text-slate-900">
                     Template Requirements / Command:
                   </label>
                 </div>
                 <textarea
-                  rows={4}
+                  rows={3}
                   value={aiPrompt}
                   onChange={(e) => setAiPrompt(e.target.value)}
                   placeholder="e.g. Write a cold outreach email pitching custom software development to SaaS founders. Include a link to our case studies, an invitation for a 15-minute call, and a banner graphic."
-                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-xl p-3 text-xs text-slate-900 focus:outline-none transition-all leading-relaxed font-medium resize-none shadow-2xs"
+                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-xl p-2.5 text-xs text-slate-900 focus:outline-none transition-all leading-relaxed font-medium resize-none shadow-2xs"
                 />
 
                 {/* Quick Suggestion Pills */}
-                <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                  <span className="text-[10px] font-bold text-slate-400 mr-1">Quick Presets:</span>
+                <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                  <span className="text-[10px] font-bold text-slate-400 mr-0.5">Quick Presets:</span>
                   {[
                     { label: 'B2B SaaS Pitch', text: 'Cold outreach email to SaaS founders highlighting our deliverability platform with a demo link and 15-min call button.' },
                     { label: 'Web Agency Case Study', text: 'Introductory outreach for website design and conversion rate optimization with a case study portfolio link.' },
@@ -790,7 +790,7 @@ export default function TemplatesPage() {
                       key={preset.label}
                       type="button"
                       onClick={() => setAiPrompt(preset.text)}
-                      className="text-[10px] font-semibold text-slate-600 bg-slate-100 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 border border-slate-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+                      className="text-[10px] font-semibold text-slate-600 bg-slate-100 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 border border-slate-200 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
                     >
                       {preset.label}
                     </button>
@@ -799,14 +799,14 @@ export default function TemplatesPage() {
               </div>
 
               {/* Tone of Voice */}
-              <div className="pt-1">
+              <div>
                 <label className="block text-xs font-bold text-slate-900 mb-1">
                   Tone of Voice:
                 </label>
                 <select
                   value={aiTone}
                   onChange={(e) => setAiTone(e.target.value as any)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-semibold focus:outline-none focus:border-blue-500 cursor-pointer"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 font-semibold focus:outline-none focus:border-blue-500 cursor-pointer"
                 >
                   <option value="professional">Professional &amp; Authoritative</option>
                   <option value="direct">Direct &amp; Concise (Under 75 words)</option>
@@ -816,7 +816,7 @@ export default function TemplatesPage() {
               </div>
 
               {/* Clickable Image & Graphic Settings */}
-              <div className="border border-slate-200 rounded-xl p-3 bg-slate-50/50">
+              <div className="border border-slate-200 rounded-xl p-2.5 sm:p-3 bg-slate-50/50">
                 <button
                   type="button"
                   onClick={() => setShowAdvancedAi(!showAdvancedAi)}
@@ -832,7 +832,7 @@ export default function TemplatesPage() {
                 </button>
 
                 {showAdvancedAi && (
-                  <div className="mt-3 pt-3 border-t border-slate-200/80 space-y-3">
+                  <div className="mt-2.5 pt-2.5 border-t border-slate-200/80 space-y-2.5">
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 mb-1">
                         Clickable Image Link (Opens when image clicked):
@@ -881,12 +881,12 @@ export default function TemplatesPage() {
               </div>
 
               {/* Generate Action Button */}
-              <div className="flex items-center justify-end pt-1">
+              <div className="flex items-center justify-end pt-0.5">
                 <button
                   type="button"
                   onClick={handleGenerateTemplate}
                   disabled={isGenerating || !aiPrompt.trim()}
-                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="w-full sm:w-auto px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 text-center"
                 >
                   {isGenerating ? (
                     <>
@@ -904,15 +904,15 @@ export default function TemplatesPage() {
 
               {/* Generation Error Alert */}
               {generationError && (
-                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold">
+                <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold">
                   {generationError}
                 </div>
               )}
 
               {/* Generated Result Preview Section */}
               {generatedResult && (
-                <div className="border border-blue-200 bg-blue-50/20 rounded-2xl p-4 sm:p-5 space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-blue-100 pb-3">
+                <div className="border border-blue-200 bg-blue-50/20 rounded-2xl p-3 sm:p-4 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-blue-100 pb-2.5">
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md">
@@ -925,11 +925,11 @@ export default function TemplatesPage() {
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-1.5 shrink-0">
+                    <div className="grid grid-cols-1 sm:flex sm:items-center gap-1.5 w-full sm:w-auto shrink-0">
                       <button
                         type="button"
                         onClick={handleOpenGeneratedInEditor}
-                        className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
+                        className="w-full sm:w-auto px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 shadow-2xs text-center"
                       >
                         <Edit3 className="w-3.5 h-3.5 text-slate-600" />
                         <span>Customize in Editor</span>
@@ -938,7 +938,7 @@ export default function TemplatesPage() {
                       <button
                         type="button"
                         onClick={() => handleSaveGeneratedDirectly(false)}
-                        className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs"
+                        className="w-full sm:w-auto px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1 shadow-xs text-center"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         <span>Save Template</span>
@@ -947,7 +947,7 @@ export default function TemplatesPage() {
                       <button
                         type="button"
                         onClick={() => handleSaveGeneratedDirectly(true)}
-                        className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs"
+                        className="w-full sm:w-auto px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1 shadow-xs text-center"
                       >
                         <span>Use in Campaign</span>
                         <ArrowRight className="w-3.5 h-3.5" />
@@ -956,11 +956,11 @@ export default function TemplatesPage() {
                   </div>
 
                   {/* Clickable Live Preview for Generated Template */}
-                  <div className="bg-white border border-slate-200 rounded-xl p-4">
-                    <div className="text-xs font-semibold text-slate-400 pb-2 mb-3 border-b border-slate-100 flex items-center justify-between">
-                      <span>Clickable Live Preview (Click text to edit directly)</span>
+                  <div className="bg-white border border-slate-200 rounded-xl p-2.5 sm:p-3">
+                    <div className="text-[11px] sm:text-xs font-semibold text-slate-400 pb-1.5 mb-2 border-b border-slate-100 flex items-center justify-between">
+                      <span>Clickable Preview (Click text to edit)</span>
                       <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-medium border border-emerald-200">
-                        Clickable Editing Active
+                        Editing Active
                       </span>
                     </div>
 
@@ -969,7 +969,7 @@ export default function TemplatesPage() {
                       contentEditable
                       suppressContentEditableWarning
                       onInput={handleAiPreviewInput}
-                      className="overflow-x-auto text-slate-800 text-xs sm:text-sm leading-relaxed outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 rounded-lg p-2 min-h-[220px] cursor-text bg-white"
+                      className="overflow-x-auto text-slate-800 text-xs sm:text-sm leading-relaxed outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 rounded-lg p-1.5 min-h-[180px] sm:min-h-[220px] cursor-text bg-white"
                     />
                   </div>
                 </div>
@@ -977,7 +977,7 @@ export default function TemplatesPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="px-5 py-3 border-t border-slate-100 bg-slate-50/70 flex items-center justify-end">
+            <div className="px-4 py-2.5 sm:px-5 sm:py-3 border-t border-slate-100 bg-slate-50/70 flex items-center justify-end shrink-0">
               <button
                 type="button"
                 onClick={() => setShowAiModal(false)}
@@ -994,16 +994,16 @@ export default function TemplatesPage() {
       {/* 2. FULL TEMPLATE & IMAGE STUDIO MODAL (EDIT & DESIGN)     */}
       {/* ========================================================= */}
       {showEditorModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-3xl sm:max-w-4xl shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col animate-in fade-in zoom-in-95 duration-200">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/70">
+            <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-3.5 border-b border-slate-100 bg-slate-50/70 shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center font-bold text-xs">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center font-bold text-xs">
                   <Edit3 className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900">
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900">
                     {editingTemplateId ? 'Edit Outreach Template' : 'Design New Template'}
                   </h3>
                 </div>
@@ -1019,7 +1019,7 @@ export default function TemplatesPage() {
             </div>
 
             {/* Modal Body */}
-            <div className="p-5 sm:p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+            <div className="p-3 sm:p-4.5 space-y-2.5 sm:space-y-3 overflow-y-auto flex-1">
               {/* Template Title */}
               <div>
                 <label className="block text-xs font-bold text-slate-900 mb-1">
@@ -1030,7 +1030,7 @@ export default function TemplatesPage() {
                   placeholder="e.g. B2B Outreach with Header Banner"
                   value={modalTitle}
                   onChange={(e) => setModalTitle(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-slate-900 font-semibold focus:outline-none transition-all shadow-2xs"
+                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-xl px-2.5 py-1.5 text-xs text-slate-900 font-semibold focus:outline-none transition-all shadow-2xs"
                 />
               </div>
 
@@ -1046,14 +1046,14 @@ export default function TemplatesPage() {
                   placeholder="e.g. Quick idea for {{company}}'s outbound growth"
                   value={modalSubject}
                   onChange={(e) => setModalSubject(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-slate-900 font-semibold focus:outline-none transition-all shadow-2xs"
+                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-xl px-2.5 py-1.5 text-xs text-slate-900 font-semibold focus:outline-none transition-all shadow-2xs"
                 />
               </div>
 
               {/* ========================================================= */}
               {/* PC IMAGE UPLOAD ZONE & CLICKABLE DESTINATION LINK         */}
               {/* ========================================================= */}
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 sm:p-3 space-y-2.5">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold">
@@ -1084,7 +1084,7 @@ export default function TemplatesPage() {
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploadingImage}
-                    className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer shrink-0 disabled:opacity-50"
+                    className="w-full sm:w-auto px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer shrink-0 disabled:opacity-50 text-center"
                   >
                     <Upload className="w-3.5 h-3.5" />
                     <span>{isUploadingImage ? 'Reading Image...' : 'Browse PC File...'}</span>
@@ -1101,7 +1101,7 @@ export default function TemplatesPage() {
 
                 {/* Attached Image Controls (If image selected) */}
                 {modalImageUrl && (
-                  <div className="bg-white border border-slate-200 rounded-xl p-3 space-y-3 shadow-2xs">
+                  <div className="bg-white border border-slate-200 rounded-xl p-2.5 sm:p-3 space-y-2.5 shadow-2xs">
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
                         <div className="w-16 h-12 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 shrink-0 relative">
@@ -1212,7 +1212,7 @@ export default function TemplatesPage() {
               {/* ========================================================= */}
               {/* CLICKABLE FORMATTING TOOLBAR                              */}
               {/* ========================================================= */}
-              <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl">
+              <div className="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-xl">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="text-[11px] font-bold text-slate-700 mr-1">Format:</span>
 
@@ -1255,9 +1255,10 @@ export default function TemplatesPage() {
                   </button>
                 </div>
 
-                <div className="flex items-center gap-1.5 text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg font-medium">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Clickable Visual Editing Active (Click any text below to edit directly)</span>
+                <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 sm:px-2.5 py-1 rounded-lg font-medium">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span className="hidden sm:inline">Clickable Visual Editing Active (Click text to edit)</span>
+                  <span className="sm:hidden">Click to edit</span>
                 </div>
               </div>
 
@@ -1296,7 +1297,7 @@ export default function TemplatesPage() {
                 {editorTab === 'code' ? (
                   <div className="p-3">
                     <textarea
-                      rows={14}
+                      rows={10}
                       value={modalBody}
                       onChange={(e) => setModalBody(e.target.value)}
                       className="w-full font-mono text-xs text-slate-800 bg-slate-900/5 p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 leading-relaxed resize-y"
@@ -1304,9 +1305,9 @@ export default function TemplatesPage() {
                     />
                   </div>
                 ) : (
-                  <div className="p-4 sm:p-5 bg-white min-h-[300px]">
-                    <div className="border border-slate-200 rounded-xl p-3 bg-slate-50/50 shadow-inner">
-                      <div className="text-xs font-semibold text-slate-400 pb-2 mb-3 border-b border-slate-200 flex items-center justify-between">
+                  <div className="p-2 sm:p-3 bg-white min-h-[240px]">
+                    <div className="border border-slate-200 rounded-xl p-2 sm:p-2.5 bg-slate-50/50">
+                      <div className="text-[11px] sm:text-xs font-semibold text-slate-400 pb-1.5 mb-2 border-b border-slate-200 flex items-center justify-between">
                         <span>Interactive Email Canvas (Click text to edit directly)</span>
                         <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-medium border border-emerald-200">
                           Direct Clickable Editing
@@ -1319,7 +1320,7 @@ export default function TemplatesPage() {
                         contentEditable
                         suppressContentEditableWarning
                         onInput={handleVisualEditorInput}
-                        className="overflow-x-auto text-slate-800 text-xs sm:text-sm leading-relaxed outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 rounded-lg p-2 min-h-[250px] cursor-text bg-white"
+                        className="overflow-x-auto text-slate-800 text-xs sm:text-sm leading-relaxed outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 rounded-lg p-1.5 sm:p-2 min-h-[220px] sm:min-h-[260px] cursor-text bg-white"
                       />
                     </div>
                   </div>
@@ -1328,34 +1329,32 @@ export default function TemplatesPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-slate-100 bg-slate-50/70">
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowEditorModal(false)}
-                  className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold transition-all shadow-2xs cursor-pointer"
-                >
-                  Cancel
-                </button>
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 px-3.5 py-2.5 sm:px-5 sm:py-3 border-t border-slate-100 bg-slate-50/70 shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowEditorModal(false)}
+                className="w-full sm:w-auto px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold transition-all shadow-2xs cursor-pointer text-center"
+              >
+                Cancel
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => handleSaveModal(false)}
-                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Save Template</span>
-                </button>
+              <button
+                type="button"
+                onClick={() => handleSaveModal(false)}
+                className="w-full sm:w-auto px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer text-center"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Save Template</span>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => handleSaveModal(true)}
-                  className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
-                >
-                  <span>Save &amp; Use in Campaign</span>
-                  <Send className="w-3.5 h-3.5" />
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => handleSaveModal(true)}
+                className="w-full sm:w-auto px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer text-center"
+              >
+                <span>Save &amp; Use in Campaign</span>
+                <Send className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
         </div>
@@ -1365,9 +1364,9 @@ export default function TemplatesPage() {
       {/* 3. QUICK INSERT LINK MODAL                                */}
       {/* ========================================================= */}
       {showInsertLinkModal && (
-        <div className="fixed inset-0 z-60 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-md p-5 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+        <div className="fixed inset-0 z-60 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm sm:max-w-md p-4 sm:p-5 shadow-2xl space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                 <Link2 className="w-4 h-4 text-blue-600" />
                 <span>Insert Hyperlink</span>
@@ -1375,13 +1374,13 @@ export default function TemplatesPage() {
               <button
                 type="button"
                 onClick={() => setShowInsertLinkModal(false)}
-                className="text-slate-400 hover:text-slate-600 p-1"
+                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-1">
                   Anchor Text (Words that will be clicked):
@@ -1391,7 +1390,7 @@ export default function TemplatesPage() {
                   placeholder="e.g. View Our Portfolio"
                   value={customLinkText}
                   onChange={(e) => setCustomLinkText(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium focus:outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-medium focus:outline-none"
                 />
               </div>
 
@@ -1404,7 +1403,7 @@ export default function TemplatesPage() {
                   placeholder="https://example.com/portfolio"
                   value={customLinkUrl}
                   onChange={(e) => setCustomLinkUrl(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium focus:outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-medium focus:outline-none"
                 />
               </div>
             </div>
@@ -1413,14 +1412,14 @@ export default function TemplatesPage() {
               <button
                 type="button"
                 onClick={() => setShowInsertLinkModal(false)}
-                className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+                className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleInsertLink}
-                className="px-4 py-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-xs"
+                className="px-4 py-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-xs cursor-pointer"
               >
                 Insert Link
               </button>
