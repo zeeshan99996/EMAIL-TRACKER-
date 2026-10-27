@@ -5,6 +5,7 @@ import { DEFAULT_PROJECT } from '@/lib/store';
 import { updateInMemoryLeadStatuses } from './sheet-leads';
 import { isSafeWebhookUrl } from '@/lib/security/url-validator';
 import { isGoogleSheetUrl } from './google-sheet-parser';
+import { loadDbFromSupabase } from '@/lib/db/store';
 
 export interface QueuedLead {
   id: number | string;
@@ -93,6 +94,8 @@ export async function startCloudCampaign(params: {
     cadenceSeconds = 120,
     baseUrl = 'https://mailify-pro.vercel.app',
   } = params;
+
+  await loadDbFromSupabase().catch(() => {});
 
   if (bgTimer) {
     clearTimeout(bgTimer);

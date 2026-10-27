@@ -198,6 +198,9 @@ export async function syncDbToSupabase(data: DatabaseSchema): Promise<void> {
 }
 
 export async function loadDbFromSupabase(): Promise<DatabaseSchema> {
+  if (process.env.NODE_ENV === 'test') {
+    return ensureDbFile();
+  }
   try {
     const supabase = createAdminClient();
     const { data, error } = await supabase
