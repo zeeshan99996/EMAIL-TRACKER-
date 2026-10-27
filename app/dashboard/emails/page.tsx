@@ -182,9 +182,85 @@ export default function EmailsPage() {
         </div>
       </div>
 
-      {/* Email Table */}
+      {/* Email Table & Mobile Card List */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Mobile View: Cards (< sm) */}
+        <div className="block sm:hidden divide-y divide-slate-100">
+          {paginatedEmails.length === 0 ? (
+            <div className="py-12 px-4 text-center text-slate-400">
+              <Mail className="w-8 h-8 mx-auto text-slate-300 mb-2" />
+              <p className="font-semibold text-slate-600 text-xs">No tracked emails found.</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Send a batch via Campaign Studio to track emails here.
+              </p>
+            </div>
+          ) : (
+            paginatedEmails.map((email) => {
+              const isOpened = email.status === 'OPENED' || (email.open_count || 0) > 0;
+              const isClicked = email.status === 'CLICKED' || (email.click_count || 0) > 0;
+              return (
+                <div key={email.id} className="p-4 space-y-2.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-900 truncate">{email.recipient_email}</p>
+                      {email.recipient_name && (
+                        <p className="text-[10px] text-slate-400 truncate">{email.recipient_name}</p>
+                      )}
+                    </div>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${
+                        isClicked
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : isOpened
+                          ? 'bg-sky-50 text-sky-700 border-sky-200'
+                          : 'bg-slate-100 text-slate-700 border-slate-200'
+                      }`}
+                    >
+                      {isClicked ? 'CLICKED' : isOpened ? 'OPENED' : 'SENT'}
+                    </span>
+                  </div>
+
+                  <p className="text-xs font-medium text-slate-700 line-clamp-1">{email.subject}</p>
+
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-50">
+                    <div className="flex items-center gap-3">
+                      <span className="inline-flex items-center gap-1 font-bold text-sky-600">
+                        <Eye className="w-3 h-3" />
+                        <span>{email.open_count || 0}</span>
+                      </span>
+                      <span className="inline-flex items-center gap-1 font-bold text-blue-600">
+                        <Link2 className="w-3 h-3" />
+                        <span>{email.click_count || 0}</span>
+                      </span>
+                      <span>
+                        {new Date(email.sent_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <Link
+                        href={`/dashboard/emails/${email.id}`}
+                        className="text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-lg"
+                      >
+                        Details
+                      </Link>
+                      <button
+                        onClick={() => handleDeleteEmail(email.id, email.recipient_email)}
+                        disabled={deletingId === email.id}
+                        className="text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-lg disabled:opacity-50"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop View: Full Table (>= sm) */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider">

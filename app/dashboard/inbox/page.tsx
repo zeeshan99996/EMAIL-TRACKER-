@@ -467,7 +467,7 @@ export default function InboxPage() {
       {/* Main Dual-Pane Inbox Container */}
       <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm grid grid-cols-1 lg:grid-cols-12 min-h-[680px]">
         {/* Left Column: Email Thread List (5 cols) */}
-        <div className="lg:col-span-5 border-r border-slate-200 flex flex-col bg-slate-50/60">
+        <div className={`lg:col-span-5 border-r border-slate-200 flex-col bg-slate-50/60 ${selectedThread ? 'hidden lg:flex' : 'flex'}`}>
           {/* Search & Filter Header */}
           <div className="p-4 border-b border-slate-200 space-y-3 bg-white">
             <div className="flex items-center justify-between">
@@ -650,11 +650,19 @@ export default function InboxPage() {
         </div>
 
         {/* Right Column: Active Thread Reader & Reply Studio (7 cols) */}
-        <div className="lg:col-span-7 flex flex-col bg-white">
+        <div className={`lg:col-span-7 flex-col bg-white ${selectedThread ? 'flex' : 'hidden lg:flex'}`}>
           {selectedThread ? (
             <div className="flex flex-col h-full">
               {/* Message Header */}
-              <div className="p-6 border-b border-slate-200 space-y-4">
+              <div className="p-4 sm:p-6 border-b border-slate-200 space-y-4">
+                <button
+                  type="button"
+                  onClick={() => setSelectedThreadId('')}
+                  className="inline-flex lg:hidden items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 p-1 -ml-1 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
+                >
+                  <ArrowRight className="w-3.5 h-3.5 rotate-180" />
+                  <span>Back to all messages</span>
+                </button>
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">

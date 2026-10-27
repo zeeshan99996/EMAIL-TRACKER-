@@ -97,7 +97,7 @@ export default function AnalyticsPage() {
           <Calendar className="w-4 h-4 text-blue-600" />
           <span className="text-xs font-bold text-slate-800">Time Range:</span>
         </div>
-        <div className="flex items-center space-x-1.5 bg-slate-100 p-1 rounded-lg">
+        <div className="flex items-center space-x-1.5 bg-slate-100 p-1 rounded-lg overflow-x-auto max-w-full pb-1 sm:pb-1">
           {[
             { id: 'today', label: 'Today' },
             { id: 'yesterday', label: 'Yesterday' },

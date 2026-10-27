@@ -8,7 +8,7 @@ async function seedDatabase() {
   console.log('🌱 Starting Database Seed Script...');
 
   if (!supabaseUrl || supabaseUrl.includes('mock') || !serviceRoleKey || serviceRoleKey.includes('mock')) {
-    console.log('ℹ️ Running in Local Demo Mode. Seed data is loaded in-memory via lib/demo-store.ts.');
+    console.log('ℹ️ Running in Local Demo Mode. Seed data is loaded in-memory via lib/store.ts.');
     process.exit(0);
   }
 

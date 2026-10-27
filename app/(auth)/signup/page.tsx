@@ -50,11 +50,16 @@ export default function SignupPage() {
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-4">
       <div className="max-w-sm w-full space-y-6">
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center mx-auto shadow-md">
-            <Zap className="w-6 h-6 fill-current" />
+          <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center p-2 mx-auto shadow-xs">
+            <img src="/mailify-icon.png" alt="Mailify Logo" className="w-full h-full object-contain" />
           </div>
-          <h1 className="text-xl font-bold text-slate-900">Create Tenant Account</h1>
-          <p className="text-xs text-slate-500">Get started and access your tracking dashboard</p>
+          <div className="flex items-center justify-center gap-1.5">
+            <h1 className="text-xl font-black text-slate-900 tracking-tight">Mailify</h1>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">
+              PRO
+            </span>
+          </div>
+          <p className="text-xs text-slate-500">Create your cold outreach & tracking account</p>
         </div>
 
         {error && (
