@@ -1,6 +1,7 @@
 import { LeadItem } from './sheet-leads';
 
 const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+const LOOSE_EMAIL_REGEX = /[^\s,;<>()[\]]+@[^\s,;<>()[\]]+\.[^\s,;<>()[\]]+/;
 const DOMAIN_REGEX = /(?:https?:\/\/)?(?:[a-zA-Z0-9-]+\.)+(?:com|ae|org|io|net|co|ai|in|me|store|shop|online|tech|dev|app|cc|info)[^\s]*/i;
 const PHONE_REGEX = /^[\d\s+\-().]{7,20}$/;
 
@@ -185,58 +186,113 @@ export function convertCsvToLeads(csvText: string): {
   }
 
   const leads: LeadItem[] = [];
+  let leadCounter = 1;
 
   dataRows.forEach((row, idx) => {
-    const rawEmail = row[emailColIdx] ? row[emailColIdx].trim() : '';
+    // 1. Sanitize row cells: normalize whitespace, remove non-breaking / zero-width characters
+    const cleanRow = row.map((c) =>
+      c ? c.replace(/[\u00A0\u200B\uFEFF]/g, ' ').trim() : ''
+    );
+
+    // 2. Only skip genuinely empty rows (where every cell is blank)
+    const hasAnyContent = cleanRow.some((c) => c.length > 0);
+    if (!hasAnyContent) return;
+
+    // 3. Extract and detect email address
     let detectedEmail = '';
-    if (EMAIL_REGEX.test(rawEmail)) {
-      detectedEmail = rawEmail.match(EMAIL_REGEX)![0];
-    } else {
-      // Check other fields in this row
-      for (const field of row) {
-        if (field && EMAIL_REGEX.test(field)) {
-          detectedEmail = field.match(EMAIL_REGEX)![0];
+
+    // Check designated email column first
+    if (emailColIdx !== -1 && cleanRow[emailColIdx]) {
+      const cellVal = cleanRow[emailColIdx];
+      const normalized = cellVal
+        .replace(/^mailto:/i, '')
+        .replace(/[<>]/g, '')
+        .replace(/\s*@\s*/, '@')
+        .trim();
+
+      if (EMAIL_REGEX.test(normalized)) {
+        detectedEmail = normalized.match(EMAIL_REGEX)![0];
+      } else if (LOOSE_EMAIL_REGEX.test(normalized)) {
+        detectedEmail = normalized.match(LOOSE_EMAIL_REGEX)![0];
+      }
+    }
+
+    // If not found in designated column, search all other columns for an email pattern
+    if (!detectedEmail) {
+      for (const field of cleanRow) {
+        if (!field) continue;
+        const normalized = field
+          .replace(/^mailto:/i, '')
+          .replace(/[<>]/g, '')
+          .replace(/\s*@\s*/, '@')
+          .trim();
+
+        if (EMAIL_REGEX.test(normalized)) {
+          detectedEmail = normalized.match(EMAIL_REGEX)![0];
+          break;
+        } else if (LOOSE_EMAIL_REGEX.test(normalized)) {
+          detectedEmail = normalized.match(LOOSE_EMAIL_REGEX)![0];
           break;
         }
       }
     }
 
-    // Skip empty rows without emails
-    if (!detectedEmail) return;
-
-    let detectedName = nameColIdx !== -1 && row[nameColIdx] ? row[nameColIdx].trim() : '';
-    let detectedCompany = companyColIdx !== -1 && row[companyColIdx] ? row[companyColIdx].trim() : '';
-    let detectedWebsite = websiteColIdx !== -1 && row[websiteColIdx] ? row[websiteColIdx].trim() : '';
-    let detectedPhone = phoneColIdx !== -1 && row[phoneColIdx] ? row[phoneColIdx].trim() : '';
-    let detectedStatus = statusColIdx !== -1 && row[statusColIdx] ? row[statusColIdx].trim() : 'PENDING';
+    // 4. Extract Name, Company, Website, Phone, Status
+    const hasExplicitCompany = companyColIdx !== -1 && cleanRow[companyColIdx] ? true : false;
+    let detectedCompany = hasExplicitCompany ? cleanRow[companyColIdx] : '';
+    let detectedName = nameColIdx !== -1 && cleanRow[nameColIdx] ? cleanRow[nameColIdx] : '';
+    let detectedWebsite = websiteColIdx !== -1 && cleanRow[websiteColIdx] ? cleanRow[websiteColIdx] : '';
+    let detectedPhone = phoneColIdx !== -1 && cleanRow[phoneColIdx] ? cleanRow[phoneColIdx] : '';
+    let detectedStatus = statusColIdx !== -1 && cleanRow[statusColIdx] ? cleanRow[statusColIdx] : 'PENDING';
 
     // Heuristics: extract website domain if available
     if (detectedWebsite && DOMAIN_REGEX.test(detectedWebsite)) {
       detectedWebsite = detectedWebsite.match(DOMAIN_REGEX)![0];
-    }
-
-    // Fallback: derive company from name or email domain if empty
-    if (!detectedCompany) {
-      if (detectedWebsite) {
-        const cleanDomain = detectedWebsite.replace(/^https?:\/\//i, '').replace(/^www\./i, '').split('.')[0];
-        detectedCompany = cleanDomain.charAt(0).toUpperCase() + cleanDomain.slice(1);
-      } else {
-        const domainPart = detectedEmail.split('@')[1]?.split('.')[0] || 'Organization';
-        detectedCompany = domainPart.charAt(0).toUpperCase() + domainPart.slice(1);
+    } else if (!detectedWebsite) {
+      // Check if any field contains a website domain
+      for (const field of cleanRow) {
+        if (field && DOMAIN_REGEX.test(field) && !EMAIL_REGEX.test(field)) {
+          detectedWebsite = field.match(DOMAIN_REGEX)![0];
+          break;
+        }
       }
     }
 
+    // Fallback: derive company if empty
+    if (!detectedCompany) {
+      if (detectedName && !DOMAIN_REGEX.test(detectedName) && !EMAIL_REGEX.test(detectedName)) {
+        detectedCompany = detectedName;
+      } else if (detectedWebsite) {
+        const cleanDomain = detectedWebsite.replace(/^https?:\/\//i, '').replace(/^www\./i, '').split('.')[0];
+        detectedCompany = cleanDomain.charAt(0).toUpperCase() + cleanDomain.slice(1);
+      } else if (detectedEmail) {
+        const domainPart = detectedEmail.split('@')[1]?.split('.')[0] || 'Organization';
+        detectedCompany = domainPart.charAt(0).toUpperCase() + domainPart.slice(1);
+      } else {
+        detectedCompany = `Lead #${leadCounter}`;
+      }
+    }
+
+    // Fallback: derive name if empty
     if (!detectedName) {
-      const emailPrefix = detectedEmail.split('@')[0].replace(/[._-]/g, ' ');
-      detectedName = emailPrefix
-        .split(' ')
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(' ') || 'Valued Contact';
+      if (hasExplicitCompany && detectedCompany) {
+        detectedName = detectedCompany;
+      } else if (detectedEmail) {
+        const emailPrefix = detectedEmail.split('@')[0].replace(/[._-]/g, ' ');
+        detectedName = emailPrefix
+          .split(' ')
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(' ') || 'Valued Contact';
+      } else if (detectedCompany) {
+        detectedName = detectedCompany;
+      } else {
+        detectedName = `Lead #${leadCounter}`;
+      }
     }
 
     leads.push({
-      id: idx + 1,
-      row: idx + 2, // 1-indexed, row 1 is header
+      id: leadCounter++,
+      row: idx + 2, // 1-indexed, header is row 1
       name: detectedName,
       email: detectedEmail,
       company: detectedCompany,
@@ -251,7 +307,7 @@ export function convertCsvToLeads(csvText: string): {
     return {
       success: false,
       leads: [],
-      error: 'No valid leads with email addresses found in the Google Sheet.',
+      error: 'No leads found in this Google Sheet.',
     };
   }
 

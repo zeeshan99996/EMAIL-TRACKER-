@@ -71,4 +71,17 @@ describe('Google Sheet Parser Engine', () => {
     expect(result.leads[0].company).toBe('Innovatehub');
     expect(result.leads[0].name).toBe('Ceo');
   });
+
+  it('preserves ALL rows even if some leads lack emails or have non-breaking spaces', () => {
+    const csv = `Company,Email,Website\nEcity,hj828752@gmail.com,ecityuae.ae\nClik2buy,msalmananwar33@gmail.com,clik2buy.com\nMissingEmailCorp,,missingemail.com\nEcomEnergize,erhatechnologiesai@gmail.com,ecomenergize.com`;
+    const result = convertCsvToLeads(csv);
+    expect(result.success).toBe(true);
+    expect(result.leads.length).toBe(4);
+    expect(result.leads[0].name).toBe('Ecity');
+    expect(result.leads[2].name).toBe('MissingEmailCorp');
+    expect(result.leads[2].email).toBe('');
+    expect(result.leads[2].row).toBe(4);
+    expect(result.leads[3].name).toBe('EcomEnergize');
+    expect(result.leads[3].row).toBe(5);
+  });
 });
