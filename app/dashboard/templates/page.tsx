@@ -563,9 +563,9 @@ export default function TemplatesPage() {
               setShowAiModal(true);
               setGenerationError(null);
             }}
-            className="w-full sm:w-auto px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer text-center"
+            className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer text-center"
           >
-            <span className="truncate">AI Prompt</span>
+            <span className="truncate">Create AI Template</span>
           </button>
 
           <button
@@ -644,7 +644,7 @@ export default function TemplatesPage() {
               onClick={() => setShowAiModal(true)}
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
             >
-              <span>Generate with Prompt</span>
+              <span>Create AI Template</span>
             </button>
             <button
               onClick={handleOpenCreateModal}
