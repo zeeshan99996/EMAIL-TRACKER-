@@ -219,8 +219,15 @@ export default function DashboardPage() {
             <span className="text-xs sm:text-sm font-extrabold text-black uppercase tracking-wider block">
               Total Outbound Sent
             </span>
-            <div className="text-3xl sm:text-4xl font-black text-black mt-1 group-hover:text-blue-600 transition-colors tracking-tight">
-              {summary.totalEmails.toLocaleString()}
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <div className="text-3xl sm:text-4xl font-black text-black mt-1 group-hover:text-blue-600 transition-colors tracking-tight">
+                {summary.totalEmails.toLocaleString()}
+              </div>
+              {summary.bouncedCount > 0 && (
+                <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                  {summary.bouncedCount} Bounced ❌
+                </span>
+              )}
             </div>
 
             {/* Visual mini progress bar */}

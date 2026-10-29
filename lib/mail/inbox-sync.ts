@@ -4,6 +4,7 @@ import { localDb } from '@/lib/db/store';
 import { decryptToken } from '@/lib/crypto/encryption';
 import { inboxStore, InboxThread } from '@/lib/db/inbox-store';
 import { EmailAccount } from '@/lib/warmup/types';
+import { detectBounceFromMessage } from './bounce-detector';
 
 export interface SyncResult {
   success: boolean;
@@ -14,7 +15,13 @@ export interface SyncResult {
   errors: string[];
 }
 
-function detectLeadTags(subject: string, body: string): string[] {
+function detectLeadTags(subject: string, body: string, sender = ''): string[] {
+  // 1. Check for automated bounces & delivery failures first
+  const bounceCheck = detectBounceFromMessage(sender, subject, body);
+  if (bounceCheck.isBounce) {
+    return ['Delivery Failure ❌', 'Bounced ⚠️'];
+  }
+
   const content = `${subject} ${body}`.toLowerCase();
   const tags: string[] = [];
 
@@ -156,18 +163,23 @@ export async function syncSingleAccountImap(account: EmailAccount, limit = 25): 
 
               const isUnread = !msg.flags || !msg.flags.has('\\Seen');
               const subject = parsed.subject || '(No Subject)';
+              const bounceCheck = detectBounceFromMessage(senderAddress, subject, cleanBody);
+              const isBounce = bounceCheck.isBounce;
 
               newThreads.push({
                 id: parsed.messageId || `imap_${msg.uid}_${Date.now()}`,
-                senderName,
+                senderName: isBounce ? 'Mail Delivery Subsystem' : senderName,
                 senderEmail: senderAddress,
                 recipientEmail: email,
                 subject,
-                preview: preview || 'New response received from recipient',
+                preview: preview || (isBounce ? 'Delivery Failure / Address not found' : 'New response received from recipient'),
                 body: cleanBody || preview,
                 receivedAt: parsed.date ? parsed.date.toISOString() : new Date().toISOString(),
                 unread: isUnread,
-                tags: detectLeadTags(subject, cleanBody),
+                tags: isBounce ? ['Delivery Failure ❌', 'Bounced ⚠️'] : detectLeadTags(subject, cleanBody, senderAddress),
+                isBounce,
+                bouncedRecipient: bounceCheck.failedRecipient,
+                bounceReason: bounceCheck.bounceReason,
               });
             } catch {
               // Ignore single parsing error
@@ -272,4 +284,84 @@ export async function runFullInboxSync(options?: {
     threads: allMessages,
     errors,
   };
+}
+
+export interface BounceRecord {
+  recipientEmail: string;
+  bounceReason: string;
+  statusCode: string;
+  bouncedAt: string;
+  sourceAccount?: string;
+  subject?: string;
+}
+
+export async function checkRecentBounces(options?: {
+  accountEmail?: string;
+  targetRecipient?: string;
+  limit?: number;
+}): Promise<BounceRecord[]> {
+  const bounces: BounceRecord[] = [];
+  const seenEmails = new Set<string>();
+
+  // 1. Check existing messages in inboxStore first
+  const allStored = inboxStore.getMessages();
+  for (const msg of allStored) {
+    if (msg.isBounce && msg.bouncedRecipient) {
+      const cleanRecip = msg.bouncedRecipient.toLowerCase().trim();
+      if (!seenEmails.has(cleanRecip)) {
+        seenEmails.add(cleanRecip);
+        bounces.push({
+          recipientEmail: cleanRecip,
+          bounceReason: msg.bounceReason || '550 5.1.1 Address not found',
+          statusCode: '550 5.1.1',
+          bouncedAt: msg.receivedAt,
+          sourceAccount: msg.recipientEmail,
+          subject: msg.subject,
+        });
+      }
+    }
+  }
+
+  // 2. Fetch recent messages from IMAP for connected accounts (with fast timeout)
+  try {
+    const accounts = localDb.getAccounts();
+    const accountsToSync = options?.accountEmail
+      ? accounts.filter(a => a.email?.toLowerCase() === options.accountEmail?.toLowerCase())
+      : accounts;
+
+    for (const acc of accountsToSync) {
+      try {
+        const msgs = await syncSingleAccountImap(acc, options?.limit || 15);
+        if (msgs.length > 0) {
+          inboxStore.addMessages(msgs);
+          for (const msg of msgs) {
+            if (msg.isBounce && msg.bouncedRecipient) {
+              const cleanRecip = msg.bouncedRecipient.toLowerCase().trim();
+              if (!seenEmails.has(cleanRecip)) {
+                seenEmails.add(cleanRecip);
+                bounces.push({
+                  recipientEmail: cleanRecip,
+                  bounceReason: msg.bounceReason || '550 5.1.1 Address not found',
+                  statusCode: '550 5.1.1',
+                  bouncedAt: msg.receivedAt,
+                  sourceAccount: acc.email,
+                  subject: msg.subject,
+                });
+              }
+            }
+          }
+        }
+      } catch (err: any) {
+        console.warn(`[InboxSync] Bounce check for ${acc.email} warning:`, err.message);
+      }
+    }
+  } catch {}
+
+  // 3. Filter by target recipient if requested
+  if (options?.targetRecipient) {
+    const target = options.targetRecipient.toLowerCase().trim();
+    return bounces.filter(b => b.recipientEmail.toLowerCase().trim() === target);
+  }
+
+  return bounces;
 }

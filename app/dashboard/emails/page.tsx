@@ -107,8 +107,10 @@ export default function EmailsPage() {
       email.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (email.recipient_name && email.recipient_name.toLowerCase().includes(searchTerm.toLowerCase()));
 
+    const isBounced = (email.status || '').includes('BOUNCE') || (email.status || '').includes('550');
     const matchesStatus =
-      statusFilter === 'ALL' || email.status === statusFilter;
+      statusFilter === 'ALL' ||
+      (statusFilter === 'BOUNCED' ? isBounced : email.status === statusFilter);
 
     return matchesSearch && matchesStatus;
   });
@@ -151,6 +153,7 @@ export default function EmailsPage() {
               <option value="SENT">Sent</option>
               <option value="OPENED">Opened</option>
               <option value="CLICKED">Clicked</option>
+              <option value="BOUNCED">Bounced ❌</option>
               <option value="FAILED">Failed</option>
             </select>
           </div>
@@ -196,6 +199,7 @@ export default function EmailsPage() {
             </div>
           ) : (
             paginatedEmails.map((email) => {
+              const isBounced = (email.status || '').includes('BOUNCE') || (email.status || '').includes('550');
               const isOpened = email.status === 'OPENED' || (email.open_count || 0) > 0;
               const isClicked = email.status === 'CLICKED' || (email.click_count || 0) > 0;
               return (
@@ -209,14 +213,17 @@ export default function EmailsPage() {
                     </div>
                     <span
                       className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${
-                        isClicked
+                        isBounced
+                          ? 'bg-rose-100 text-rose-800 border-rose-300'
+                          : isClicked
                           ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                           : isOpened
                           ? 'bg-sky-50 text-sky-700 border-sky-200'
                           : 'bg-slate-100 text-slate-700 border-slate-200'
                       }`}
+                      title={isBounced ? (email as any).bounce_reason || '550 5.1.1 Address not found' : undefined}
                     >
-                      {isClicked ? 'CLICKED' : isOpened ? 'OPENED' : 'SENT'}
+                      {isBounced ? 'BOUNCED ❌' : isClicked ? 'CLICKED' : isOpened ? 'OPENED' : 'SENT'}
                     </span>
                   </div>
 
@@ -292,17 +299,26 @@ export default function EmailsPage() {
                       SENT
                     </span>
                   );
-                  if (email.status === 'OPENED' || (email.open_count || 0) > 0) {
+                  const isBounced = (email.status || '').includes('BOUNCE') || (email.status || '').includes('550');
+                  if (isBounced) {
                     statusBadge = (
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">
-                        OPENED
+                      <span
+                        className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-rose-100 text-rose-800 border border-rose-300 shadow-xs"
+                        title={(email as any).bounce_reason || '550 5.1.1 Address not found (The email account does not exist)'}
+                      >
+                        BOUNCED ❌
                       </span>
                     );
-                  }
-                  if (email.status === 'CLICKED' || (email.click_count || 0) > 0) {
+                  } else if (email.status === 'CLICKED' || (email.click_count || 0) > 0) {
                     statusBadge = (
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                         CLICKED
+                      </span>
+                    );
+                  } else if (email.status === 'OPENED' || (email.open_count || 0) > 0) {
+                    statusBadge = (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">
+                        OPENED
                       </span>
                     );
                   }

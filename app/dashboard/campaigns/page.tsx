@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Header } from '@/components/header';
-import { recordSentEmailLocally, saveSheetStatsLocally } from '@/lib/client/tracker-store';
+import {
+  recordSentEmailLocally,
+  saveSheetStatsLocally,
+  markEmailBouncedLocally,
+} from '@/lib/client/tracker-store';
 import {
   FileSpreadsheet,
   Send,
@@ -50,6 +54,7 @@ interface LeadItem {
   company?: string;
   status: string;
   sentAt?: string;
+  errorReason?: string;
 }
 
 interface CustomTemplate {
@@ -327,7 +332,8 @@ export default function CampaignsPage() {
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [batchCount, setBatchCount] = useState<number>(10);
   const [customBatchInput, setCustomBatchInput] = useState<string>('10');
-  const [filterTab, setFilterTab] = useState<'pending' | 'all' | 'sent' | 'invalid'>('pending');
+  const [filterTab, setFilterTab] = useState<'pending' | 'all' | 'sent' | 'invalid' | 'bounced'>('pending');
+  const [isCheckingBounces, setIsCheckingBounces] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sheetSyncStatus, setSheetSyncStatus] = useState<{
     type: 'success' | 'error' | 'warning';
@@ -432,10 +438,18 @@ export default function CampaignsPage() {
     });
   };
 
+  // Helpers for identifying lead statuses accurately
+  const isLeadBounced = (l: LeadItem) =>
+    !!(l.status && (l.status.toLowerCase().includes('bounc') || l.status.includes('550')));
+  const isLeadSent = (l: LeadItem) =>
+    !!(l.status && l.status.toLowerCase().includes('sent') && !isLeadBounced(l));
+  const isLeadInvalid = (l: LeadItem) =>
+    !!(l.status && (l.status.toLowerCase().includes('invalid') || l.status.toLowerCase().includes('fake')) && !isLeadBounced(l));
+
   // Retrieve persisted lead statuses from localStorage
-  const getSavedLeadStatuses = (): Record<string, { status: string; sentAt?: string }> => {
+  const getSavedLeadStatuses = (): Record<string, { status: string; sentAt?: string; reason?: string }> => {
     try {
-      const raw = localStorage.getItem('erha_lead_statuses');
+      const raw = localStorage.getItem('erha_lead_statuses') || localStorage.getItem('mailify_lead_statuses');
       return raw ? JSON.parse(raw) : {};
     } catch {
       return {};
@@ -443,13 +457,72 @@ export default function CampaignsPage() {
   };
 
   // Persist updated lead status locally across refreshes
-  const saveLeadStatusLocally = (row: number, email: string, status: string, sentAt?: string) => {
+  const saveLeadStatusLocally = (row: number, email: string, status: string, sentAt?: string, reason?: string) => {
     try {
       const existing = getSavedLeadStatuses();
-      if (email) existing[email.toLowerCase().trim()] = { status, sentAt };
-      existing[`row_${row}`] = { status, sentAt };
+      if (email) existing[email.toLowerCase().trim()] = { status, sentAt, reason };
+      existing[`row_${row}`] = { status, sentAt, reason };
       localStorage.setItem('erha_lead_statuses', JSON.stringify(existing));
+      localStorage.setItem('mailify_lead_statuses', JSON.stringify(existing));
     } catch {}
+  };
+
+  // Scan inbox for Google Mail Delivery Subsystem bounce notifications
+  const handleCheckBounces = async () => {
+    setIsCheckingBounces(true);
+    try {
+      const activeMb = mailboxes.find((m) => m.id === senderAccount);
+      const res = await fetch('/api/v1/campaigns/bounces', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          accountEmail: activeMb?.email,
+          limit: 30,
+        }),
+      });
+      const data = await res.json();
+      if (data && data.success && Array.isArray(data.bounces)) {
+        let updatedCount = 0;
+        data.bounces.forEach((b: any) => {
+          const recip = (b.recipientEmail || '').toLowerCase().trim();
+          if (recip) {
+            markEmailBouncedLocally(recip, b.bounceReason);
+            setLeads((prev) =>
+              prev.map((l) => {
+                if (l.email?.toLowerCase().trim() === recip) {
+                  updatedCount++;
+                  saveLeadStatusLocally(l.row, l.email, 'BOUNCED ❌', '', b.bounceReason);
+                  return {
+                    ...l,
+                    status: 'BOUNCED ❌',
+                    errorReason: b.bounceReason || '550 5.1.1 Address not found',
+                  };
+                }
+                return l;
+              })
+            );
+          }
+        });
+
+        if (updatedCount > 0 || data.bounces.length > 0) {
+          setToast({
+            type: 'error',
+            title: 'Bounces Detected ❌',
+            message: `Found ${data.bounces.length} delivery failure(s). ${updatedCount} lead(s) flagged as BOUNCED ❌.`,
+          });
+        } else {
+          setToast({
+            type: 'success',
+            title: 'No Bounces Detected ✅',
+            message: 'All sent emails are clean. No Mail Delivery Subsystem bounces found in inbox.',
+          });
+        }
+      }
+    } catch (err: any) {
+      console.warn('Check bounces error:', err);
+    } finally {
+      setIsCheckingBounces(false);
+    }
   };
 
   const cancelDispatchRef = useRef(false);
@@ -478,17 +551,22 @@ export default function CampaignsPage() {
               ...l,
               status: matched.status,
               sentAt: matched.sentAt || l.sentAt,
+              errorReason: matched.reason || (matched.status.includes('BOUNCE') ? '550 5.1.1 Address not found' : undefined),
             };
           }
           return l;
         });
 
         setLeads(mergedLeads);
+        const bCount = mergedLeads.filter((l: LeadItem) => isLeadBounced(l)).length;
+        const sCount = mergedLeads.filter((l: LeadItem) => isLeadSent(l)).length;
+        const iCount = mergedLeads.filter((l: LeadItem) => isLeadInvalid(l)).length;
+        const pCount = mergedLeads.length - sCount - iCount - bCount;
         saveSheetStatsLocally({
           totalLeads: mergedLeads.length,
-          pendingCount: mergedLeads.filter((l: LeadItem) => !l.status || !l.status.toLowerCase().includes('sent')).length,
-          sentCount: mergedLeads.filter((l: LeadItem) => l.status && l.status.toLowerCase().includes('sent')).length,
-          invalidCount: 0,
+          pendingCount: pCount,
+          sentCount: sCount,
+          invalidCount: iCount + bCount,
         });
         if (targetUrl.trim()) {
           try {
@@ -835,17 +913,19 @@ export default function CampaignsPage() {
 
   // Filtered Leads
   const filteredLeads = leads.filter((l) => {
-    const statusLower = (l.status || '').toLowerCase();
-    const isSent = statusLower.includes('sent');
-    const isInvalid = statusLower.includes('invalid') || statusLower.includes('fake');
+    const isSent = isLeadSent(l);
+    const isInvalid = isLeadInvalid(l);
+    const isBounced = isLeadBounced(l);
 
     let matchesTab = true;
     if (filterTab === 'pending') {
-      matchesTab = !isSent && !isInvalid;
+      matchesTab = !isSent && !isInvalid && !isBounced;
     } else if (filterTab === 'sent') {
       matchesTab = isSent;
     } else if (filterTab === 'invalid') {
       matchesTab = isInvalid;
+    } else if (filterTab === 'bounced') {
+      matchesTab = isBounced;
     }
 
     const matchesSearch =
@@ -994,6 +1074,35 @@ export default function CampaignsPage() {
               sent_at: new Date().toISOString(),
               row: targetLead.row,
             });
+
+            // Asynchronous Google Mail Delivery Subsystem Bounce Check
+            // When an email doesn't exist (550 5.1.1 Address not found), Google's mailer-daemon responds within 2-4s
+            setTimeout(async () => {
+              try {
+                const bounceRes = await fetch(
+                  `/api/v1/campaigns/bounces?recipientEmail=${encodeURIComponent(targetLead.email)}&accountEmail=${encodeURIComponent(activeMailbox?.email || '')}`
+                );
+                const bounceData = await bounceRes.json();
+                if (bounceData && bounceData.bounces && bounceData.bounces.length > 0) {
+                  const bInfo = bounceData.bounces[0];
+                  const bounceReason = bInfo.bounceReason || '550 5.1.1 Address not found';
+                  markEmailBouncedLocally(targetLead.email, bounceReason);
+                  saveLeadStatusLocally(targetLead.row, targetLead.email, 'BOUNCED ❌', '', bounceReason);
+                  setLeads((prev) =>
+                    prev.map((l) =>
+                      l.row === targetLead.row
+                        ? { ...l, status: 'BOUNCED ❌', errorReason: bounceReason }
+                        : l
+                    )
+                  );
+                  setToast({
+                    type: 'error',
+                    title: 'Delivery Failed (550 Bounced) ❌',
+                    message: `Recipient ${targetLead.email} does not exist: ${bounceReason}`,
+                  });
+                }
+              } catch {}
+            }, 3500);
           } else {
             failedSoFar++;
             const failStatus = resultItem?.status || 'FAILED ⚠️';
@@ -1091,12 +1200,11 @@ export default function CampaignsPage() {
     setTimeout(() => setCopiedCode(false), 3000);
   };
 
-  const isLeadSent = (l: LeadItem) => !!(l.status && l.status.toLowerCase().includes('sent'));
-  const isLeadInvalid = (l: LeadItem) => !!(l.status && (l.status.toLowerCase().includes('invalid') || l.status.toLowerCase().includes('fake')));
   const totalLeadsCount = leads.length;
-  const pendingCount = leads.filter((l) => !isLeadSent(l) && !isLeadInvalid(l)).length;
+  const bouncedCount = leads.filter(isLeadBounced).length;
   const sentCount = leads.filter(isLeadSent).length;
   const invalidCount = leads.filter(isLeadInvalid).length;
+  const pendingCount = leads.filter((l) => !isLeadSent(l) && !isLeadInvalid(l) && !isLeadBounced(l)).length;
 
   return (
     <div className="space-y-6 pb-20 max-w-7xl mx-auto relative">
@@ -1441,6 +1549,16 @@ export default function CampaignsPage() {
               <Download className="w-3.5 h-3.5 text-blue-600" />
               <span>Export CSV</span>
             </button>
+            <button
+              type="button"
+              onClick={handleCheckBounces}
+              disabled={isCheckingBounces}
+              className="text-xs text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-xl transition-colors font-bold flex items-center gap-1.5 shadow-2xs cursor-pointer disabled:opacity-50"
+              title="Scan connected mailbox for Mail Delivery Subsystem bounces"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isCheckingBounces ? 'animate-spin' : ''}`} />
+              <span>Check Bounces 🔍</span>
+            </button>
             <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 border border-blue-200">
               {selectedRows.length} Leads Selected
             </span>
@@ -1488,6 +1606,16 @@ export default function CampaignsPage() {
               }`}
             >
               Sent ({sentCount})
+            </button>
+            <button
+              onClick={() => setFilterTab('bounced')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                filterTab === 'bounced'
+                  ? 'bg-rose-100 text-rose-800 shadow-xs border border-rose-300 font-extrabold'
+                  : 'text-slate-600 hover:text-rose-700'
+              }`}
+            >
+              Bounced ({bouncedCount})
             </button>
             <button
               onClick={() => setFilterTab('invalid')}
@@ -1559,11 +1687,9 @@ export default function CampaignsPage() {
               ) : (
                 filteredLeads.map((lead, index) => {
                   const isSelected = selectedRows.includes(lead.row);
-                  const isSent = lead.status && lead.status.toLowerCase().includes('sent');
-                  const isInvalid =
-                    lead.status &&
-                    (lead.status.toLowerCase().includes('invalid') ||
-                      lead.status.toLowerCase().includes('fake'));
+                  const isBounced = isLeadBounced(lead);
+                  const isSent = isLeadSent(lead);
+                  const isInvalid = isLeadInvalid(lead);
 
                   const cleanWeb = lead.website ? lead.website.trim() : '';
                   const webHref = cleanWeb.startsWith('http://') || cleanWeb.startsWith('https://')
@@ -1659,7 +1785,15 @@ export default function CampaignsPage() {
 
                       {/* 8. Status */}
                       <td className="p-3 whitespace-nowrap">
-                        {isSent ? (
+                        {isBounced ? (
+                          <span
+                            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300 shadow-xs"
+                            title={lead.errorReason || '550 5.1.1 Address not found (The email account does not exist)'}
+                          >
+                            <AlertTriangle className="w-3 h-3 text-rose-600" />
+                            BOUNCED ❌
+                          </span>
+                        ) : isSent ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                             <Check className="w-3 h-3" />
                             SENT

@@ -14,6 +14,9 @@ export interface InboxThread {
   unread: boolean;
   leadCompany?: string;
   tags?: string[];
+  isBounce?: boolean;
+  bouncedRecipient?: string;
+  bounceReason?: string;
 }
 
 let cachedInbox: InboxThread[] | null = null;

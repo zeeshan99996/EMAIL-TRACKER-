@@ -19,6 +19,7 @@ export interface TrackedEmailRecord {
   open_count: number;
   click_count: number;
   status: string;
+  bounce_reason?: string;
   created_at: string;
   updated_at: string;
 }
@@ -160,26 +161,54 @@ export function getDispatchedEmailsLocally(): TrackedEmailRecord[] {
       const statuses = JSON.parse(rawStatuses);
       Object.keys(statuses).forEach((key) => {
         const item = statuses[key];
-        if (item && item.status && (item.status.includes('SENT') || item.status.includes('✅'))) {
+        if (item && item.status) {
           const emailAddr = (item.email || key).toLowerCase().trim();
-          if (emailAddr && emailAddr.includes('@') && !map.has(emailAddr)) {
-            const fakeId = `em_local_${key.replace(/[^a-zA-Z0-9]/g, '_')}`;
-            map.set(emailAddr, {
-              id: fakeId,
-              project_id: 'prj_demo_01',
-              tracking_id: `trk_${Math.random().toString(36).substring(2, 10)}`,
-              recipient_email: emailAddr,
-              recipient_name: emailAddr.split('@')[0],
-              subject: 'Campaign Studio Outreach',
-              sent_at: item.sentAt ? new Date().toISOString() : new Date().toISOString(),
-              first_opened_at: null,
-              last_opened_at: null,
-              open_count: 0,
-              click_count: 0,
-              status: 'SENT',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            });
+          if (item.status.includes('BOUNCE') || item.status.includes('550')) {
+            if (emailAddr && emailAddr.includes('@')) {
+              const existing = map.get(emailAddr);
+              if (existing) {
+                existing.status = 'BOUNCED ❌';
+                existing.bounce_reason = item.reason || '550 5.1.1 Address not found';
+              } else {
+                map.set(emailAddr, {
+                  id: `em_local_${key.replace(/[^a-zA-Z0-9]/g, '_')}`,
+                  project_id: 'prj_demo_01',
+                  tracking_id: `trk_${Math.random().toString(36).substring(2, 10)}`,
+                  recipient_email: emailAddr,
+                  recipient_name: emailAddr.split('@')[0],
+                  subject: 'Campaign Studio Outreach',
+                  sent_at: item.sentAt ? new Date().toISOString() : new Date().toISOString(),
+                  first_opened_at: null,
+                  last_opened_at: null,
+                  open_count: 0,
+                  click_count: 0,
+                  status: 'BOUNCED ❌',
+                  bounce_reason: item.reason || '550 5.1.1 Address not found',
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                });
+              }
+            }
+          } else if (item.status.includes('SENT') || item.status.includes('✅')) {
+            if (emailAddr && emailAddr.includes('@') && !map.has(emailAddr)) {
+              const fakeId = `em_local_${key.replace(/[^a-zA-Z0-9]/g, '_')}`;
+              map.set(emailAddr, {
+                id: fakeId,
+                project_id: 'prj_demo_01',
+                tracking_id: `trk_${Math.random().toString(36).substring(2, 10)}`,
+                recipient_email: emailAddr,
+                recipient_name: emailAddr.split('@')[0],
+                subject: 'Campaign Studio Outreach',
+                sent_at: item.sentAt ? new Date().toISOString() : new Date().toISOString(),
+                first_opened_at: null,
+                last_opened_at: null,
+                open_count: 0,
+                click_count: 0,
+                status: 'SENT',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              });
+            }
           }
         }
       });
@@ -189,6 +218,81 @@ export function getDispatchedEmailsLocally(): TrackedEmailRecord[] {
   }
 
   return Array.from(map.values());
+}
+
+/**
+ * Mark a recipient email as BOUNCED ❌ in persistent client storage and adjust dashboard metrics.
+ */
+export function markEmailBouncedLocally(recipientEmail: string, bounceReason?: string) {
+  if (typeof window === 'undefined' || !recipientEmail) return;
+  const targetEmail = recipientEmail.toLowerCase().trim();
+
+  // 1. Update mailify_dispatched_emails
+  try {
+    const raw = localStorage.getItem(DISPATCHED_STORAGE_KEY);
+    if (raw) {
+      const list: TrackedEmailRecord[] = JSON.parse(raw);
+      let updated = false;
+      const updatedList = list.map((item) => {
+        if (item.recipient_email?.toLowerCase().trim() === targetEmail) {
+          updated = true;
+          return {
+            ...item,
+            status: 'BOUNCED ❌',
+            bounce_reason: bounceReason || '550 5.1.1 Address not found',
+            updated_at: new Date().toISOString(),
+          };
+        }
+        return item;
+      });
+
+      if (updated) {
+        localStorage.setItem(DISPATCHED_STORAGE_KEY, JSON.stringify(updatedList));
+      }
+    }
+  } catch (err) {
+    console.warn('[TrackerStore] Error updating bounced email in tracker store:', err);
+  }
+
+  // 2. Update mailify_lead_statuses
+  try {
+    const rawStatuses = localStorage.getItem(LEAD_STATUSES_STORAGE_KEY);
+    if (rawStatuses) {
+      const statuses = JSON.parse(rawStatuses);
+      let changed = false;
+      Object.keys(statuses).forEach((key) => {
+        const item = statuses[key];
+        const itemEmail = (item?.email || key).toLowerCase().trim();
+        if (itemEmail === targetEmail) {
+          statuses[key] = {
+            ...item,
+            status: 'BOUNCED ❌',
+            reason: bounceReason || '550 5.1.1 Address not found',
+            bouncedAt: new Date().toISOString(),
+          };
+          changed = true;
+        }
+      });
+      if (changed) {
+        localStorage.setItem(LEAD_STATUSES_STORAGE_KEY, JSON.stringify(statuses));
+      }
+    }
+  } catch (err) {
+    console.warn('[TrackerStore] Error updating lead statuses:', err);
+  }
+
+  // 3. Decrement sentCount and increment invalidCount in mailify_sheet_stats
+  try {
+    const rawStats = localStorage.getItem(SHEET_STATS_STORAGE_KEY);
+    if (rawStats) {
+      const stats: SheetStatsRecord = JSON.parse(rawStats);
+      if (stats.sentCount > 0) {
+        stats.sentCount -= 1;
+        stats.invalidCount = (stats.invalidCount || 0) + 1;
+        localStorage.setItem(SHEET_STATS_STORAGE_KEY, JSON.stringify(stats));
+      }
+    }
+  } catch {}
 }
 
 /**
@@ -256,8 +360,14 @@ export function getUnifiedDashboardData(serverData?: any): any {
   const clickRate = totalEmails > 0 ? Math.round((uniqueClicks / totalEmails) * 100) : 0;
   const unopenedEmails = Math.max(0, totalEmails - uniqueOpens);
 
+  const bouncedEmails = allEmails.filter(
+    (e) => (e.status || '').toUpperCase().includes('BOUNCE') || (e.status || '').includes('550')
+  );
+  const bouncedCount = bouncedEmails.length;
+
   const summary = {
     totalEmails,
+    bouncedCount,
     trackedOpens,
     uniqueOpens,
     unopenedEmails,
