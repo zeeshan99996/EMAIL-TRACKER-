@@ -24,7 +24,8 @@ export async function POST(request: NextRequest) {
     // 0. Ensure latest data from Supabase Cloud Store
     await loadDbFromSupabase();
 
-    const { email, appPassword } = await request.json();
+    const body = await request.json();
+    const { email, appPassword, forceConnect, skipVerify } = body;
 
     if (!email || !appPassword) {
       return NextResponse.json(
@@ -34,25 +35,44 @@ export async function POST(request: NextRequest) {
     }
 
     const cleanEmail = email.toLowerCase().trim();
-    const cleanPassword = appPassword.replace(/\s+/g, '').trim();
+    // Aggressive cleaning: strip all spaces, non-breaking spaces, quotes, hyphens, and convert to lowercase
+    const cleanPassword = String(appPassword).toLowerCase().replace(/[^a-z0-9]/gi, '').trim();
 
     if (!cleanEmail.endsWith('@gmail.com') && !cleanEmail.includes('@')) {
       return NextResponse.json({ error: 'Please enter a valid Gmail address' }, { status: 400 });
     }
 
-    // 1. Verify credentials with Gmail SMTP
-    try {
-      await verifySmtpCredentials(cleanEmail, cleanPassword);
-    } catch (smtpErr: any) {
-      console.error('[Add App Password] SMTP Verification error:', smtpErr.message);
+    if (cleanPassword.length < 8) {
       return NextResponse.json(
         {
-          error:
-            'Gmail login failed. Please ensure 2-Step Verification is enabled on this Google account and you generated a 16-character "App Password" from security settings.',
-          details: smtpErr.message,
+          error: `Google App Password must be 16 characters (e.g. abcd efgh ijkl mnop). Received ${cleanPassword.length} characters.`,
         },
         { status: 400 }
       );
+    }
+
+    // 1. Verify credentials with Gmail SMTP (unless forceConnect or skipVerify is set)
+    let isForceConnected = false;
+    if (!forceConnect && !skipVerify) {
+      try {
+        await verifySmtpCredentials(cleanEmail, cleanPassword);
+      } catch (smtpErr: any) {
+        console.error('[Add App Password] SMTP Verification error:', smtpErr.message);
+        return NextResponse.json(
+          {
+            error:
+              smtpErr.message ||
+              'Gmail login failed. Please ensure 2-Step Verification is enabled on this Google account and you generated a 16-character "App Password" from security settings.',
+            details: smtpErr.originalError || smtpErr.message,
+            canForceConnect: true,
+            email: cleanEmail,
+          },
+          { status: 400 }
+        );
+      }
+    } else {
+      isForceConnected = true;
+      console.info(`[Add App Password] Force-connecting ${cleanEmail} (pre-check bypassed)`);
     }
 
     // 2. Encrypt App Password
@@ -128,7 +148,9 @@ export async function POST(request: NextRequest) {
         provider: 'gmail_app_password',
         status: 'connected',
       },
-      message: `Successfully connected ${cleanEmail} via Gmail App Password!`,
+      message: isForceConnected
+        ? `Successfully saved and connected ${cleanEmail}!`
+        : `Successfully verified and connected ${cleanEmail} via Gmail App Password!`,
     });
   } catch (err: any) {
     console.error('[Add App Password] Exception:', err);

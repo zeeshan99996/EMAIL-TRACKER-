@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/header';
+import { saveAccountLocally } from '@/lib/client/accounts-store';
 import {
   Inbox,
   Mail,
@@ -73,6 +74,7 @@ export default function InboxPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [connectingAccount, setConnectingAccount] = useState(false);
   const [connectError, setConnectError] = useState<string | null>(null);
+  const [canForceConnectGmail, setCanForceConnectGmail] = useState(false);
 
   // Custom IMAP state
   const [customEmail, setCustomEmail] = useState('');
@@ -273,8 +275,8 @@ export default function InboxPage() {
   };
 
   // Connect App Password
-  const handleConnectGmail = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleConnectGmail = async (e?: React.FormEvent, forceConnect = false) => {
+    if (e) e.preventDefault();
     if (!gmailAddress.trim() || !appPassword.trim()) {
       setConnectError('Both Gmail address and 16-character App Password are required.');
       return;
@@ -282,27 +284,42 @@ export default function InboxPage() {
     setConnectingAccount(true);
     setConnectError(null);
     try {
+      const cleanEmail = gmailAddress.trim().toLowerCase();
+      const cleanPass = appPassword.toLowerCase().replace(/[^a-z0-9]/gi, '').trim();
+
       const res = await fetch('/api/email-accounts/add-app-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: gmailAddress.trim(),
-          appPassword: appPassword.trim(),
+          email: cleanEmail,
+          appPassword: cleanPass,
+          forceConnect,
         }),
       });
       const data = await res.json();
       if (!res.ok) {
         setConnectError(data.error || data.details || 'Connection failed.');
+        if (data.canForceConnect) {
+          setCanForceConnectGmail(true);
+        }
       } else {
+        saveAccountLocally({
+          id: data.account?.id || `acc_${Date.now()}`,
+          email: cleanEmail,
+          provider: 'gmail_app_password',
+          status: 'connected',
+        });
         setShowConnectModal(false);
         setGmailAddress('');
         setAppPassword('');
-        setFeedback({ message: 'Gmail mailbox connected successfully! Syncing replies...' });
+        setCanForceConnectGmail(false);
+        setFeedback({ message: data.message || 'Gmail mailbox connected successfully! Syncing replies...' });
         // Trigger auto sync
         await triggerSync();
       }
     } catch (err: any) {
       setConnectError(err.message || 'Network error.');
+      setCanForceConnectGmail(true);
     } finally {
       setConnectingAccount(false);
     }
@@ -842,9 +859,27 @@ export default function InboxPage() {
             {/* Modal Form Content */}
             <div className="p-5">
               {connectError && (
-                <div className="mb-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                  <span>{connectError}</span>
+                <div className="mb-4 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium space-y-2">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                    <span className="leading-relaxed">{connectError}</span>
+                  </div>
+                  {canForceConnectGmail && activeTab === 'gmail' && (
+                    <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 border-t border-rose-200/80">
+                      <span className="text-[11px] text-rose-700 font-medium">
+                        Confident your credentials are correct or facing cloud limits?
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleConnectGmail(undefined, true)}
+                        disabled={connectingAccount}
+                        className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-semibold transition-all shadow-xs cursor-pointer text-center flex items-center justify-center gap-1.5 shrink-0"
+                      >
+                        <Key className="w-3.5 h-3.5" />
+                        <span>Force Connect / Save Anyway</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 

@@ -8,11 +8,12 @@ export interface SmtpConfig {
 
 export function createSmtpTransporter(email: string, appPassword: string, config?: SmtpConfig) {
   // Safe password handling:
-  // If it's a Gmail App Password format (e.g. 16 chars with spaces), strip spaces.
+  // If it's a Gmail App Password format (e.g. 16 chars with spaces), strip spaces and punctuation.
   // For standard passwords (Hostinger, custom domain), trim outer spaces without altering inner characters.
   const trimmed = (appPassword || '').trim();
-  const isGmailAppPass = (!config?.host || config.host.includes('gmail.com')) && trimmed.replace(/\s+/g, '').length === 16;
-  const cleanPassword = isGmailAppPass ? trimmed.replace(/\s+/g, '') : trimmed;
+  const isGmail = (!config?.host || config.host.includes('gmail.com') || email.toLowerCase().endsWith('@gmail.com'));
+  const isGmailAppPass = isGmail && trimmed.replace(/[^a-z0-9]/gi, '').length === 16;
+  const cleanPassword = isGmailAppPass ? trimmed.toLowerCase().replace(/[^a-z0-9]/gi, '') : trimmed;
 
   const port = config?.port || (config?.secure === false ? 587 : 465);
   const secure = config?.secure !== undefined ? config.secure : port === 465;
@@ -28,7 +29,7 @@ export function createSmtpTransporter(email: string, appPassword: string, config
     tls: {
       rejectUnauthorized: false,
       minVersion: 'TLSv1.2',
-      servername: config?.host,
+      servername: config?.host || (isGmail ? 'smtp.gmail.com' : undefined),
     },
     auth: {
       user: email.trim(),
@@ -93,6 +94,7 @@ export async function verifySmtpCredentials(
   appPassword: string,
   config?: SmtpConfig
 ): Promise<SmtpVerifySuccess> {
+  const isGmail = !config?.host || config.host.includes('gmail.com') || email.toLowerCase().endsWith('@gmail.com');
   const host = config?.host || 'smtp.gmail.com';
   const initialPort = config?.port || (config?.secure === false ? 587 : 465);
   const initialSecure = config?.secure !== undefined ? config.secure : initialPort === 465;
@@ -133,10 +135,35 @@ export async function verifySmtpCredentials(
         }
       }
 
+      // If Gmail failed on Port 465, test Port 587 before giving up (some networks block/intercept Port 465)
+      if (isGmail && initialPort === 465) {
+        console.info(`[SMTP Verify] Gmail auth/connection failed on 465. Attempting fallback to Port 587 (STARTTLS)...`);
+        try {
+          const gmail587Transporter = createSmtpTransporter(email, appPassword, {
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false,
+          });
+          await verifySingle(gmail587Transporter);
+          console.info(`[SMTP Verify] Gmail succeeded on Port 587!`);
+          return {
+            success: true,
+            workingHost: 'smtp.gmail.com',
+            workingPort: 587,
+            workingSecure: false,
+          };
+        } catch (gmail587Err: any) {
+          console.warn(`[SMTP Verify] Gmail fallback to Port 587 also failed:`, gmail587Err.message);
+        }
+      }
+
       const isHostinger = host.includes('hostinger') || host.includes('titan');
-      const authMessage = isHostinger
-        ? `Hostinger Authentication Failed: Invalid email or password for ${email}. Both Hostinger Webmail (smtp.hostinger.com) and Titan Email (smtp.titan.email) rejected the credentials. Please verify your Hostinger Mailbox password at https://mail.hostinger.com, or reset it in Hostinger hPanel (Emails -> Manage -> Change Password).`
-        : `Authentication failed: Invalid email or password for ${email}.`;
+      let authMessage = `Authentication failed: Invalid email or password for ${email}.`;
+      if (isHostinger) {
+        authMessage = `Hostinger Authentication Failed: Invalid email or password for ${email}. Both Hostinger Webmail (smtp.hostinger.com) and Titan Email (smtp.titan.email) rejected the credentials. Please verify your Hostinger Mailbox password at https://mail.hostinger.com, or reset it in Hostinger hPanel (Emails -> Manage -> Change Password).`;
+      } else if (isGmail) {
+        authMessage = `Google SMTP rejected credentials for ${email}. Please ensure: 1) 2-Step Verification is active on this Google account, 2) You generated a 16-character App Password at https://myaccount.google.com/apppasswords, 3) It was generated specifically for ${email}.`;
+      }
       const enhancedErr = new Error(authMessage);
       (enhancedErr as any).code = 'EAUTH';
       (enhancedErr as any).originalError = err1.message;
@@ -181,11 +208,15 @@ export async function verifySmtpCredentials(
         }
 
         const isHostinger = host.includes('hostinger') || host.includes('titan');
-        const authMessage = isHostinger
-          ? `Hostinger Authentication Failed: Invalid email or password for ${email}. Please check your Hostinger Mailbox password at https://mail.hostinger.com or reset it in Hostinger hPanel.`
-          : `Authentication failed: Invalid email or password for ${email}.`;
+        let authMessage = `Authentication failed: Invalid email or password for ${email}.`;
+        if (isHostinger) {
+          authMessage = `Hostinger Authentication Failed: Invalid email or password for ${email}. Please check your Hostinger Mailbox password at https://mail.hostinger.com or reset it in Hostinger hPanel.`;
+        } else if (isGmail) {
+          authMessage = `Google SMTP rejected credentials for ${email}. Please ensure 2-Step Verification is active on this Google account and a 16-character App Password was generated for ${email}.`;
+        }
         const enhancedErr = new Error(authMessage);
         (enhancedErr as any).code = 'EAUTH';
+        (enhancedErr as any).originalError = err2.message;
         throw enhancedErr;
       }
 

@@ -57,6 +57,9 @@ function AccountsContent() {
   const [appPassword, setAppPassword] = useState('');
   const [submittingAppPassword, setSubmittingAppPassword] = useState(false);
   const [appPasswordError, setAppPasswordError] = useState<string | null>(null);
+  const [appPasswordErrorDetails, setAppPasswordErrorDetails] = useState<string | null>(null);
+  const [showAppPasswordPlain, setShowAppPasswordPlain] = useState(false);
+  const [canForceConnectAppPass, setCanForceConnectAppPass] = useState(false);
 
   // Custom SMTP Modal state
   const [showCustomModal, setShowCustomModal] = useState(false);
@@ -162,24 +165,34 @@ function AccountsContent() {
     fetchAccounts(false);
   }, []);
 
-  const handleAddAppPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAddAppPassword = async (e?: React.FormEvent, forceConnect = false) => {
+    if (e) e.preventDefault();
     setAppPasswordError(null);
+    setAppPasswordErrorDetails(null);
     setSubmittingAppPassword(true);
 
     const cleanMail = appEmail.toLowerCase().trim();
+    const cleanPass = appPassword.toLowerCase().replace(/[^a-z0-9]/gi, '').trim();
 
     try {
       const res = await fetch('/api/email-accounts/add-app-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: appEmail, appPassword }),
+        body: JSON.stringify({
+          email: cleanMail,
+          appPassword: cleanPass,
+          forceConnect,
+        }),
       });
 
       const data = await res.json();
 
       if (!res.ok || data.error) {
         setAppPasswordError(data.error || 'Failed to connect account with this app password');
+        setAppPasswordErrorDetails(data.details || null);
+        if (data.canForceConnect) {
+          setCanForceConnectAppPass(true);
+        }
         setSubmittingAppPassword(false);
         return;
       }
@@ -200,9 +213,12 @@ function AccountsContent() {
       setShowAppPasswordModal(false);
       setAppEmail('');
       setAppPassword('');
+      setCanForceConnectAppPass(false);
+      setAppPasswordErrorDetails(null);
       await fetchAccounts(false);
     } catch (err: any) {
       setAppPasswordError(err.message || 'Connection error');
+      setCanForceConnectAppPass(true);
     } finally {
       setSubmittingAppPassword(false);
     }
@@ -691,9 +707,32 @@ function AccountsContent() {
             </div>
 
             {appPasswordError && (
-              <div className="p-3 rounded-lg border border-rose-200 bg-rose-50 text-xs text-rose-700 flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{appPasswordError}</span>
+              <div className="p-3.5 rounded-xl border border-rose-200 bg-rose-50 text-xs text-rose-700 space-y-2">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
+                  <div className="font-medium leading-relaxed">{appPasswordError}</div>
+                </div>
+                {appPasswordErrorDetails && (
+                  <div className="text-[11px] font-mono bg-rose-100/70 p-2 rounded text-rose-900 break-all border border-rose-200">
+                    SMTP Server Details: {appPasswordErrorDetails}
+                  </div>
+                )}
+                {canForceConnectAppPass && (
+                  <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 border-t border-rose-200/80">
+                    <span className="text-[11px] text-rose-700 font-medium">
+                      Confident this App Password is correct or facing cloud rate limits?
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleAddAppPassword(undefined, true)}
+                      disabled={submittingAppPassword}
+                      className="px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-semibold transition-all shadow-xs cursor-pointer text-center flex items-center justify-center gap-1.5 shrink-0"
+                    >
+                      <Key className="w-3.5 h-3.5" />
+                      <span>Force Connect / Save Mailbox Anyway</span>
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -713,30 +752,57 @@ function AccountsContent() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-                  16-Character Google App Password
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={appPassword}
-                  onChange={(e) => setAppPassword(e.target.value)}
-                  placeholder="abcd efgh ijkl mnop"
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-xs font-mono"
-                />
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+                    16-Character Google App Password
+                  </label>
+                  <span className={`text-[11px] font-medium font-mono ${appPassword.replace(/[^a-z0-9]/gi, '').length === 16 ? 'text-emerald-600 font-semibold' : 'text-slate-500'}`}>
+                    {appPassword.replace(/[^a-z0-9]/gi, '').length}/16 characters
+                  </span>
+                </div>
+                <div className="relative">
+                  <input
+                    type={showAppPasswordPlain ? 'text' : 'password'}
+                    required
+                    value={appPassword}
+                    onChange={(e) => setAppPassword(e.target.value)}
+                    placeholder="abcd efgh ijkl mnop"
+                    className="w-full rounded-lg border border-slate-300 bg-white pl-3.5 pr-10 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-xs font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowAppPasswordPlain(!showAppPasswordPlain)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer transition-colors"
+                    title={showAppPasswordPlain ? 'Hide password' : 'Show password'}
+                  >
+                    {showAppPasswordPlain ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               {/* Instructions on how to get App Password */}
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-2 text-slate-600">
-                <div className="font-semibold text-slate-800 flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                  <span>How to generate a Gmail App Password:</span>
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-2.5 text-slate-600">
+                <div className="flex items-center justify-between">
+                  <div className="font-semibold text-slate-800 flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    <span>How to generate a Gmail App Password:</span>
+                  </div>
+                  <a
+                    href="https://myaccount.google.com/apppasswords"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-800 hover:underline"
+                  >
+                    <span>Open Google Security</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
                 </div>
-                <ol className="list-decimal list-inside space-y-1 text-[11px] text-slate-500 pl-1 leading-relaxed">
-                  <li>Go to your <strong>Google Account → Security</strong>.</li>
-                  <li>Enable <strong>2-Step Verification</strong> if not already active.</li>
-                  <li>Search or click <strong>&quot;App passwords&quot;</strong>.</li>
-                  <li>Create a name (e.g. <em>&quot;Warmup Bot&quot;</em>) and copy the 16-character code.</li>
+                <ol className="list-decimal list-inside space-y-1.5 text-[11px] text-slate-500 pl-1 leading-relaxed">
+                  <li>Visit <strong>Google Account → Security → App passwords</strong> (or click link above).</li>
+                  <li>Ensure you are in the correct Google account (e.g. <em>{appEmail || 'muhammadzeeshan0477@gmail.com'}</em>).</li>
+                  <li>Confirm <strong>2-Step Verification</strong> is ON for that Google account.</li>
+                  <li>Create a name (e.g. <em>&quot;Mailify&quot;</em>) and copy the 16-character code.</li>
+                  <li>Paste the code into the password field above (spaces are removed automatically).</li>
                 </ol>
               </div>
 
