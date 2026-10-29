@@ -25,11 +25,28 @@ import {
 import { formatRelativeTime } from '@/lib/utils';
 import { WARMUP_LEVELS, calculateWarmupProgressPercent } from '@/lib/warmup/levels';
 import { Header } from '@/components/header';
+import {
+  getLocalAccounts,
+  saveAccountLocally,
+  removeAccountLocally,
+  mergeServerAndLocalAccounts,
+} from '@/lib/client/accounts-store';
 
 function AccountsContent() {
   const searchParams = useSearchParams();
-  const [accounts, setAccounts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [accounts, setAccounts] = useState<any[]>(() => {
+    if (typeof window !== 'undefined') {
+      return getLocalAccounts();
+    }
+    return [];
+  });
+  const [loading, setLoading] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const local = getLocalAccounts();
+      return local.length === 0;
+    }
+    return true;
+  });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [connectingOAuth, setConnectingOAuth] = useState(false);
   const [feedback, setFeedback] = useState<{ message: string; isError?: boolean } | null>(null);
@@ -125,29 +142,32 @@ function AccountsContent() {
     }
   }, [searchParams]);
 
-  const fetchAccounts = async () => {
+  const fetchAccounts = async (showSpinner = false) => {
+    if (showSpinner) setLoading(true);
     try {
-      setLoading(true);
-      const res = await fetch('/api/email-accounts');
+      const res = await fetch('/api/email-accounts', { cache: 'no-store' });
       const data = await res.json();
-      if (res.ok) {
-        setAccounts(data.accounts || []);
-      }
+      const serverList = Array.isArray(data?.accounts) ? data.accounts : [];
+      const merged = mergeServerAndLocalAccounts(serverList);
+      setAccounts(merged);
     } catch (err: any) {
-      console.error('Error loading accounts:', err);
+      console.warn('Error loading accounts from server:', err);
+      setAccounts(getLocalAccounts());
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchAccounts();
+    fetchAccounts(false);
   }, []);
 
   const handleAddAppPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setAppPasswordError(null);
     setSubmittingAppPassword(true);
+
+    const cleanMail = appEmail.toLowerCase().trim();
 
     try {
       const res = await fetch('/api/email-accounts/add-app-password', {
@@ -164,14 +184,23 @@ function AccountsContent() {
         return;
       }
 
+      // Immediately persist to local storage so it renders in 0ms
+      saveAccountLocally({
+        id: data.account?.id || `acc_${Date.now()}`,
+        email: cleanMail,
+        provider: 'gmail_app_password',
+        status: 'connected',
+      });
+      setAccounts(getLocalAccounts());
+
       setFeedback({
-        message: data.message || `Successfully connected ${appEmail}!`,
+        message: data.message || `Successfully connected ${cleanMail}!`,
         isError: false,
       });
       setShowAppPasswordModal(false);
       setAppEmail('');
       setAppPassword('');
-      await fetchAccounts();
+      await fetchAccounts(false);
     } catch (err: any) {
       setAppPasswordError(err.message || 'Connection error');
     } finally {
@@ -183,6 +212,8 @@ function AccountsContent() {
     e.preventDefault();
     setCustomError(null);
     setSubmittingCustom(true);
+
+    const cleanMail = customEmail.toLowerCase().trim();
 
     try {
       const res = await fetch('/api/email-accounts/add-custom', {
@@ -213,14 +244,23 @@ function AccountsContent() {
         return;
       }
 
+      // Immediately persist to local storage so it renders in 0ms
+      saveAccountLocally({
+        id: data.account?.id || `acc_${Date.now()}`,
+        email: cleanMail,
+        provider: customProvider,
+        status: 'connected',
+      });
+      setAccounts(getLocalAccounts());
+
       setFeedback({
-        message: data.message || `Successfully connected ${customEmail}!`,
+        message: data.message || `Successfully connected ${cleanMail}!`,
         isError: false,
       });
       setShowCustomModal(false);
       setCustomEmail('');
       setCustomPassword('');
-      await fetchAccounts();
+      await fetchAccounts(false);
     } catch (err: any) {
       setCustomError(err.message || 'Connection error');
     } finally {
@@ -269,14 +309,15 @@ function AccountsContent() {
           return;
         }
 
-        // Optimistically remove from state
+        // Optimistically remove from state and persistent storage
+        removeAccountLocally(accountId);
         setAccounts((prev) => prev.filter((a) => a.id !== accountId));
 
         const res = await fetch(`/api/email-accounts/${accountId}`, { method: 'DELETE' });
         const data = await res.json();
         if (!res.ok || data.error) {
           setFeedback({ message: data.error || 'Failed to delete account', isError: true });
-          await fetchAccounts();
+          await fetchAccounts(false);
         } else {
           setFeedback({ message: 'Account removed successfully', isError: false });
         }

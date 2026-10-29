@@ -7,6 +7,7 @@ import {
   saveSheetStatsLocally,
   markEmailBouncedLocally,
 } from '@/lib/client/tracker-store';
+import { getLocalAccounts, saveAccountLocally } from '@/lib/client/accounts-store';
 import {
   FileSpreadsheet,
   Send,
@@ -727,17 +728,24 @@ export default function CampaignsPage() {
       }
     } catch {}
 
-    // 3. Load custom mailboxes from localStorage
+    // 3. Load custom & fleet mailboxes from instant unified store (0ms)
     try {
-      const savedM = localStorage.getItem('erha_custom_mailboxes');
-      if (savedM) {
-        const parsedM = JSON.parse(savedM);
-        if (Array.isArray(parsedM) && parsedM.length > 0) {
-          setMailboxes((prev) => {
-            const existingIds = new Set(prev.map((m) => m.id));
-            const newOnes = parsedM.filter((m: MailboxItem) => !existingIds.has(m.id));
-            return [...prev, ...newOnes];
-          });
+      const localAccs = getLocalAccounts();
+      if (localAccs.length > 0) {
+        const fleetBoxes: MailboxItem[] = localAccs.map((acc) => ({
+          id: acc.id,
+          name: acc.email,
+          email: acc.email,
+          provider: acc.provider || 'Connected Gmail',
+          isCustom: true,
+        }));
+        setMailboxes((prev) => {
+          const ids = new Set(prev.map((m) => m.id));
+          const newItems = fleetBoxes.filter((f) => !ids.has(f.id));
+          return [...prev, ...newItems];
+        });
+        if (fleetBoxes[0]?.id) {
+          setSenderAccount(fleetBoxes[0].id);
         }
       }
     } catch {}
@@ -859,10 +867,12 @@ export default function CampaignsPage() {
     setMailboxes(updated);
     setSenderAccount(newBox.id);
     setActiveStep(3);
-    try {
-      const customs = updated.filter((m) => m.isCustom);
-      localStorage.setItem('erha_custom_mailboxes', JSON.stringify(customs));
-    } catch {}
+    saveAccountLocally({
+      id: newBox.id,
+      email: cleanMail,
+      provider: newMailboxProvider,
+      status: 'connected',
+    });
     setShowAddMailboxModal(false);
     setNewMailboxName('');
     setNewMailboxEmail('');

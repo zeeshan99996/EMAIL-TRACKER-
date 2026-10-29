@@ -178,36 +178,57 @@ export function ensureDbFile(): DatabaseSchema {
   return cachedDb;
 }
 
+let isSupabaseDisabled = process.env.DEMO_MODE === 'true';
+
 export async function syncDbToSupabase(data: DatabaseSchema): Promise<void> {
+  if (isSupabaseDisabled || process.env.NODE_ENV === 'test') {
+    return;
+  }
   try {
     const supabase = createAdminClient();
     const payload = JSON.stringify(data);
-    const { error } = await supabase.from('projects').upsert({
+    const upsertPromise = supabase.from('projects').upsert({
       id: 'sys_warmup_store',
       account_id: 'acc_demo_01',
       name: '__SYSTEM_WARMUP_STORE__',
       description: payload,
       updated_at: new Date().toISOString(),
     });
+    const timeoutPromise = new Promise<{ error: any }>((resolve) =>
+      setTimeout(() => resolve({ error: new Error('Supabase sync timeout') }), 1200)
+    );
+    const { error } = await Promise.race([upsertPromise, timeoutPromise]);
     if (error) {
-      console.warn('[LocalDB] Supabase cloud upsert warning:', error.message);
+      console.warn('[LocalDB] Supabase cloud upsert notice:', error.message);
+      if (error.message?.includes('ENOTFOUND') || error.message?.includes('fetch failed')) {
+        isSupabaseDisabled = true;
+      }
     }
   } catch (err: any) {
-    console.warn('[LocalDB] Supabase cloud sync warning:', err.message);
+    console.warn('[LocalDB] Supabase cloud sync notice:', err.message);
+    isSupabaseDisabled = true;
   }
 }
 
 export async function loadDbFromSupabase(): Promise<DatabaseSchema> {
-  if (process.env.NODE_ENV === 'test') {
+  if (process.env.NODE_ENV === 'test' || isSupabaseDisabled) {
     return ensureDbFile();
+  }
+  // If memory cache already has accounts, return immediately to be ultra-fast!
+  if (cachedDb && cachedDb.email_accounts && cachedDb.email_accounts.length > 0) {
+    return cachedDb;
   }
   try {
     const supabase = createAdminClient();
-    const { data, error } = await supabase
+    const fetchPromise = supabase
       .from('projects')
       .select('description')
       .eq('id', 'sys_warmup_store')
       .single();
+    const timeoutPromise = new Promise<{ data: null; error: any }>((resolve) =>
+      setTimeout(() => resolve({ data: null, error: new Error('Supabase load timeout') }), 1200)
+    );
+    const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
 
     if (!error && data?.description) {
       const parsed = JSON.parse(data.description) as DatabaseSchema;
@@ -234,9 +255,13 @@ export async function loadDbFromSupabase(): Promise<DatabaseSchema> {
 
         return cachedDb;
       }
+    } else if (error) {
+      if (error.message?.includes('ENOTFOUND') || error.message?.includes('fetch failed')) {
+        isSupabaseDisabled = true;
+      }
     }
-  } catch (err) {
-    console.warn('[LocalDB] Could not load from Supabase:', err);
+  } catch (err: any) {
+    isSupabaseDisabled = true;
   }
 
   return ensureDbFile();
@@ -282,30 +307,29 @@ export const localDb = {
   ensureDbFile(): DatabaseSchema {
     return ensureDbFile();
   },
-  // Accounts
+  // Accounts - Always return all active connected accounts to ensure zero lost mailboxes
   getAccounts(userId?: string): EmailAccount[] {
     const db = ensureDbFile();
     const accounts = db.email_accounts.filter((a) => a.status !== 'disconnected');
-    if (userId) {
-      const userAccounts = accounts.filter((a) => a.user_id === userId);
-      if (userAccounts.length === 0 && accounts.length > 0) {
-        for (const a of accounts) {
+    if (userId && accounts.length > 0) {
+      let changed = false;
+      for (const a of accounts) {
+        if (!a.user_id) {
           a.user_id = userId;
+          changed = true;
         }
-        for (const w of db.email_warmup_accounts) {
-          w.user_id = userId;
-        }
-        saveDb(db);
-        return accounts;
       }
-      return userAccounts;
+      if (changed) saveDb(db);
     }
     return accounts;
   },
 
   getAccountById(id: string): EmailAccount | undefined {
     const db = ensureDbFile();
-    return db.email_accounts.find((a) => a.id === id);
+    const clean = (id || '').toLowerCase().trim();
+    return db.email_accounts.find(
+      (a) => a.id === id || a.email.toLowerCase().trim() === clean
+    );
   },
 
   upsertAccount(account: Partial<EmailAccount> & { user_id: string; email: string }): EmailAccount {
