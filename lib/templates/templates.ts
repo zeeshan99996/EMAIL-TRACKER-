@@ -7,10 +7,85 @@ export interface CustomTemplate {
   imageUrl?: string;
   imageLinkUrl?: string;
   imagePosition?: 'top' | 'middle' | 'bottom';
+  buttonText?: string;
+  buttonUrl?: string;
   updatedAt?: string;
 }
 
 export const TEMPLATES_STORAGE_KEY = 'erha_custom_campaign_templates';
+
+/**
+ * Builds responsive, email-client bulletproof HTML for a Custom Action Button.
+ */
+export function buildCustomActionButtonHtml(buttonText: string, buttonUrl: string): string {
+  const cleanText = (buttonText || '').trim() || 'Our Services';
+  const cleanUrl = (buttonUrl || '').trim() || '#';
+
+  return `
+<!-- Custom Action Button -->
+<div style="margin: 20px 0; text-align: center;">
+  <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-block; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; letter-spacing: 0.01em;">
+    ${cleanText} &rarr;
+  </a>
+</div>`.trim();
+}
+
+/**
+ * Ensures the Custom Action Button is embedded into the template HTML body if specified.
+ */
+export function injectCustomActionButton(
+  html: string,
+  buttonText?: string,
+  buttonUrl?: string
+): string {
+  const cleanText = (buttonText || '').trim();
+  const cleanUrl = (buttonUrl || '').trim();
+
+  // If neither button text nor URL provided, return original
+  if (!cleanText && !cleanUrl) {
+    return html;
+  }
+
+  const effectiveText = cleanText || 'Our Services';
+  const effectiveUrl = cleanUrl || '#';
+
+  // Check if button or URL already exists in HTML
+  if (
+    effectiveUrl !== '#' &&
+    html.includes(effectiveUrl) &&
+    html.toLowerCase().includes(effectiveText.toLowerCase())
+  ) {
+    return html;
+  }
+
+  const buttonHtml = buildCustomActionButtonHtml(effectiveText, effectiveUrl);
+
+  // Preferred injection targets: before sign-off / closing remarks
+  const injectionMarkers = [
+    /Best regards/i,
+    /Warmly,/i,
+    /Sincerely,/i,
+    /<p[^>]*>\s*Would you have/i,
+    /<hr[^>]*>/i,
+    /<\/body>/i,
+  ];
+
+  for (const marker of injectionMarkers) {
+    const match = html.search(marker);
+    if (match !== -1) {
+      return `${html.slice(0, match)}\n${buttonHtml}\n\n${html.slice(match)}`;
+    }
+  }
+
+  // Fallback: inject right before the last closing </div> if present
+  const lastDivIndex = html.lastIndexOf('</div>');
+  if (lastDivIndex !== -1) {
+    return `${html.slice(0, lastDivIndex)}\n${buttonHtml}\n${html.slice(lastDivIndex)}`;
+  }
+
+  // Ultimate fallback: append
+  return `${html}\n\n${buttonHtml}`;
+}
 
 export const PRESET_TEMPLATES: CustomTemplate[] = [
   {

@@ -38,6 +38,7 @@ import {
   Unlink,
 } from 'lucide-react';
 import Link from 'next/link';
+import { injectCustomActionButton } from '@/lib/templates/templates';
 
 interface LeadItem {
   id?: number | string;
@@ -57,6 +58,8 @@ interface CustomTemplate {
   subject: string;
   body: string;
   isCustom?: boolean;
+  buttonText?: string;
+  buttonUrl?: string;
 }
 
 interface MailboxItem {
@@ -343,6 +346,8 @@ export default function CampaignsPage() {
   const [selectedTemplateId, setSelectedTemplateId] = useState('b2b-web');
   const [subject, setSubject] = useState(PRESET_TEMPLATES[0].subject);
   const [bodyHtml, setBodyHtml] = useState(PRESET_TEMPLATES[0].body);
+  const [campaignButtonText, setCampaignButtonText] = useState('');
+  const [campaignButtonUrl, setCampaignButtonUrl] = useState('');
   const [verifyBeforeSend, setVerifyBeforeSend] = useState(true);
   const [showTemplateEditor, setShowTemplateEditor] = useState(false);
 
@@ -637,6 +642,8 @@ export default function CampaignsPage() {
           setSelectedTemplateId(found.id);
           setSubject(found.subject);
           setBodyHtml(found.body);
+          if (found.buttonText) setCampaignButtonText(found.buttonText);
+          if (found.buttonUrl) setCampaignButtonUrl(found.buttonUrl);
           setActiveStep(3);
         }
       }
@@ -694,6 +701,8 @@ export default function CampaignsPage() {
     if (tmpl) {
       setSubject(tmpl.subject);
       setBodyHtml(tmpl.body);
+      setCampaignButtonText(tmpl.buttonText || '');
+      setCampaignButtonUrl(tmpl.buttonUrl || '');
     }
     setActiveStep(4);
   };
@@ -702,13 +711,19 @@ export default function CampaignsPage() {
   const handleSaveCurrentAsTemplate = () => {
     if (!newTemplateTitle.trim()) return;
     const cleanSubject = newTemplateSubject.trim() || subject;
-    const cleanBody = newTemplateCode.trim() || bodyHtml;
+    const cleanBody = injectCustomActionButton(
+      newTemplateCode.trim() || bodyHtml,
+      campaignButtonText,
+      campaignButtonUrl
+    );
 
     const newTmpl: CustomTemplate = {
       id: `tmpl_${Date.now()}`,
       name: newTemplateTitle.trim(),
       subject: cleanSubject,
       body: cleanBody,
+      buttonText: campaignButtonText.trim() || undefined,
+      buttonUrl: campaignButtonUrl.trim() || undefined,
       isCustom: true,
     };
     const updated = [...templates, newTmpl];
@@ -859,7 +874,7 @@ export default function CampaignsPage() {
     .replace(/\{\{\s*company\s*\}\}/gi, previewLead.company || 'your company')
     .replace(/\{\{\s*email\s*\}\}/gi, previewLead.email);
 
-  const previewBody = bodyHtml
+  const previewBody = injectCustomActionButton(bodyHtml, campaignButtonText, campaignButtonUrl)
     .replace(/\{\{\s*name\s*\}\}/gi, previewLead.name)
     .replace(/\{\{\s*first_name\s*\}\}/gi, previewLead.name.split(' ')[0])
     .replace(/\{\{\s*company\s*\}\}/gi, previewLead.company || 'your company')
@@ -948,7 +963,10 @@ export default function CampaignsPage() {
               senderAccountId: effectiveSenderId,
               senderName: activeMailbox?.name,
               senderEmail: activeMailbox?.email,
-              template: { subject, bodyHtml },
+              template: {
+                subject,
+                bodyHtml: injectCustomActionButton(bodyHtml, campaignButtonText, campaignButtonUrl),
+              },
               sheetWebhookUrl: sheetUrl,
               skipVerification: !verifyBeforeSend,
             }),
@@ -1041,7 +1059,10 @@ export default function CampaignsPage() {
           senderAccountId: effectiveSenderId,
           senderName: activeMailbox?.name,
           senderEmail: activeMailbox?.email,
-          template: { subject, bodyHtml },
+          template: {
+            subject,
+            bodyHtml: injectCustomActionButton(bodyHtml, campaignButtonText, campaignButtonUrl),
+          },
           sheetWebhookUrl: sheetUrl,
           skipVerification: !verifyBeforeSend,
           mode: 'drip',
@@ -2115,6 +2136,71 @@ export default function CampaignsPage() {
                   onChange={(e) => setBodyHtml(e.target.value)}
                   className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs text-slate-900 focus:outline-none focus:border-blue-500 font-mono text-[11px] leading-relaxed resize-none"
                 />
+              </div>
+
+              {/* Custom Action Button (Optional) */}
+              <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-2.5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
+                    <Sliders className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Custom Action Button (Optional):</span>
+                  </label>
+                  {campaignButtonText.trim() && (
+                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                      Button Active
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">
+                      Button Text (Label):
+                    </label>
+                    <input
+                      type="text"
+                      value={campaignButtonText}
+                      onChange={(e) => setCampaignButtonText(e.target.value)}
+                      placeholder="e.g. Our Services, Book Demo"
+                      className="w-full bg-white border border-slate-200 focus:border-blue-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-medium focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">
+                      Button Destination URL (Link):
+                    </label>
+                    <input
+                      type="url"
+                      value={campaignButtonUrl}
+                      onChange={(e) => setCampaignButtonUrl(e.target.value)}
+                      placeholder="https://yourwebsite.com/services"
+                      className="w-full bg-white border border-slate-200 focus:border-blue-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-medium focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Live Button Preview */}
+                {campaignButtonText.trim() && (
+                  <div className="bg-white border border-slate-200 rounded-lg p-2 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-slate-500 font-semibold">Button Preview:</span>
+                      <span className="inline-block px-3 py-1 bg-blue-600 text-white font-bold text-[11px] rounded-md shadow-2xs">
+                        {campaignButtonText.trim()} &rarr;
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCampaignButtonText('');
+                        setCampaignButtonUrl('');
+                      }}
+                      className="text-[10px] text-rose-500 hover:text-rose-700 font-semibold cursor-pointer"
+                    >
+                      Clear Button
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 

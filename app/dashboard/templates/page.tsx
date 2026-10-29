@@ -30,6 +30,7 @@ import {
   getAllTemplates,
   saveCustomTemplate,
   deleteCustomTemplate,
+  injectCustomActionButton,
 } from '@/lib/templates/templates';
 
 export default function TemplatesPage() {
@@ -49,6 +50,8 @@ export default function TemplatesPage() {
   const [modalImagePosition, setModalImagePosition] = useState<'top' | 'middle' | 'bottom'>('top');
   const [modalImageAlignment, setModalImageAlignment] = useState<'center' | 'left' | 'right'>('center');
   const [modalImageWidth, setModalImageWidth] = useState<'100%' | '75%' | '50%' | '300px'>('100%');
+  const [modalButtonText, setModalButtonText] = useState('');
+  const [modalButtonUrl, setModalButtonUrl] = useState('');
   const [editorTab, setEditorTab] = useState<'visual' | 'code'>('visual');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [uploadSuccessMsg, setUploadSuccessMsg] = useState('');
@@ -175,6 +178,8 @@ export default function TemplatesPage() {
     setModalImagePosition('top');
     setModalImageAlignment('center');
     setModalImageWidth('100%');
+    setModalButtonText('');
+    setModalButtonUrl('');
     setEditorTab('visual');
     setUploadSuccessMsg('');
     setShowEditorModal(true);
@@ -191,6 +196,8 @@ export default function TemplatesPage() {
     setModalImagePosition(tmpl.imagePosition || 'top');
     setModalImageAlignment('center');
     setModalImageWidth('100%');
+    setModalButtonText(tmpl.buttonText || '');
+    setModalButtonUrl(tmpl.buttonUrl || '');
     setEditorTab('visual');
     setUploadSuccessMsg('');
     setShowEditorModal(true);
@@ -352,39 +359,49 @@ export default function TemplatesPage() {
     setCustomButtonUrl('');
   };
 
-  // Construct Final HTML with Image & Clickable Link embedded
+  // Construct Final HTML with Image & Clickable Link and Custom Action Button embedded
   const getCombinedHtml = () => {
-    if (!modalImageUrl) return modalBody;
+    let finalHtml = modalBody;
 
-    const alignStyle =
-      modalImageAlignment === 'center'
-        ? 'margin: 0 auto; display: block;'
-        : modalImageAlignment === 'right'
-        ? 'margin-left: auto; display: block;'
-        : 'margin-right: auto; display: block;';
+    if (modalImageUrl) {
+      const alignStyle =
+        modalImageAlignment === 'center'
+          ? 'margin: 0 auto; display: block;'
+          : modalImageAlignment === 'right'
+          ? 'margin-left: auto; display: block;'
+          : 'margin-right: auto; display: block;';
 
-    const imgElement = `<img src="${modalImageUrl}" alt="Campaign Graphic" style="max-width: ${modalImageWidth}; height: auto; border-radius: 8px; ${alignStyle} box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 0;" />`;
+      const imgElement = `<img src="${modalImageUrl}" alt="Campaign Graphic" border="0" style="max-width: ${modalImageWidth}; height: auto; border-radius: 8px; ${alignStyle} box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 0;" />`;
 
-    const wrappedImg = modalImageLinkUrl.trim()
-      ? `<a href="${modalImageLinkUrl.trim()}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; display: inline-block;">\n  ${imgElement}\n</a>`
-      : imgElement;
+      const wrappedImg = modalImageLinkUrl.trim()
+        ? `<a href="${modalImageLinkUrl.trim()}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; display: inline-block;">\n  ${imgElement}\n</a>`
+        : imgElement;
 
-    const container = `<div style="text-align: ${modalImageAlignment}; margin: 16px 0;">\n  ${wrappedImg}\n</div>`;
+      const container = `<div style="text-align: ${modalImageAlignment}; margin: 16px 0;">\n  ${wrappedImg}\n</div>`;
 
-    if (modalImagePosition === 'top') {
-      return `${container}\n${modalBody}`;
-    } else if (modalImagePosition === 'bottom') {
-      return `${modalBody}\n${container}`;
-    } else {
-      // Middle
-      const paragraphs = modalBody.split('</p>');
-      if (paragraphs.length > 2) {
-        const midpoint = Math.floor(paragraphs.length / 2);
-        paragraphs.splice(midpoint, 0, container);
-        return paragraphs.join('</p>');
+      if (modalImagePosition === 'top') {
+        finalHtml = `${container}\n${finalHtml}`;
+      } else if (modalImagePosition === 'bottom') {
+        finalHtml = `${finalHtml}\n${container}`;
+      } else {
+        // Middle
+        const paragraphs = finalHtml.split('</p>');
+        if (paragraphs.length > 2) {
+          const midpoint = Math.floor(paragraphs.length / 2);
+          paragraphs.splice(midpoint, 0, container);
+          finalHtml = paragraphs.join('</p>');
+        } else {
+          finalHtml = `${finalHtml}\n${container}`;
+        }
       }
-      return `${modalBody}\n${container}`;
     }
+
+    // Embed Custom Action Button if configured
+    if (modalButtonText.trim() || modalButtonUrl.trim()) {
+      finalHtml = injectCustomActionButton(finalHtml, modalButtonText.trim(), modalButtonUrl.trim());
+    }
+
+    return finalHtml;
   };
 
   // Save Modal Changes
@@ -407,6 +424,8 @@ export default function TemplatesPage() {
       imageUrl: modalImageUrl || undefined,
       imageLinkUrl: modalImageLinkUrl.trim() || undefined,
       imagePosition: modalImagePosition,
+      buttonText: modalButtonText.trim() || undefined,
+      buttonUrl: modalButtonUrl.trim() || undefined,
     });
 
     setShowEditorModal(false);
@@ -460,16 +479,22 @@ export default function TemplatesPage() {
   // Apply Generated Result to Full Editor
   const handleOpenGeneratedInEditor = () => {
     if (!generatedResult) return;
+    const effectiveBtnText = generatedResult.buttonText || aiButtonText.trim();
+    const effectiveBtnUrl = generatedResult.buttonUrl || aiButtonUrl.trim();
+    const bodyWithButton = injectCustomActionButton(generatedResult.body, effectiveBtnText, effectiveBtnUrl);
+
     setEditingTemplateId(null);
     setModalTitle(generatedResult.name);
     setModalSubject(generatedResult.subject);
-    setModalBody(generatedResult.body);
+    setModalBody(bodyWithButton);
     // Body already has structured layout and image embedded inside the card
     setModalImageUrl('');
     setModalImageLinkUrl(generatedResult.imageLinkUrl || '');
     setModalImagePosition('top');
     setModalImageAlignment('center');
     setModalImageWidth('100%');
+    setModalButtonText(effectiveBtnText);
+    setModalButtonUrl(effectiveBtnUrl);
     setEditorTab('visual');
     setUploadSuccessMsg('');
     setShowAiModal(false);
@@ -479,13 +504,19 @@ export default function TemplatesPage() {
   // Directly Save Generated Result
   const handleSaveGeneratedDirectly = (andOpenCampaign = false) => {
     if (!generatedResult) return;
+    const effectiveBtnText = generatedResult.buttonText || aiButtonText.trim() || undefined;
+    const effectiveBtnUrl = generatedResult.buttonUrl || aiButtonUrl.trim() || undefined;
+    const finalBody = injectCustomActionButton(generatedResult.body, effectiveBtnText, effectiveBtnUrl);
+
     const saved = saveCustomTemplate({
       name: generatedResult.name,
       subject: generatedResult.subject,
-      body: generatedResult.body,
-      imageUrl: generatedResult.imageUrl,
-      imageLinkUrl: generatedResult.imageLinkUrl,
+      body: finalBody,
+      imageUrl: generatedResult.imageUrl || aiImageUrl.trim() || undefined,
+      imageLinkUrl: generatedResult.imageLinkUrl || aiImageLinkUrl.trim() || undefined,
       imagePosition: 'top',
+      buttonText: effectiveBtnText,
+      buttonUrl: effectiveBtnUrl,
     });
     refreshTemplates();
     setShowAiModal(false);
@@ -1392,6 +1423,71 @@ export default function TemplatesPage() {
                     </div>
                   </div>
                 )}
+
+                {/* Custom Action Button (Optional) for Manual Editor */}
+                <div className="bg-white border border-slate-200 rounded-xl p-2.5 sm:p-3 space-y-2 shadow-2xs mt-2.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
+                      <Sliders className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Custom Action Button (Optional):</span>
+                    </label>
+                    {modalButtonText.trim() && (
+                      <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        Button Active
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">
+                        Button Text (Label):
+                      </label>
+                      <input
+                        type="text"
+                        value={modalButtonText}
+                        onChange={(e) => setModalButtonText(e.target.value)}
+                        placeholder="e.g. Our Services, Book a Demo, View Pricing"
+                        className="w-full bg-slate-50 focus:bg-white border border-slate-200 focus:border-blue-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-medium focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">
+                        Button Destination URL (Link):
+                      </label>
+                      <input
+                        type="url"
+                        value={modalButtonUrl}
+                        onChange={(e) => setModalButtonUrl(e.target.value)}
+                        placeholder="https://yourwebsite.com/services"
+                        className="w-full bg-slate-50 focus:bg-white border border-slate-200 focus:border-blue-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-medium focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Live Button Preview */}
+                  {modalButtonText.trim() && (
+                    <div className="bg-slate-100/80 border border-slate-200 rounded-lg p-2 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-slate-500 font-semibold">Button Preview:</span>
+                        <span className="inline-block px-3 py-1 bg-blue-600 text-white font-bold text-[11px] rounded-md shadow-2xs">
+                          {modalButtonText.trim()} &rarr;
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setModalButtonText('');
+                          setModalButtonUrl('');
+                        }}
+                        className="text-[10px] text-rose-500 hover:text-rose-700 font-semibold cursor-pointer"
+                      >
+                        Clear Button
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* ========================================================= */}

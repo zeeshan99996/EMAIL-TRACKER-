@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { injectCustomActionButton } from './templates';
 
 export interface GenerateTemplateRequest {
   prompt: string;
@@ -408,10 +409,28 @@ Generate the JSON template now.
 
         const parsed = JSON.parse(text);
         if (parsed.name && parsed.subject && parsed.body) {
+          let finalBody = String(parsed.body).trim();
+
+          // Enforce Custom Action Button injection if requested
+          if (req.buttonText || req.buttonUrl) {
+            finalBody = injectCustomActionButton(finalBody, req.buttonText, req.buttonUrl);
+          }
+
+          // Enforce Attached Graphic with backlink injection if requested and missing from AI output
+          if (req.imageUrl && !finalBody.includes(req.imageUrl)) {
+            const imgHtml = `<div style="margin: 18px 0; text-align: center;"><a href="${req.imageLinkUrl || '#'}" target="_blank" rel="noopener noreferrer" style="display: inline-block; text-decoration: none;"><img src="${req.imageUrl}" alt="Campaign Graphic" border="0" style="max-width: 100%; height: auto; border-radius: 8px; display: block; margin: 0 auto; border: 0;" /></a></div>`;
+            const headerEnd = finalBody.indexOf('</h2>');
+            if (headerEnd !== -1) {
+              finalBody = finalBody.slice(0, headerEnd + 5) + '\n' + imgHtml + finalBody.slice(headerEnd + 5);
+            } else {
+              finalBody = imgHtml + '\n' + finalBody;
+            }
+          }
+
           return {
             name: String(parsed.name).trim(),
             subject: String(parsed.subject).trim(),
-            body: String(parsed.body).trim(),
+            body: finalBody,
             imageUrl: req.imageUrl || undefined,
             imageLinkUrl: req.imageLinkUrl || undefined,
             buttonText: req.buttonText || undefined,
